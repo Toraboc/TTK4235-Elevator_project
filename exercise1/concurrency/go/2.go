@@ -3,49 +3,64 @@
 package main
 
 import (
-    . "fmt"
-    "runtime"
-    "sync"
+	"fmt"
+	"runtime"
 )
 
-var i = 0
-var mu sync.Mutex
-var wg sync.WaitGroup
-
-func incrementing() {
-    //TODO: increment i 1000000 times
-    defer wg.Done()
-    for j := 0; j < 10000; j++ {
-        mu.Lock()
-        i++
-        println(i)
-        mu.Unlock()
-    }
+type request struct {
+	action string
+	reply  chan int
 }
 
-func decrementing() {
-    //TODO: decrement i 1000000 times
-    defer wg.Done()
-    for j := 0; j < 10000; j++ {
-        mu.Lock()
-        i--
-        println(i)
-        mu.Unlock()
-    }
+func server(req chan request) {
+	i := 0
+	for {
+		select {
+		case r := <-req:
+			switch r.action {
+			case "inc":
+				i++
+			case "dec":
+				i--
+			case "get":
+				r.reply <- i
+			}
+		}
+	}
+}
+
+func incrementing(req chan request, done chan bool) {
+	for i := 0; i < 10000; i++ {
+		req <- request{action: "inc"}
+	}
+	done <- true
+}
+
+func decrementing(req chan request, done chan bool) {
+	for i := 0; i < 10000; i++ {
+		req <- request{action: "dec"}
+	}
+	done <- true
 }
 
 func main() {
-    // What does GOMAXPROCS do? What happens if you set it to 1?
-    runtime.GOMAXPROCS(2)    
-	
-    wg.Add(2)
-    // TODO: Spawn both functions as goroutines
-    go incrementing()
-    go decrementing()
+	// What does GOMAXPROCS do? What happens if you set it to 1?
+	runtime.GOMAXPROCS(3)
 
-    wg.Wait()
+	req := make(chan request)
+	done := make(chan bool)
 
-    // We have no direct way to wait for the completion of a goroutine (without additional synchronization of some sort)
-    // We will do it properly with channels soon. For now: Sleep.
-    Println("The magic number is:", i)
+	go server(req)
+
+	go incrementing(req, done)
+	go decrementing(req, done)
+
+	<-done
+	<-done
+
+	reply := make(chan int)
+	req <- request{action: "get", reply: reply}
+	final := <-reply
+
+	fmt.Println("The magic number is:", final)
 }
