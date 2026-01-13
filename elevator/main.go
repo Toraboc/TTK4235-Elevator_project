@@ -8,7 +8,7 @@ import (
 var N_FLOORS = 4
 
 func main() {
-	elevio.Init("localhost:3333",4)
+	elevio.Init("localhost:15657",4)
 
 	fmt.Println("Starting elevator")
 
@@ -29,7 +29,7 @@ func main() {
 		}
 
 		if nextOrderFloor != -1 && nextOrderFloor != position.targetFloor {
-			fmt.Println("Going to floor: %d\n", nextOrderFloor)
+			fmt.Printf("Going to floor: %d\n", nextOrderFloor)
 			gotoFloor(&position, &door, nextOrderFloor)
 		}
 	}
