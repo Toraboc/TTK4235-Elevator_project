@@ -25,7 +25,7 @@ func main() {
 
 		nextOrderFloor := getNextOrder(&orderHandler, position.lastFloor, position.lastDirection)
 		if getDirection(&position) == DirStop && door.isOpen == DoorOpen {
-			stoppedAtFloor(&orderHandler, position.lastFloor)
+			stoppedAtFloor(&orderHandler, position.lastFloor, nextOrderFloor)
 		}
 
 		if nextOrderFloor != -1 && nextOrderFloor != position.targetFloor {
