@@ -9,8 +9,8 @@ import (
 type DoorState int
 
 const (
-	DoorOpen DoorState = iota
-	DoorClosed
+	DoorClosed DoorState = iota
+	DoorOpen
 )
 
 type Door struct {
