@@ -9,13 +9,13 @@ import (
 
 func main() {
 	serverAddr := &net.UDPAddr{
-		IP:   net.ParseIP("10.100.23.155"),
+		IP:   net.ParseIP("10.100.23.11"),
 		Port: 20008, // server listening port
 	}
 
 	localAddr := &net.UDPAddr{
 		IP:   net.ParseIP("0.0.0.0"),
-		Port: 30000, // local listening port
+		Port: 20008, // local listening port
 	}
 
 	// Create a single UDP socket for sending and receiving
@@ -28,7 +28,7 @@ func main() {
 	fmt.Printf("Listening on UDP port %d\n", localAddr.Port)
 
 	buffer := make([]byte, 1024)
-
+	i:=0
 	// Goroutine: send messages every 5 seconds
 	go func() {
 		for {
@@ -39,12 +39,13 @@ func main() {
 			} else {
 				fmt.Printf("Sent %d bytes to %s\n", n, serverAddr.String())
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
 	}()
 
 	// Main loop: listen for any incoming messages
 	for {
+		i++
 		conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 		n, remoteAddr, err := conn.ReadFromUDP(buffer)
 		if err != nil {
@@ -60,6 +61,6 @@ func main() {
 			continue
 		}
 
-		fmt.Printf("Received message: %s from %s\n", string(buffer[:n]), remoteAddr)
+		fmt.Printf("Received messag no. %d: %s from %s\n", i,string(buffer[:n]), remoteAddr)
 	}
 }
