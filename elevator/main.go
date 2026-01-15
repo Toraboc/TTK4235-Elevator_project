@@ -8,12 +8,12 @@ import (
 var N_FLOORS = 4
 
 func main() {
-	elevio.Init("localhost:15657",4)
+	elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")
 
 	orderHandler := orderModuleInit()
-	door := Door{isOpen: DoorClosed, Obstructed: false, willOpenDoor: false}
+	door := Door{isOpen: false, Obstructed: false, willOpenDoor: false}
 	position := Position{}
 	initPosition(&position)
 
@@ -24,7 +24,7 @@ func main() {
 		positionModuleLoop(&position, &door)
 
 		nextOrderFloor := getNextOrder(&orderHandler, position.lastFloor, position.lastDirection)
-		if getDirection(&position) == DirStop && door.isOpen == DoorOpen {
+		if getDirection(&position) == DirStop && door.isOpen {
 			stoppedAtFloor(&orderHandler, position.lastFloor, nextOrderFloor)
 		}
 

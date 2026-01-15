@@ -2,59 +2,45 @@ package main
 
 import (
 	"Driver-go/elevio"
-	"time"
 	"fmt"
+	"time"
 )
 
-type DoorState int
-
-const (
-	DoorClosed DoorState = iota
-	DoorOpen
-)
 
 type Door struct {
-	isOpen DoorState
-	closeTime time.Time
-	Obstructed bool
+	isOpen       bool
+	closeTime    time.Time
+	Obstructed   bool
 	willOpenDoor bool
 }
 
-
-
-
-func getDoorState(door *Door) DoorState {
+func getDoorState(door *Door) bool {
 	return door.isOpen
 }
-
 
 func openDoor(door *Door) {
 	startDoorTimer(door)
 	elevio.SetDoorOpenLamp(true)
-	door.isOpen = DoorOpen
+	door.isOpen = true
 }
-
 
 func closeDoor(door *Door) {
 	elevio.SetDoorOpenLamp(false)
-	door.isOpen = DoorClosed
+	door.isOpen = false
 }
-
 
 func startDoorTimer(door *Door) {
 	door.closeTime = time.Now().Add(3 * time.Second)
 }
 
-
 func handleObstruction(door *Door) {
 	if elevio.GetObstruction() {
 		fmt.Println("Door obstructed")
 	}
-	if elevio.GetObstruction() && door.isOpen == DoorOpen {
+	if elevio.GetObstruction() && door.isOpen {
 		elevio.SetDoorOpenLamp(true)
 	}
 }
-
 
 func DoorModuleLoop(door *Door) {
 	handleObstruction(door)

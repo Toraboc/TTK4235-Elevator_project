@@ -7,20 +7,19 @@ import (
 type Direction int
 
 const (
-	DirUp Direction  = iota
+	DirUp Direction = iota
 	DirDown
 	DirStop
 )
 
 type Position struct {
-	direction Direction
+	direction     Direction
 	lastDirection Direction
-	lastFloor int
-	floorBelow int
-	isAtAFloor bool
-	targetFloor int
+	lastFloor     int
+	floorBelow    int
+	isAtAFloor    bool
+	targetFloor   int
 }
-
 
 func getPosition(pos *Position) int {
 	return pos.lastFloor
@@ -42,7 +41,8 @@ func initPosition(pos *Position) {
 	pos.targetFloor = -1
 
 	elevio.SetMotorDirection(elevio.MD_Down)
-	for elevio.GetFloor() == -1 {}
+	for elevio.GetFloor() == -1 {
+	}
 	pos.targetFloor = 0
 	elevio.SetMotorDirection(elevio.MD_Stop)
 }
@@ -70,20 +70,20 @@ func positionModuleLoop(pos *Position, door *Door) {
 		pos.direction = DirStop
 		elevio.SetMotorDirection(elevio.MD_Stop)
 		pos.targetFloor = -1
-		if getDoorState(door) == DoorClosed && door.willOpenDoor {
+		if getDoorState(door) == false && door.willOpenDoor {
 			door.willOpenDoor = false
 			openDoor(door)
 		}
 	} else if pos.floorBelow < pos.targetFloor {
 		// Elevator needs to go up
-		if getDoorState(door) == DoorClosed {
+		if getDoorState(door) == false {
 			pos.direction = DirUp
 			pos.lastDirection = DirUp
 			elevio.SetMotorDirection(elevio.MD_Up)
 		}
 	} else if pos.floorBelow >= pos.targetFloor {
 		// Elevator needs to go down
-		if getDoorState(door) == DoorClosed {
+		if getDoorState(door) == false {
 			pos.direction = DirDown
 			pos.lastDirection = DirDown
 			elevio.SetMotorDirection(elevio.MD_Down)
