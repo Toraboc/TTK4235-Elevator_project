@@ -2,49 +2,96 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
+	"os"
+	"strings"
 	"time"
 )
 
 func main() {
-	// Local address (where we listen for the reply)
-	localAddr := &net.UDPAddr{
-		IP:   net.IPv4zero, // listen on all local interfaces
-		Port: 20008,
-	}
+	// Channel to pass the server IP from listener to sender
+	serverIPChan := make(chan string)
 
-	// Remote server address
-	remoteAddr := &net.UDPAddr{
-		IP:   net.ParseIP("10.100.23.155"),
+	// Start listener for server broadcast
+	go listenForServerBroadcast(serverIPChan)
+
+	// Wait for server IP from broadcast
+	serverIP := <-serverIPChan
+	fmt.Printf("Discovered server IP: %s\n", serverIP)
+
+	// Start sending messages to the server
+	sendMessages(serverIP)
+}
+
+// Listen for UDP broadcasts on port 30000 to discover server IP
+func listenForServerBroadcast(serverIPChan chan<- string) {
+	addr := net.UDPAddr{
 		Port: 30000,
+		IP:   net.IPv4zero,
 	}
 
-	// Create UDP connection
-	conn, err := net.DialUDP("udp", localAddr, remoteAddr)
+	conn, err := net.ListenUDP("udp4", &addr)
 	if err != nil {
-		log.Fatal("DialUDP failed:", err)
+		fmt.Printf("Error listening for UDP: %v\n", err)
+		os.Exit(1)
 	}
 	defer conn.Close()
 
-	// Send message
-	message := []byte("hello from client")
-	_, err = conn.Write(message)
-	if err != nil {
-		log.Fatal("Write failed:", err)
-	}
-
-	fmt.Println("Message sent, waiting for reply...")
-
-	// Optional: avoid blocking forever
-	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-
-	// Read reply
 	buffer := make([]byte, 1024)
-	n, addr, err := conn.ReadFromUDP(buffer)
+	for {
+		n, remoteAddr, err := conn.ReadFromUDP(buffer)
+		if err != nil {
+			fmt.Printf("Error reading UDP: %v\n", err)
+			continue
+		}
+		message := strings.TrimSpace(string(buffer[:n]))
+		fmt.Printf("Received broadcast from %s: %s\n", remoteAddr.IP, message)
+
+		// Send server IP to channel
+		serverIPChan <- remoteAddr.IP.String()
+		return
+	}
+}
+
+// Send messages to the server and listen for responses
+func sendMessages(serverIP string) {
+	serverAddr := fmt.Sprintf("%s:20008", serverIP)
+	udpAddr, err := net.ResolveUDPAddr("udp4", serverAddr)
 	if err != nil {
-		log.Fatal("Read failed:", err)
+		fmt.Printf("Error resolving server address: %v\n", err)
+		os.Exit(1)
 	}
 
-	fmt.Printf("Received reply from %s: %s\n", addr, string(buffer[:n]))
+	// Create UDP connection for sending and receiving
+	conn, err := net.DialUDP("udp4", nil, udpAddr)
+	if err != nil {
+		fmt.Printf("Error dialing UDP: %v\n", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	// Goroutine to listen for server responses
+	go func() {
+		buffer := make([]byte, 1024)
+		for {
+			n, _, err := conn.ReadFromUDP(buffer)
+			if err != nil {
+				fmt.Printf("Error reading from UDP: %v\n", err)
+				continue
+			}
+			fmt.Printf("Received from server: %s\n", string(buffer[:n]))
+		}
+	}()
+
+	// Send messages periodically
+	for i := 1; i <= 5; i++ {
+		message := fmt.Sprintf("Hello server, message %d", i)
+		_, err := conn.Write([]byte(message))
+		if err != nil {
+			fmt.Printf("Error sending UDP message: %v\n", err)
+		} else {
+			fmt.Printf("Sent: %s\n", message)
+		}
+		time.Sleep(2 * time.Second)
+	}
 }
