@@ -37,7 +37,7 @@ func handleObstruction(door *Door) {
 		fmt.Println("Door obstructed")
 	}
 	if elevio.GetObstruction() && door.isOpen {
-		elevio.SetDoorOpenLamp(true)
+		openDoor(door)
 	}
 }
 
