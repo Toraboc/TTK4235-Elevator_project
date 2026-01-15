@@ -18,7 +18,7 @@ func main() {
 	initPosition(&position)
 
 	for {
-		DoorModuleLoop(&door)
+		doorModuleLoop(&door)
 		stopModuleLoop(&position, &door, &orderHandler)
 		orderModuleLoop(&orderHandler)
 		positionModuleLoop(&position, &door)

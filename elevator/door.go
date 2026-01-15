@@ -41,7 +41,7 @@ func handleObstruction(door *Door) {
 	}
 }
 
-func DoorModuleLoop(door *Door) {
+func doorModuleLoop(door *Door) {
 	handleObstruction(door)
 	if door.closeTime.Before(time.Now()) && door.Obstructed == false {
 		closeDoor(door)
