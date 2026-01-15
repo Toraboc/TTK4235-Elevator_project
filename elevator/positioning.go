@@ -31,7 +31,7 @@ func getDirection(pos *Position) Direction {
 
 func gotoFloor(pos *Position, door *Door, floor int) {
 	pos.targetFloor = floor
-	door.willOpenDoor = true
+	door.willOpen = true
 }
 
 func initPosition(pos *Position) {
@@ -70,20 +70,20 @@ func positionModuleLoop(pos *Position, door *Door) {
 		pos.direction = DirStop
 		elevio.SetMotorDirection(elevio.MD_Stop)
 		pos.targetFloor = -1
-		if getDoorState(door) == false && door.willOpenDoor {
-			door.willOpenDoor = false
+		if !(door.isOpen) && door.willOpen {
+			door.willOpen = false
 			openDoor(door)
 		}
 	} else if pos.floorBelow < pos.targetFloor {
 		// Elevator needs to go up
-		if getDoorState(door) == false {
+		if !(door.isOpen) {
 			pos.direction = DirUp
 			pos.lastDirection = DirUp
 			elevio.SetMotorDirection(elevio.MD_Up)
 		}
 	} else if pos.floorBelow >= pos.targetFloor {
 		// Elevator needs to go down
-		if getDoorState(door) == false {
+		if !(door.isOpen) {
 			pos.direction = DirDown
 			pos.lastDirection = DirDown
 			elevio.SetMotorDirection(elevio.MD_Down)

@@ -10,7 +10,7 @@ type Door struct {
 	isOpen       bool
 	closeTime    time.Time
 	Obstructed   bool
-	willOpenDoor bool
+	willOpen bool
 }
 
 func getDoorState(door *Door) bool {

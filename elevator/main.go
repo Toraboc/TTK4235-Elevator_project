@@ -13,7 +13,7 @@ func main() {
 	fmt.Println("Starting elevator")
 
 	orderHandler := orderModuleInit()
-	door := Door{isOpen: false, Obstructed: false, willOpenDoor: false}
+	door := Door{isOpen: false, Obstructed: false, willOpen: false}
 	position := Position{}
 	initPosition(&position)
 
