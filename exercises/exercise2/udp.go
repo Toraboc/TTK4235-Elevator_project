@@ -1,41 +1,50 @@
 package main
 
 import (
-    "fmt"
-    "net"
-    "os"
+	"fmt"
+	"log"
+	"net"
+	"time"
 )
 
 func main() {
-    // Define the UDP address to listen on
-    addr, err := net.ResolveUDPAddr("udp", ":30000")
-    if err != nil {
-        fmt.Println("Error resolving UDP address:", err)
-        os.Exit(1)
-    }
+	// Local address (where we listen for the reply)
+	localAddr := &net.UDPAddr{
+		IP:   net.IPv4zero, // listen on all local interfaces
+		Port: 20008,
+	}
 
-    // Create a UDP connection
-    conn, err := net.ListenUDP("udp", addr)
-    if err != nil {
-        fmt.Println("Error setting up UDP listener:", err)
-        os.Exit(1)
-    }
-    defer conn.Close()
+	// Remote server address
+	remoteAddr := &net.UDPAddr{
+		IP:   net.ParseIP("10.100.23.155"),
+		Port: 30000,
+	}
 
-    fmt.Println("Listening on UDP port 30000...")
+	// Create UDP connection
+	conn, err := net.DialUDP("udp", localAddr, remoteAddr)
+	if err != nil {
+		log.Fatal("DialUDP failed:", err)
+	}
+	defer conn.Close()
 
-    // Buffer to store incoming data
-    buffer := make([]byte, 1024)
+	// Send message
+	message := []byte("hello from client")
+	_, err = conn.Write(message)
+	if err != nil {
+		log.Fatal("Write failed:", err)
+	}
 
-    for {
-        // Read data from the connection
-        n, remoteAddr, err := conn.ReadFromUDP(buffer)
-        if err != nil {
-            fmt.Println("Error reading from UDP connection:", err)
-            continue
-        }
+	fmt.Println("Message sent, waiting for reply...")
 
-        // Print the received message and the sender's address
-        fmt.Printf("Received message: %s from %s\n", string(buffer[:n]), remoteAddr)
-    }
+	// Optional: avoid blocking forever
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
+	// Read reply
+	buffer := make([]byte, 1024)
+	n, addr, err := conn.ReadFromUDP(buffer)
+	if err != nil {
+		log.Fatal("Read failed:", err)
+	}
+
+	fmt.Printf("Received reply from %s: %s\n", addr, string(buffer[:n]))
 }
