@@ -48,8 +48,9 @@ func initPosition(pos *Position) {
 }
 
 func positionModuleLoop(pos *Position, door *Door) {
-	if elevio.GetFloor() != -1 {
-		pos.lastFloor = elevio.GetFloor()
+	temp_floor := elevio.GetFloor()
+	if temp_floor != -1 {
+		pos.lastFloor = temp_floor
 		pos.floorBelow = pos.lastFloor
 		pos.isAtAFloor = true
 		elevio.SetFloorIndicator(pos.lastFloor)
