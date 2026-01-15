@@ -128,11 +128,8 @@ func getNextOrder(orderHandler *OrderHandler, lastFloor int, drivingDirection Di
 func stoppedAtFloor(orderHandler *OrderHandler, floor int, nextOrderFloor int) { // Theodor fix, lampene for opp og ned skal ikke slukkes hver gang heisen stopper
 	orderHandler.floorState[floor] = 0
 	elevio.SetButtonLamp(elevio.BT_Cab, floor, false)
-	if nextOrderFloor > floor {
-		elevio.SetButtonLamp(elevio.BT_HallUp, floor, false)
-	} else if nextOrderFloor < floor {								// BUG: lamp isnt turned off, as order is considered fulfilled when it shouldnt be
-		elevio.SetButtonLamp(elevio.BT_HallDown, floor, false)
-	}
+	elevio.SetButtonLamp(elevio.BT_HallUp, floor, false)
+	elevio.SetButtonLamp(elevio.BT_HallDown, floor, false)
 }
 
 func clearAllOrders(orderHandler *OrderHandler) {
