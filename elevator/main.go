@@ -7,7 +7,7 @@ import (
 
 var N_FLOORS = 4
 
-func main() {
+func main2() {
 	elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")

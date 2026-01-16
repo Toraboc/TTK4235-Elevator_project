@@ -21,10 +21,18 @@ type Position struct {
 	targetFloor   int
 }
 
+/*
+getPosition(pointer to Position) int
+Returns the last known floor of the elevator.
+*/
 func getPosition(pos *Position) int {
 	return pos.lastFloor
 }
 
+/*
+getDirection(pointer to Position) Direction
+Returns the current direction of the elevator.
+*/
 func getDirection(pos *Position) Direction {
 	return pos.direction
 }
@@ -49,7 +57,7 @@ func initPosition(pos *Position) {
 
 func positionModuleLoop(pos *Position, door *Door) {
 	temp_floor := elevio.GetFloor()
-	if temp_floor != -1 {
+	if temp_floor != -1 { // Elevator is at a floor
 		pos.lastFloor = temp_floor
 		pos.floorBelow = pos.lastFloor
 		pos.isAtAFloor = true
@@ -62,6 +70,7 @@ func positionModuleLoop(pos *Position, door *Door) {
 		}
 		pos.isAtAFloor = false
 	}
+
 	if pos.targetFloor == -1 {
 		pos.direction = DirStop
 		elevio.SetMotorDirection(elevio.MD_Stop)
