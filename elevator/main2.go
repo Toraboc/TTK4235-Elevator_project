@@ -1,7 +1,7 @@
 package main
 
 import (
-	"elevator/network"
+	"elevator/drivers/network"
 	"fmt"
 )
 
