@@ -3,34 +3,35 @@ package main
 import (
 	"Driver-go/elevio"
 	"fmt"
+	"project/drivers/elevator"
+	//"project/drivers/network"
+	//"project/drivers/orderhandler"
 )
 
-var N_FLOORS = 4
-
-func main2() {
+func main() {
 	elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")
 
-	orderHandler := orderModuleInit()
-	door := Door{isOpen: false, Obstructed: false, willOpen: false}
-	position := Position{}
-	initPosition(&position)
+	orderHandler := elevator.OrderModuleInit()
+	door := elevator.Door{IsOpen: false, Obstructed: false, WillOpen: false}
+	position := elevator.Position{}
+	elevator.InitPosition(&position)
 
 	for {
-		doorModuleLoop(&door)
-		stopModuleLoop(&position, &door, &orderHandler)
-		orderModuleLoop(&orderHandler)
-		positionModuleLoop(&position, &door)
+		elevator.DoorModuleLoop(&door)
+		elevator.StopModuleLoop(&position, &door, &orderHandler)
+		elevator.OrderModuleLoop(&orderHandler)
+		elevator.PositionModuleLoop(&position, &door)
 
-		nextOrderFloor := getNextOrder(&orderHandler, position.lastFloor, position.lastDirection)
-		if getDirection(&position) == DirStop && door.isOpen {
-			stoppedAtFloor(&orderHandler, position.lastFloor, nextOrderFloor)
+		nextOrderFloor := elevator.GetNextOrder(&orderHandler, position.LastFloor, position.LastDirection)
+		if elevator.GetDirection(&position) == elevator.DirStop && door.IsOpen {
+			elevator.StoppedAtFloor(&orderHandler, position.LastFloor, nextOrderFloor)
 		}
 
-		if nextOrderFloor != -1 && nextOrderFloor != position.targetFloor {
+		if nextOrderFloor != -1 && nextOrderFloor != position.TargetFloor {
 			fmt.Printf("Going to floor: %d\n", nextOrderFloor)
-			gotoFloor(&position, &door, nextOrderFloor)
+			elevator.GotoFloor(&position, &door, nextOrderFloor)
 		}
 	}
 }

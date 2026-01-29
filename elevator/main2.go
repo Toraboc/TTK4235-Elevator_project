@@ -1,11 +1,11 @@
 package main
 
 import (
-	"elevator/drivers/network"
 	"fmt"
+	"project/drivers/network"
 )
 
-func main() {
+func main2() {
 	data := []byte("Hello, peers!")
 	handleMessage := func(msg network.Message) {
 		fmt.Printf("from %s: %s\n", msg.FromIP, string(msg.Payload))

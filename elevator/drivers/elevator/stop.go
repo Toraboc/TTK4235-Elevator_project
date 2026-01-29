@@ -1,8 +1,7 @@
-package main
+package elevator
 
 import (
 	"Driver-go/elevio"
-
 )
 
 func activateStopLamp() {
@@ -21,13 +20,14 @@ func handleStop(pos *Position, door *Door, orderHandler *OrderHandler) {
 	if elevio.GetFloor() != -1 {
 		openDoor(door)
 	}
-	for elevio.GetStop() {} // Should probably make a fix here later
+	for elevio.GetStop() {
+	} // Should probably make a fix here later
 	deactivateStopLamp()
 	startDoorTimer(door)
-	pos.targetFloor = -1
+	pos.TargetFloor = -1
 }
 
-func stopModuleLoop(pos *Position, door *Door, orderHandler *OrderHandler) {
+func StopModuleLoop(pos *Position, door *Door, orderHandler *OrderHandler) {
 	if elevio.GetStop() {
 		handleStop(pos, door, orderHandler)
 	}
