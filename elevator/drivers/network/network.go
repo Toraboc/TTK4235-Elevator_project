@@ -11,7 +11,7 @@ import (
 
 const (
 	// port is the UDP port used for both listening and broadcasting.
-	port = 42069
+	port = 42061
 	// broadcast is the IPv4 broadcast address and port used for discovery.
 	broadcast = "255.255.255.255:42069"
 	// sendHz is the broadcast frequency in Hz.
