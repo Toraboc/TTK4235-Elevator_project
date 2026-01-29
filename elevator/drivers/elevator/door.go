@@ -1,4 +1,4 @@
-package main
+package elevator
 
 import (
 	"Driver-go/elevio"
@@ -7,25 +7,25 @@ import (
 )
 
 type Door struct {
-	isOpen       bool
-	closeTime    time.Time
-	Obstructed   bool
-	willOpen bool
+	IsOpen     bool
+	closeTime  time.Time
+	Obstructed bool
+	WillOpen   bool
 }
 
 func getDoorState(door *Door) bool {
-	return door.isOpen
+	return door.IsOpen
 }
 
 func openDoor(door *Door) {
 	startDoorTimer(door)
 	elevio.SetDoorOpenLamp(true)
-	door.isOpen = true
+	door.IsOpen = true
 }
 
 func closeDoor(door *Door) {
 	elevio.SetDoorOpenLamp(false)
-	door.isOpen = false
+	door.IsOpen = false
 }
 
 func startDoorTimer(door *Door) {
@@ -36,12 +36,12 @@ func handleObstruction(door *Door) {
 	if elevio.GetObstruction() {
 		fmt.Println("Door obstructed")
 	}
-	if elevio.GetObstruction() && door.isOpen {
+	if elevio.GetObstruction() && door.IsOpen {
 		openDoor(door)
 	}
 }
 
-func doorModuleLoop(door *Door) {
+func DoorModuleLoop(door *Door) {
 	handleObstruction(door)
 	if door.closeTime.Before(time.Now()) && door.Obstructed == false {
 		closeDoor(door)

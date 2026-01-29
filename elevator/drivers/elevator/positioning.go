@@ -1,4 +1,4 @@
-package main
+package elevator
 
 import (
 	"Driver-go/elevio"
@@ -14,11 +14,11 @@ const (
 
 type Position struct {
 	direction     Direction
-	lastDirection Direction
-	lastFloor     int
+	LastDirection Direction
+	LastFloor     int
 	floorBelow    int
 	isAtAFloor    bool
-	targetFloor   int
+	TargetFloor   int
 }
 
 /*
@@ -26,75 +26,75 @@ getPosition(pointer to Position) int
 Returns the last known floor of the elevator.
 */
 func getPosition(pos *Position) int {
-	return pos.lastFloor
+	return pos.LastFloor
 }
 
 /*
 getDirection(pointer to Position) Direction
 Returns the current direction of the elevator.
 */
-func getDirection(pos *Position) Direction {
+func GetDirection(pos *Position) Direction {
 	return pos.direction
 }
 
-func gotoFloor(pos *Position, door *Door, floor int) {
-	pos.targetFloor = floor
-	door.willOpen = true
+func GotoFloor(pos *Position, door *Door, floor int) {
+	pos.TargetFloor = floor
+	door.WillOpen = true
 }
 
-func initPosition(pos *Position) {
+func InitPosition(pos *Position) {
 	pos.direction = DirStop
-	pos.lastDirection = DirDown
-	pos.lastFloor = 0
-	pos.targetFloor = -1
+	pos.LastDirection = DirDown
+	pos.LastFloor = 0
+	pos.TargetFloor = -1
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 	for elevio.GetFloor() == -1 {
 	}
-	pos.targetFloor = 0
+	pos.TargetFloor = 0
 	elevio.SetMotorDirection(elevio.MD_Stop)
 }
 
-func positionModuleLoop(pos *Position, door *Door) {
+func PositionModuleLoop(pos *Position, door *Door) {
 	temp_floor := elevio.GetFloor()
 	if temp_floor != -1 { // Elevator is at a floor
-		pos.lastFloor = temp_floor
-		pos.floorBelow = pos.lastFloor
+		pos.LastFloor = temp_floor
+		pos.floorBelow = pos.LastFloor
 		pos.isAtAFloor = true
-		elevio.SetFloorIndicator(pos.lastFloor)
+		elevio.SetFloorIndicator(pos.LastFloor)
 	} else {
 		if pos.isAtAFloor {
 			if pos.direction == DirDown {
-				pos.floorBelow = pos.lastFloor - 1
+				pos.floorBelow = pos.LastFloor - 1
 			}
 		}
 		pos.isAtAFloor = false
 	}
 
-	if pos.targetFloor == -1 {
+	if pos.TargetFloor == -1 {
 		pos.direction = DirStop
 		elevio.SetMotorDirection(elevio.MD_Stop)
-	} else if pos.isAtAFloor && pos.lastFloor == pos.targetFloor {
+	} else if pos.isAtAFloor && pos.LastFloor == pos.TargetFloor {
 		// Elevator has arrived at target floor
 		pos.direction = DirStop
 		elevio.SetMotorDirection(elevio.MD_Stop)
-		pos.targetFloor = -1
-		if !(door.isOpen) && door.willOpen {
-			door.willOpen = false
+		pos.TargetFloor = -1
+		if !(door.IsOpen) && door.WillOpen {
+			door.WillOpen = false
 			openDoor(door)
 		}
-	} else if pos.floorBelow < pos.targetFloor {
+	} else if pos.floorBelow < pos.TargetFloor {
 		// Elevator needs to go up
-		if !(door.isOpen) {
+		if !(door.IsOpen) {
 			pos.direction = DirUp
-			pos.lastDirection = DirUp
+			pos.LastDirection = DirUp
 			elevio.SetMotorDirection(elevio.MD_Up)
 		}
-	} else if pos.floorBelow >= pos.targetFloor {
+	} else if pos.floorBelow >= pos.TargetFloor {
 		// Elevator needs to go down
-		if !(door.isOpen) {
+		if !(door.IsOpen) {
 			pos.direction = DirDown
-			pos.lastDirection = DirDown
+			pos.LastDirection = DirDown
 			elevio.SetMotorDirection(elevio.MD_Down)
 		}
 	}
