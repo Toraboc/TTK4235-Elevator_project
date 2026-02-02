@@ -49,23 +49,33 @@ run_remote() {
 
     echo "Deploying to $host..."
 
-    ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR"
-    scp -r "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
-
+    # 1. Stop elevatorserver if something is listening on port 15657
     ssh "$REMOTE_USER@$host" "
         set -e
 
-        # 1. Check if something is listening on TCP 15657
-        if ! ss -ltn | awk '{print \$4}' | grep -q ':15657$'; then
-            echo 'Port 15657 not in use. Starting elevatorserver...'
+        PIDS=\$(ss -ltnp '( sport = :15657 )' 2>/dev/null | awk -F',' 'NR>1 {print \$2}' | awk '{print \$2}')
 
-            cd $REMOTE_BASE_DIR
-
-            nohup ./elevatorserver > elevatorserver.log 2>&1 &
+        if [[ -n \"\$PIDS\" ]]; then
+            echo 'Stopping process(es) on port 15657: ' \$PIDS
+            kill \$PIDS
             sleep 1
         else
-            echo 'Port 15657 already in use. elevatorserver assumed running.'
+            echo 'No process listening on port 15657'
         fi
+    "
+
+    # Copy code
+    ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR"
+    scp -r "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
+
+    # Start elevatorserver and go code
+    ssh "$REMOTE_USER@$host" "
+        set -e
+
+        cd $REMOTE_BASE_DIR
+        echo 'Starting elevatorserver'
+        ./elevatorserver > elevatorserver.log 2>&1 &
+        sleep 1
         
         cd $REMOTE_BASE_DIR$CODE_DIR
         go run $GO_MAIN 2>&1
