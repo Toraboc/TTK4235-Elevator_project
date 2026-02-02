@@ -29,3 +29,5 @@ type Worldview struct {
     assignedHallDownOrders [numberOfFloors]bool
     assignedCabOrders [numberOfFloors]bool
 }
+
+
