@@ -2,7 +2,7 @@ package main
 
 
 
-func networkProcess() {
+func NetworkProcess() {
 	for {}
 }
 

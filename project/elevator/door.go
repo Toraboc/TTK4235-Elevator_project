@@ -13,21 +13,21 @@ type Door struct {
 	changeTime time.Time
 }
 
-func (door Door) IsOpen() bool {
+func (door *Door) IsOpen() bool {
 	return door.isOpen
 }
 
-func (door Door) Open() {
+func (door *Door) Open() {
 	elevio.SetDoorOpenLamp(true)
 	door.isOpen = true
 	door.changeTime = time.Now()
 }
 
-func (door Door) IsObsrcted() bool {
+func (door *Door) IsObsrcted() bool {
 	return elevio.GetObstruction()
 }
 
-func (door Door) Close() error {
+func (door *Door) Close() error {
 	if door.IsObsrcted() {
 		return errors.New("The door is obstrcted, cannot close the door")
 	}
@@ -39,6 +39,6 @@ func (door Door) Close() error {
 	return nil
 }
 
-func (door Door) ShouldClose() bool {
+func (door *Door) ShouldClose() bool {
 	return !door.IsOpen() && time.Since(door.changeTime) > doorOpenTime
 }
