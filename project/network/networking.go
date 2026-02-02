@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"project/drivers/elevator"
 	"project/drivers/orderHandler"
-	"time"
 	"sync"
+	"time"
 	//"bytes"
 	//"net"
 	//"sort"
@@ -17,7 +17,7 @@ type NetworkNode struct {
 	id      NodeID
 	lastHB  time.Time
 	knowsMe bool
-	mu    	sync.Mutex
+	mu      sync.Mutex
 }
 
 type SyncMessage struct {
@@ -41,5 +41,10 @@ const (
 	printEvery = time.Second
 )
 
+func udplisten() {
 
-func 
+}
+
+func udpbroadcast() {
+
+}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"project/drivers/testnetwork"
+	"project/testnetwork"
 )
 
 func main2() {
