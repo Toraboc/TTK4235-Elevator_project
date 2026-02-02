@@ -1,24 +1,16 @@
 package main
 
 import (
-	"Driver-go/elevio"
 	"fmt"
-	"sync"
 	. "project/elevator"
-	"project/shared"
 	//"project/drivers/network"
 	//"project/drivers/orderhandler"
 )
 
-var worldview Worldview
-var worldviewMutex sync.Mutex
-
 func main() {
-	elevio.Init("localhost:15657", 4)
-
 	fmt.Println("Starting elevator")
 
-	go networkProcess()
+	// go NetworkProcess()
 
 	ElevatorProcess()
 
@@ -58,7 +50,7 @@ func main() {
 
 
 
-func mainOld() {
+/*func mainOld() {
 	elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")
@@ -87,4 +79,4 @@ func mainOld() {
 			elevator.GotoFloor(&position, &door, nextOrderFloor)
 		}
 	}
-}
+}*/

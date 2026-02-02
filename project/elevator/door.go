@@ -3,7 +3,6 @@ package elevator
 import (
 	"Driver-go/elevio"
 	"errors"
-	"fmt"
 	"time"
 )
 
