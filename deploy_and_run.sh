@@ -5,8 +5,8 @@ set -euo pipefail
 # ---------------- CONFIG ----------------
 IP_PREFIX="10.100.23."
 REMOTE_USER="student"
-LOCAL_GO_DIR="$HOME/Documents/Sanntid55"
-REMOTE_BASE_DIR=$LOCAL_GO_DIR
+LOCAL_GO_DIR="."
+REMOTE_BASE_DIR="/home/$REMOTE_USER/Documents/Sanntid55"
 CODE_DIR="/project"
 GO_MAIN="main.go"
 SSH_KEY="$HOME/.ssh/id_ed25519"
@@ -20,7 +20,7 @@ if [[ "$#" -eq 0 ]]; then
 fi
 
 # 1. Ensure SSH key exists
-if [[ ! -f "$SSH_KEY" ]]; then
+if [[ "$(uname -s)" == "Linux" && ! -f "$SSH_KEY" ]]; then
     echo "No SSH key found. Generating one..."
     ssh-keygen -t ed25519 -f "$SSH_KEY" -N ""
 fi
@@ -28,6 +28,10 @@ fi
 # 2. Function to ensure key-based access
 ensure_ssh_access() {
     local host="$1"
+
+    if [[ "$(uname -s)" != "Linux" ]]; then
+        return
+    fi
 
     echo "Checking SSH access to $host..."
 
