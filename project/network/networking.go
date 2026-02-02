@@ -2,8 +2,8 @@ package network
 
 import (
 	"fmt"
-	"project/drivers/elevator"
-	"project/drivers/orderHandler"
+	"project/elevator"
+	"project/orderHandler"
 	"sync"
 	"time"
 	//"bytes"
