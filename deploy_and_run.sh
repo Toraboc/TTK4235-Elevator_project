@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # ---------------- CONFIG ----------------
-MACHINES_FILE="machines.txt"
+IP_PREFIX="10.100.23."
 REMOTE_USER="student"
 LOCAL_GO_DIR="$HOME/Documents/Sanntid55"
 REMOTE_BASE_DIR=$LOCAL_GO_DIR
@@ -13,8 +13,9 @@ SSH_KEY="$HOME/.ssh/id_ed25519"
 SSH_PUB_KEY="$SSH_KEY.pub"
 # ----------------------------------------
 
-if [[ ! -f "$MACHINES_FILE" ]]; then
-    echo "Machines file not found: $MACHINES_FILE"
+if [[ "$#" -eq 0 ]]; then
+    echo "Usage: $0 host1 [host2 ...]"
+    echo "For example ./deploy_and_run.sh 33 34 35"
     exit 1
 fi
 
@@ -51,18 +52,8 @@ run_remote() {
 
     # 1. Stop elevatorserver if something is listening on port 15657
     ssh "$REMOTE_USER@$host" "
-        set -e
-
-        PIDS=\$(ss -ltnp '( sport = :15657 )' 2>/dev/null | awk -F',' 'NR>1 {print \$2}' | awk '{print \$2}')
-
-        if [[ -n \"\$PIDS\" ]]; then
-            echo 'Stopping process(es) on port 15657: ' \$PIDS
-            kill \$PIDS
-            sleep 1
-        else
-            echo 'No process listening on port 15657'
-        fi
-    "
+        pkill -f ./elevatorserver
+    " || true
 
     # Copy code
     ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR"
@@ -83,14 +74,17 @@ run_remote() {
 }
 
 # 4. Main loop
-while read -r host; do
-    [[ -z "$host" ]] && continue
+for last_octet in "$@"; do
+    [[ -z "$last_octet" ]] && continue
+
+    # Construct full IP
+    host="${IP_PREFIX}${last_octet}"
 
     ensure_ssh_access "$host"
 
     # Run each host in background so outputs interleave
     run_remote "$host" &
-done < "$MACHINES_FILE"
+done
+
 
 wait
-echo "All deployments started."
