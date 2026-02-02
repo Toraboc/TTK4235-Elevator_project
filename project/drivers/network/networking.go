@@ -32,9 +32,9 @@ type NetworkState struct {
 
 const (
 	// port is the UDP port used for both listening and broadcasting.
-	port = 42061
+	port = 42067
 	// broadcast is the IPv4 broadcast address and port used for discovery.
-	broadcast = "255.255.255.255:42061"
+	broadcast = "255.255.255.255:42067"
 	// sendHz is the broadcast frequency in Hz.
 	sendHz = 100
 	// printEvery is the interval used for peer list logging.
