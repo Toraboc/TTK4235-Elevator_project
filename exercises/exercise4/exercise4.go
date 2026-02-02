@@ -7,17 +7,21 @@ import (
 	"runtime"
 	"sync"
 	"time"
+	"encoding/binary"
+	"io"
 )
 
-var number int
+var number int32
 var mu sync.Mutex
 
 const filename = "exercise4.go"
+const socketFile = "/home/student/Documents/Sanntid55/exercises/exercise4/heartbeat.sock"
 
 func main() {
 	backupState()
 
-	fmt.Println("Taking over...")
+	// Spawn backup
+	spawnNewProcess()
 
 	mainState()
 }
@@ -35,72 +39,78 @@ func spawnNewProcess() {
 }
 
 func backupState() {
-	quit := make(chan bool)
-	lastHB := time.Now()
-	var HBMu sync.Mutex
-
-	go func() {
-		listener, err := net.Listen("unix", "./heartbeat.sock")
-		if err != nil {
-			fmt.Println(err)
-			panic("Failed to listen to file socket")
-		}
-		defer listener.Close()
-		tcpListener := listener.(*net.TCPListener)
-
-		for {
-			select {
-			case <-quit:
-				return
-			default:
-				tcpListener.SetDeadline(time.Now().Add(300 * time.Millisecond))
-				conn, err := tcpListener.Accept()
-				if err != nil {
-					if ne, ok := err.(net.Error); ok && ne.Timeout() {
-						// Accept timed out
-						continue // or break / handle timeout
-					}
-					fmt.Println("Failed to receive a message")
-				}
-
-				buf := make([]byte, 16)
-				nr, err := conn.Read(buf)
-				if err != nil {
-					return
-				}
-
-				data := buf[0:nr]
-				mu.Lock()
-				number = int(data[0])
-				mu.Unlock()
-				
-				HBMu.Lock()
-				lastHB = time.Now()
-				HBMu.Unlock()
-
-			}
-		}
-	}()
+	fmt.Println("Entering Backup")
+	listener, err := net.Listen("unix", socketFile)
+	if err != nil {
+		fmt.Println(err)
+		panic("Failed to listen to file socket")
+	}
+	defer listener.Close()
+	unixListener := listener.(*net.UnixListener)
 
 	for {
-		time.Sleep(300 * time.Millisecond)
+		unixListener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
+		conn, err := unixListener.Accept()
+		if err != nil {
+			if ne, ok := err.(net.Error); ok && ne.Timeout() {
+				// Timeout, the other process is probably dead
+				return
+			}
+			fmt.Println("Failed to receive a message")
+		}
 
-		HBMu.Lock()
-		timeDiff := time.Since(lastHB)
-		HBMu.Unlock()
+		buf := make([]byte, 4)
 
-		if (timeDiff > 300 * time.Millisecond) {
-			quit <- true
-			break
+		for {
+			_, err2 := conn.Read(buf)
+			if err2 != nil {
+				if err2 == io.EOF {
+					fmt.Println("Client disconnected")
+					// Probably a crash
+					return
+				} else {
+					fmt.Println("Read error:", err2)
+				}
+				break
+			}
+
+			val := int32(binary.BigEndian.Uint32(buf))
+			mu.Lock()
+			number = val
+			mu.Unlock()
 		}
 	}
 }
 
 func mainState() {
-	go printLoop()
-	go heartBeatLoop()
+	fmt.Println("Taking over as PRIMARY")
+	conn, err := getConnection()
+	if err != nil {
+		fmt.Println(err)
+		panic("Failed to open socket file")
+	}
 
-	time.Sleep(5 * time.Second)
+	go printLoop()
+	go heartBeatLoop(conn)
+
+	for {}
+}
+
+func getConnection() (net.Conn, error) {
+	deadline := time.Now().Add(500 * time.Millisecond)
+
+    for {
+        conn, err := net.Dial("unix", socketFile)
+        if err == nil {
+            return conn, nil
+        }
+
+        if time.Now().After(deadline) {
+            return nil, err
+        }
+
+        time.Sleep(50 * time.Millisecond)
+    }
 }
 
 func printLoop() {
@@ -113,13 +123,21 @@ func printLoop() {
 	}
 }
 
-func heartBeatLoop() {
+func heartBeatLoop(conn net.Conn) {
 	for {
-		time.Sleep(100 * time.Millisecond)
 		mu.Lock()
-		currentNumer := number
+		currentNumber := number
 		mu.Unlock()
-		// Send heartbear
-		fmt.Println("HB:", currentNumer)
+		// Send heartbeat
+
+		buf := make([]byte, 4) // 4 bytes for int32
+		binary.BigEndian.PutUint32(buf, uint32(currentNumber))
+
+		_, err := conn.Write(buf)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		time.Sleep(100 * time.Millisecond)
 	}
 }
