@@ -48,6 +48,31 @@ ensure_ssh_access() {
     echo "SSH key installed on $host"
 }
 
+
+# Keep track of background job PIDs
+declare -a JOB_PIDS=()
+
+# Ctrl-C handler
+cleanup() {
+    echo "Caught Ctrl-C! Killing background jobs..."
+    
+    # Kill local background jobs
+    for pid in "${JOB_PIDS[@]}"; do
+        kill "$pid" 2>/dev/null || true
+    done
+
+    # Kill elevatorserver on all remote hosts
+    for last_octet in "$@"; do
+        host="${IP_PREFIX}${last_octet}"
+        echo "Stopping elevatorserver on $host"
+        ssh "$REMOTE_USER@$host" "pkill -f './elevatorserver'" || true
+    done
+
+    exit 1
+}
+
+trap cleanup INT
+
 # 3. Copy code and start program
 run_remote() {
     local host="$1"
@@ -74,7 +99,8 @@ run_remote() {
         
         cd $REMOTE_BASE_DIR$CODE_DIR
         go run $GO_MAIN 2>&1
-    " | sed "s/^/[$host] /"
+    " | sed "s/^/[$host] /" &
+    JOB_PIDS+=("$!")
 }
 
 # 4. Main loop
@@ -87,8 +113,7 @@ for last_octet in "$@"; do
     ensure_ssh_access "$host"
 
     # Run each host in background so outputs interleave
-    run_remote "$host" &
+    run_remote "$host"
 done
-
 
 wait
