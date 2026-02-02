@@ -86,7 +86,7 @@ run_remote() {
 
     # Copy code
     ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR"
-    scp -r "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
+    scp -rq "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
 
     # Start elevatorserver and go code
     ssh "$REMOTE_USER@$host" "

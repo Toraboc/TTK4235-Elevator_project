@@ -116,9 +116,8 @@ func (pos *ElevPositioning) handleDriving() {
 		pos.updatePosition()
 
 		// TODO: Change the target floor to a floor from the orderHandler
-		pos.handleElevatorMotor(1)
+		pos.handleElevatorMotor(0)
 
-		pos.printState()
 
 		// Close the door after some time
 		if (pos.behaviour == PASSENGER_TRANSFER || (pos.behaviour == OBSTRCTED && pos.door.IsOpen())) {
