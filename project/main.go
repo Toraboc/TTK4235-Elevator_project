@@ -3,7 +3,7 @@ package main
 import (
 	"Driver-go/elevio"
 	"fmt"
-	"project/drivers/elevator"
+	"project/elevator"
 	//"project/drivers/network"
 	//"project/drivers/orderhandler"
 )
