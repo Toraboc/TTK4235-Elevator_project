@@ -5,8 +5,9 @@ set -euo pipefail
 # ---------------- CONFIG ----------------
 MACHINES_FILE="machines.txt"
 REMOTE_USER="student"
-LOCAL_GO_DIR="$HOME/Documents/Sanntid15"
+LOCAL_GO_DIR="$HOME/Documents/Sanntid55"
 REMOTE_BASE_DIR=$LOCAL_GO_DIR
+CODE_DIR="/project"
 GO_MAIN="main.go"
 SSH_KEY="$HOME/.ssh/id_ed25519"
 SSH_PUB_KEY="$SSH_KEY.pub"
@@ -37,14 +38,7 @@ ensure_ssh_access() {
     echo "Key-based SSH not available for $host"
     echo "You will be prompted for the SSH password."
 
-    ssh "$REMOTE_USER@$host" "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
-    scp "$SSH_PUB_KEY" "$REMOTE_USER@$host:/tmp/authorized_keys.tmp"
-
-    ssh "$REMOTE_USER@$host" "
-        cat /tmp/authorized_keys.tmp >> ~/.ssh/authorized_keys &&
-        chmod 600 ~/.ssh/authorized_keys &&
-        rm /tmp/authorized_keys.tmp
-    "
+    ssh-copy-id -i "$SSH_PUB_KEY" "$REMOTE_USER@$host"
 
     echo "SSH key installed on $host"
 }
@@ -59,7 +53,21 @@ run_remote() {
     scp -r "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
 
     ssh "$REMOTE_USER@$host" "
-        cd $REMOTE_BASE_DIR &&
+        set -e
+
+        # 1. Check if something is listening on TCP 15657
+        if ! ss -ltn | awk '{print \$4}' | grep -q ':15657$'; then
+            echo 'Port 15657 not in use. Starting elevatorserver...'
+
+            cd $REMOTE_BASE_DIR
+
+            nohup ./elevatorserver > elevatorserver.log 2>&1 &
+            sleep 1
+        else
+            echo 'Port 15657 already in use. elevatorserver assumed running.'
+        fi
+        
+        cd $REMOTE_BASE_DIR$CODE_DIR
         go run $GO_MAIN 2>&1
     " | sed "s/^/[$host] /"
 }
