@@ -4,7 +4,8 @@ import (
 	"Driver-go/elevio"
 	"fmt"
 	"sync"
-	"project/elevator"
+	. "project/elevator"
+	"project/shared"
 	//"project/drivers/network"
 	//"project/drivers/orderhandler"
 )
@@ -19,7 +20,7 @@ func main() {
 
 	go networkProcess()
 
-	elevatorProcess()
+	ElevatorProcess()
 
 	// Heiskode greier under ellerno
 }

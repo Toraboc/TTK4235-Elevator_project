@@ -2,48 +2,44 @@ package elevator
 
 import (
 	"Driver-go/elevio"
+	"errors"
 	"fmt"
 	"time"
 )
 
+const doorOpenTime = 3 * time.Second
+
 type Door struct {
-	IsOpen     bool
-	closeTime  time.Time
-	Obstructed bool
-	WillOpen   bool
+	isOpen     bool
+	changeTime time.Time
 }
 
-func getDoorState(door *Door) bool {
-	return door.IsOpen
+func (door Door) IsOpen() bool {
+	return door.isOpen
 }
 
-func openDoor(door *Door) {
-	startDoorTimer(door)
+func (door Door) Open() {
 	elevio.SetDoorOpenLamp(true)
-	door.IsOpen = true
+	door.isOpen = true
+	door.changeTime = time.Now()
 }
 
-func closeDoor(door *Door) {
+func (door Door) IsObsrcted() bool {
+	return elevio.GetObstruction()
+}
+
+func (door Door) Close() error {
+	if door.IsObsrcted() {
+		return errors.New("The door is obstrcted, cannot close the door")
+	}
+
 	elevio.SetDoorOpenLamp(false)
-	door.IsOpen = false
+	door.isOpen = false
+	door.changeTime = time.Now()
+
+	return nil
 }
 
-func startDoorTimer(door *Door) {
-	door.closeTime = time.Now().Add(3 * time.Second)
-}
-
-func handleObstruction(door *Door) {
-	if elevio.GetObstruction() {
-		fmt.Println("Door obstructed")
-	}
-	if elevio.GetObstruction() && door.IsOpen {
-		openDoor(door)
-	}
-}
-
-func DoorModuleLoop(door *Door) {
-	handleObstruction(door)
-	if door.closeTime.Before(time.Now()) && door.Obstructed == false {
-		closeDoor(door)
-	}
+func (door Door) ShouldClose() bool {
+	return !door.IsOpen() && time.Since(door.changeTime) > doorOpenTime
 }
