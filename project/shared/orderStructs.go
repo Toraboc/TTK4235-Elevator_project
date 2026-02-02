@@ -1,7 +1,7 @@
-package main
+package shared
 
 import (
-	"time"
+    "time"
 )
 
 type OrderStatus int
@@ -17,15 +17,15 @@ type Order struct {
 }
  
 type Orders struct {
-    hallUpOrders [numberOfFloors]Order
-    hallDownOrders [numberOfFloors]Order
-    cabOrders map[NodeId][numberOfFloors]Order
+    hallUpOrders [NumberOfFloors]Order
+    hallDownOrders [NumberOfFloors]Order
+    cabOrders map[NodeId][NumberOfFloors]Order
 }
 
 type Worldview struct {
     orders Orders
     elevatorStates map[NodeId]ElevatorState
-    assignedHallUpOrders [numberOfFloors]bool
-    assignedHallDownOrders [numberOfFloors]bool
-    assignedCabOrders [numberOfFloors]bool
+    assignedHallUpOrders [NumberOfFloors]bool
+    assignedHallDownOrders [NumberOfFloors]bool
+    assignedCabOrders [NumberOfFloors]bool
 }
