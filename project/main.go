@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"project/elevator"
 	"sync"
-	"time"
 	//"project/drivers/network"
 	//"project/drivers/orderhandler"
 )
@@ -24,7 +23,8 @@ func main() {
 	//elevatorProcess()
 
 	// Heiskode greier under ellerno
-	time.Sleep(20 * time.Second)
+	for {
+	}
 }
 
 func mainOld() {
