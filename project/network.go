@@ -4,19 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"slices"
 	"sort"
 	"time"
 )
 
+var nodesOnline NetworkState
+var broadcast string
+
+/*
+TODO LIST:
+- Fix knowsMe structure to work properly
+- implement nodesOnline structure to keep track of which nodes are online
+*/
+
+// networkProcess starts the UDP listener and broadcaster for network communication.
 func networkProcess() {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %d\n", getOwnId())
+	broadcast = fmt.Sprintf("%s:%d", broadcastAddress, port)
+	nodesOnline = NetworkState{}
+	knowsMe.node = make(map[NodeId]bool)
 
 	go udpListen()
 	udpBroadcast()
 
 }
 
+// getOwnID returns the IPv4 adress of the computer as a NodeId.
 func getOwnId() NodeId {
 	var id NodeId
 	addrs, err := net.InterfaceAddrs()
@@ -43,25 +58,22 @@ func createOutgoingSync() SyncMessage {
 	worldviewMutex.Lock()
 	defer worldviewMutex.Unlock()
 
-	netState := NetworkState{}
-	connectedNodes := netState.connectedNodes
-
 	syncMsg := SyncMessage{}
-	syncMsg.id = getOwnId()
-	syncMsg.orders = worldview.orders
-	syncMsg.myState = worldview.elevatorStates[syncMsg.id]
-	syncMsg.knownNodes = make([]NodeId, len(connectedNodes))
-	for i, node := range connectedNodes {
-		syncMsg.knownNodes[i] = node.id
+	syncMsg.Id = getOwnId()
+	syncMsg.Orders = worldview.orders
+	syncMsg.MyState = worldview.elevatorStates[syncMsg.Id]
+	syncMsg.KnownNodes = make([]NodeId, len(nodesOnline.connectedNodes))
+	for i, node := range nodesOnline.connectedNodes {
+		syncMsg.KnownNodes[i] = node.id
 	}
 	return syncMsg
 }
 
 // udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
 func udpBroadcast() {
-	var broadcast = fmt.Sprintf("%s:%d", broadcastAddress, port)
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(broadcastAddress), Port: port})
 	if err != nil {
+		fmt.Println("Error dialing UDP:", err)
 		return
 	}
 	defer conn.Close()
@@ -69,15 +81,18 @@ func udpBroadcast() {
 	sendTimer := time.NewTicker(time.Second / sendHz)
 	defer sendTimer.Stop()
 
-	broadcastAddr, _ := net.ResolveUDPAddr("udp4", broadcast)
-
 	for range sendTimer.C {
 		syncMsg := createOutgoingSync()
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
+			fmt.Println("Error marshaling sync message:", err)
 			return
 		}
-		_, _ = conn.WriteToUDP(data, broadcastAddr)
+		_, err = conn.Write(data)
+		if err != nil {
+			fmt.Println("Error writing to UDP:", err)
+			return
+		}
 	}
 }
 
@@ -97,7 +112,6 @@ func (nodeSet *KnownNodeSet) nodeSeen(ip string) {
 func (nodes *KnownNodeSet) listActivePeers() []string {
 	nodes.mu.Lock()
 	defer nodes.mu.Unlock()
-	// drop stale nodes
 	now := time.Now()
 	for ip, t := range nodes.lastSeen {
 		if now.Sub(t) > staleThreshold*time.Millisecond {
@@ -109,14 +123,12 @@ func (nodes *KnownNodeSet) listActivePeers() []string {
 		ips = append(ips, ip)
 	}
 	sort.Strings(ips)
+	fmt.Println("Active peers:", ips)
 	return ips
 }
 
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
 func udpListen() {
-	// Listen for incoming UDP packets on the specified port.
-	// update nodeset when receiving packets
-	// call mergeWorldview on received packets
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: port})
 	if err != nil {
 		return
@@ -124,7 +136,13 @@ func udpListen() {
 	defer conn.Close()
 
 	peers := newKnownNodeSet()
-	go peers.listActivePeers()
+	go func() {
+		printTicker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
+		defer printTicker.Stop()
+		for range printTicker.C {
+			peers.listActivePeers()
+		}
+	}()
 
 	buf := make([]byte, 1024)
 
@@ -139,10 +157,21 @@ func udpListen() {
 			continue
 		}
 
-		fmt.Printf("Received sync from %d\n", syncMsg.id)
-		peers.nodeSeen(fmt.Sprintf("%d.%d.%d.%d", syncMsg.id[0], syncMsg.id[1], syncMsg.id[2], syncMsg.id[3]))
+		ip := fmt.Sprintf("%d.%d.%d.%d", syncMsg.Id[0], syncMsg.Id[1], syncMsg.Id[2], syncMsg.Id[3])
+		peers.nodeSeen(ip)
+
+		syncMsg.updateKnowsMe()
+		fmt.Printf("Knows about me %v\n", knowsMe.node)
 		mergeWorldView(syncMsg)
-
 	}
+}
 
+// updateKnowsMe updates the knowsMe structure based on the received SyncMessage.
+func (syncMsg SyncMessage) updateKnowsMe() {
+	knowsMe.mu.Lock()
+	defer knowsMe.mu.Unlock()
+
+	myID := getOwnId()
+	knowsMe2 := slices.Contains(syncMsg.KnownNodes, myID)
+	knowsMe.node[syncMsg.Id] = knowsMe2
 }

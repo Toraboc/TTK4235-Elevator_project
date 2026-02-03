@@ -12,14 +12,19 @@ type NetworkNode struct {
 }
 
 type SyncMessage struct {
-	id         NodeId
-	orders     Orders
-	myState    ElevatorState
-	knownNodes []NodeId
+	Id         NodeId
+	Orders     Orders
+	MyState    ElevatorState
+	KnownNodes []NodeId
 }
 
 type NetworkState struct {
 	connectedNodes []NetworkNode
+}
+
+type KnowsMe struct {
+	node map[NodeId]bool
+	mu   sync.Mutex
 }
 
 type KnownNodeSet struct {

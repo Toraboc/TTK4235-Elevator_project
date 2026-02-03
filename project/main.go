@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"project/elevator"
 	"sync"
+	"time"
 	//"project/drivers/network"
 	//"project/drivers/orderhandler"
 )
 
 var worldview Worldview
 var worldviewMutex sync.Mutex
+var knowsMe KnowsMe
 
 func main() {
 	//elevio.Init("localhost:15657", 4)
@@ -22,8 +24,7 @@ func main() {
 	//elevatorProcess()
 
 	// Heiskode greier under ellerno
-	for {
-	}
+	time.Sleep(20 * time.Second)
 }
 
 func mainOld() {
