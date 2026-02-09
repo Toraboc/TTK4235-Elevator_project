@@ -16,7 +16,7 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	go NetworkProcess()
+	// go NetworkProcess()
 
 	ElevatorProcess()
 
