@@ -12,3 +12,11 @@ func mergeWorldView(SyncMessage SyncMessage) {
 func hallRequestAssigner() {
 
 }
+
+func elevatorStop(floor int) {
+
+}
+
+func getNextTargetFloor() (int, error) {
+	return 1, nil
+}

@@ -3,6 +3,8 @@ package main
 import (
 	"sync"
 	"time"
+
+	. "project/shared"
 )
 
 type NetworkNode struct {

@@ -7,6 +7,8 @@ import (
 	"slices"
 	"sort"
 	"time"
+
+	. "project/shared"
 )
 
 var nodesOnline NetworkState
@@ -18,8 +20,8 @@ TODO LIST:
 - implement nodesOnline structure to keep track of which nodes are online
 */
 
-// networkProcess starts the UDP listener and broadcaster for network communication.
-func networkProcess() {
+// NetworkProcess starts the UDP listener and broadcaster for network communication.
+func NetworkProcess() {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %d\n", getOwnId())
 	nodesOnline = NetworkState{}
@@ -59,8 +61,8 @@ func createOutgoingSync() SyncMessage {
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = getOwnId()
-	syncMsg.Orders = worldview.orders
-	syncMsg.MyState = worldview.elevatorStates[syncMsg.Id]
+	syncMsg.Orders = worldview.Orders
+	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
 	syncMsg.KnownNodes = make([]NodeId, len(nodesOnline.connectedNodes))
 	for i, node := range nodesOnline.connectedNodes {
 		syncMsg.KnownNodes[i] = node.id
@@ -70,14 +72,14 @@ func createOutgoingSync() SyncMessage {
 
 // udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
 func udpBroadcast() {
-	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(broadcastAddress), Port: port})
+	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
 		fmt.Println("Error dialing UDP:", err)
 		return
 	}
 	defer conn.Close()
 
-	sendTimer := time.NewTicker(time.Second / sendHz)
+	sendTimer := time.NewTicker(time.Second / SendHz)
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
@@ -112,7 +114,7 @@ func (nodes *KnownNodes) listActivePeers() []string {
 	nodes.mu.Lock()
 	defer nodes.mu.Unlock()
 	for ip, seenAt := range nodes.lastSeen {
-		if time.Since(seenAt) > staleThreshold {
+		if time.Since(seenAt) > StaleThreshold {
 			delete(nodes.lastSeen, ip)
 		}
 	}
@@ -127,7 +129,7 @@ func (nodes *KnownNodes) listActivePeers() []string {
 
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
 func udpListen() {
-	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: port})
+	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		return
 	}

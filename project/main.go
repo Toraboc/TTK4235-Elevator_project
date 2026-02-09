@@ -1,13 +1,11 @@
 package main
 
 import (
-	"Driver-go/elevio"
 	"fmt"
-	"project/elevator"
 	"sync"
-	"time"
-	//"project/drivers/network"
-	//"project/drivers/orderhandler"
+
+	. "project/elevator"
+	. "project/shared"
 )
 
 var worldview Worldview
@@ -15,21 +13,52 @@ var worldviewMutex sync.Mutex
 var knowsMe KnowsMe
 
 func main() {
-	//elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")
 
-	go networkProcess()
+	go NetworkProcess()
 
-	//elevatorProcess()
+	ElevatorProcess()
 
-	// Heiskode greier under ellerno
-	for {
-		time.Sleep(10 * time.Second)
-	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*func mainOld() {
+=======
 func mainOld() {
+>>>>>>> main
 	elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")
@@ -58,4 +87,4 @@ func mainOld() {
 			elevator.GotoFloor(&position, &door, nextOrderFloor)
 		}
 	}
-}
+}*/
