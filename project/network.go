@@ -22,7 +22,6 @@ TODO LIST:
 func networkProcess() {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %d\n", getOwnId())
-	broadcast = fmt.Sprintf("%s:%d", broadcastAddress, port)
 	nodesOnline = NetworkState{}
 	knowsMe.node = make(map[NodeId]bool)
 
@@ -31,7 +30,7 @@ func networkProcess() {
 
 }
 
-// getOwnID returns the IPv4 adress of the computer as a NodeId.
+// getOwnId returns the IPv4 address of the computer as a NodeId.
 func getOwnId() NodeId {
 	var id NodeId
 	addrs, err := net.InterfaceAddrs()
@@ -86,12 +85,12 @@ func udpBroadcast() {
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
-			return
+			continue
 		}
 		_, err = conn.Write(data)
 		if err != nil {
 			fmt.Println("Error writing to UDP:", err)
-			return
+			continue
 		}
 	}
 }
@@ -114,7 +113,7 @@ func (nodes *KnownNodeSet) listActivePeers() []string {
 	defer nodes.mu.Unlock()
 	now := time.Now()
 	for ip, t := range nodes.lastSeen {
-		if now.Sub(t) > staleThreshold*time.Millisecond {
+		if now.Sub(t) > staleThresholdMs*time.Millisecond {
 			delete(nodes.lastSeen, ip)
 		}
 	}

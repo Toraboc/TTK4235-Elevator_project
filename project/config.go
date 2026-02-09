@@ -14,5 +14,5 @@ const (
 	// printEvery is the interval used for peer list logging.
 	printHz = 1
 	// staleThreshold is the duration after which a peer is considered stale.
-	staleThreshold = 500 // milliseconds
+	staleThresholdMs = 500 // milliseconds
 )
