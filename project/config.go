@@ -1,8 +1,10 @@
 package main
 
+import "time"
+
 const numberOfFloors = 4
 
-type NodeId [4]byte
+type NodeId [4]byte // Change to int32
 
 const (
 	// port is the UDP port used for both listening and broadcasting.
@@ -14,5 +16,5 @@ const (
 	// printEvery is the interval used for peer list logging.
 	printHz = 1
 	// staleThreshold is the duration after which a peer is considered stale.
-	staleThresholdMs = 500 // milliseconds
+	staleThreshold = 500 * time.Millisecond
 )

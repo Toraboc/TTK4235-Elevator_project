@@ -95,25 +95,24 @@ func udpBroadcast() {
 	}
 }
 
-// newKnownNodeSet creates an initialized nodeSet.
-func newKnownNodeSet() *KnownNodeSet {
-	return &KnownNodeSet{lastSeen: make(map[string]time.Time)}
+// newKnownNodes creates an initialized KnownNodes.
+func newKnownNodes() *KnownNodes {
+	return &KnownNodes{lastSeen: make(map[string]time.Time)}
 }
 
 // seen records that the given IP was observed now.
-func (nodeSet *KnownNodeSet) nodeSeen(ip string) {
+func (nodeSet *KnownNodes) nodeSeen(ip string) {
 	nodeSet.mu.Lock()
 	nodeSet.lastSeen[ip] = time.Now()
 	nodeSet.mu.Unlock()
 }
 
 // list returns the sorted list of active peer IPs and prunes stale entries.
-func (nodes *KnownNodeSet) listActivePeers() []string {
+func (nodes *KnownNodes) listActivePeers() []string {
 	nodes.mu.Lock()
 	defer nodes.mu.Unlock()
-	now := time.Now()
-	for ip, t := range nodes.lastSeen {
-		if now.Sub(t) > staleThresholdMs*time.Millisecond {
+	for ip, seenAt := range nodes.lastSeen {
+		if time.Since(seenAt) > staleThreshold {
 			delete(nodes.lastSeen, ip)
 		}
 	}
@@ -134,7 +133,7 @@ func udpListen() {
 	}
 	defer conn.Close()
 
-	peers := newKnownNodeSet()
+	peers := newKnownNodes()
 	go func() {
 		printTicker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
 		defer printTicker.Stop()

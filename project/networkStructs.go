@@ -27,7 +27,7 @@ type KnowsMe struct {
 	mu   sync.Mutex
 }
 
-type KnownNodeSet struct {
+type KnownNodes struct {
 	mu       sync.Mutex
 	lastSeen map[string]time.Time
 }
