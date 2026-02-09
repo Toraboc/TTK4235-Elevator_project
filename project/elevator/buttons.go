@@ -7,8 +7,10 @@ import (
 	"fmt"
 )
 
-func getButtonsPresses() ([NumberOfFloors][3]bool, bool) {
-	var buttonPresses [NumberOfFloors][3]bool
+type OrderButtons [NumberOfFloors][3]bool
+
+func getButtonsPresses() (OrderButtons, bool) {
+	var buttonPresses OrderButtons
 	anyPressed := false
 	for i := range NumberOfFloors {
 		buttonPresses[i][0] = elevio.GetButton(elevio.BT_HallUp, i)
