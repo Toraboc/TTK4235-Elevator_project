@@ -8,7 +8,6 @@ REMOTE_USER="student"
 LOCAL_GO_DIR="."
 REMOTE_BASE_DIR="/home/$REMOTE_USER/Documents/Sanntid55"
 CODE_DIR="/project"
-GO_MAIN="main.go"
 SSH_KEY="$HOME/.ssh/id_ed25519"
 SSH_PUB_KEY="$SSH_KEY.pub"
 # ----------------------------------------
@@ -85,7 +84,11 @@ run_remote() {
     " || true
 
     # Copy code
-    ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR"
+    ssh "$REMOTE_USER@$host" "
+        set -e
+        mkdir -p $REMOTE_BASE_DIR
+        rm -r $REMOTE_BASE_DIR
+    "
     scp -rq "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
 
     # Start elevatorserver and go code
@@ -98,7 +101,7 @@ run_remote() {
         sleep 1
         
         cd $REMOTE_BASE_DIR$CODE_DIR
-        go run $GO_MAIN 2>&1
+        go run . 2>&1
     " | sed "s/^/[$host] /" &
     JOB_PIDS+=("$!")
 }

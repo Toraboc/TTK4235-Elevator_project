@@ -1,21 +1,35 @@
 package main
 
 import (
+	"sync"
 	"time"
+
+	. "project/shared"
 )
 
 type NetworkNode struct {
-    id       NodeId
-    lastSync time.Time
-    knowsMe  bool
+	id       NodeId
+	lastSync time.Time
+	knowsMe  bool
 }
 
 type SyncMessage struct {
-    orders     Orders
-    myState    ElevatorState
-    knownNodes []NodeId
+	Id         NodeId
+	Orders     Orders
+	MyState    ElevatorState
+	KnownNodes []NodeId
 }
 
 type NetworkState struct {
-    connectedNodes []NetworkNode
+	connectedNodes []NetworkNode
+}
+
+type KnowsMe struct {
+	node map[NodeId]bool
+	mu   sync.Mutex
+}
+
+type KnownNodes struct {
+	mu       sync.Mutex
+	lastSeen map[string]time.Time
 }

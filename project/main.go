@@ -2,19 +2,24 @@ package main
 
 import (
 	"fmt"
+	"sync"
+
 	. "project/elevator"
-	//"project/drivers/network"
-	//"project/drivers/orderhandler"
+	. "project/shared"
 )
 
+var worldview Worldview
+var worldviewMutex sync.Mutex
+var knowsMe KnowsMe
+
 func main() {
+
 	fmt.Println("Starting elevator")
 
-	// go NetworkProcess()
+	go NetworkProcess()
 
 	ElevatorProcess()
 
-	// Heiskode greier under ellerno
 }
 
 
@@ -51,6 +56,9 @@ func main() {
 
 
 /*func mainOld() {
+=======
+func mainOld() {
+>>>>>>> main
 	elevio.Init("localhost:15657", 4)
 
 	fmt.Println("Starting elevator")
@@ -61,7 +69,7 @@ func main() {
 	position := elevator.Position{}
 	elevator.InitPosition(&position)
 
-	door.GetDoorState()
+	//door.GetDoorState()
 
 	for {
 		elevator.DoorModuleLoop(&door)
