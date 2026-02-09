@@ -123,7 +123,7 @@ func (nodes *KnownNodeSet) listActivePeers() []string {
 		ips = append(ips, ip)
 	}
 	sort.Strings(ips)
-	fmt.Println("Active peers:", ips)
+	//fmt.Println("Active peers:", ips)
 	return ips
 }
 
@@ -161,7 +161,7 @@ func udpListen() {
 		peers.nodeSeen(ip)
 
 		syncMsg.updateKnowsMe()
-		fmt.Printf("Knows about me %v\n", knowsMe.node)
+		//fmt.Printf("Knows about me %v\n", knowsMe.node)
 		mergeWorldView(syncMsg)
 	}
 }
