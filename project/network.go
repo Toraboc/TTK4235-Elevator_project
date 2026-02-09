@@ -167,7 +167,7 @@ func udpListen() {
 }
 
 // updateKnowsMe updates the knowsMe structure based on the received SyncMessage.
-func (syncMsg SyncMessage) updateKnowsMe() {
+func (syncMsg SyncMessage) updateKnowsMe() { // This is chatted, ignore
 	knowsMe.mu.Lock()
 	defer knowsMe.mu.Unlock()
 
