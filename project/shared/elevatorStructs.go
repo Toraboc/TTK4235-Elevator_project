@@ -11,7 +11,7 @@ const (
     IDLE ElevatorBehaviour = iota
     MOVING
     PASSENGER_TRANSFER
-    OBSTRCTED
+    OBSTRUCTED
 )
 
 type ElevatorState struct {

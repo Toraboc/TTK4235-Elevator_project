@@ -1,10 +1,10 @@
 package elevator
 
 import (
+	"fmt"
+	"time"
 	"Driver-go/elevio"
 	. "project/shared"
-	"time"
-	"fmt"
 )
 
 type ElevPositioning struct {
@@ -44,7 +44,7 @@ func InitPositioning() ElevPositioning {
 
 func (pos *ElevPositioning) updatePosition() {
 	// TODO: This logic does not handle if someone moves the elevator by force
-	// We could implemented a check that the floorBelow only is updated if the behvaiour is MOVING, else panic or something
+	// We could implemented a check that the floorBelow only is updated if the behaviour is MOVING, else panic or something
 	// or go into an obstructed state
 	floor := elevio.GetFloor()
 	if floor != -1 {
@@ -83,13 +83,13 @@ func (pos *ElevPositioning) handleElevatorMotor(targetFloor int) {
 
 	// TODO: this needs some cleanup
 	if targetFloor == -1 {
-		if (pos.behaviour == MOVING) {
+		if pos.behaviour == MOVING {
 			pos.stop()
 		}
 	} else if pos.isAtFloor && pos.lastFloor == targetFloor {
 		// We are at the target
 		// Check if we just arrived
-		if (pos.behaviour == MOVING) {
+		if pos.behaviour == MOVING {
 			pos.stop()
 
 			pos.door.Open()
@@ -97,10 +97,10 @@ func (pos *ElevPositioning) handleElevatorMotor(targetFloor int) {
 			// TODO: Tell the orderHandler that we have stopped
 		}
 
-	} else if (pos.behaviour == IDLE || pos.behaviour == MOVING) {
+	} else if pos.behaviour == IDLE || pos.behaviour == MOVING {
 		if pos.floorBelow < targetFloor {
 			pos.drive(UP)
-		} else if (pos.floorBelow >= targetFloor) {
+		} else if pos.floorBelow >= targetFloor {
 			pos.drive(DOWN)
 		}
 	}
@@ -121,11 +121,11 @@ func (pos *ElevPositioning) handleDriving() {
 		pos.printState()
 
 		// Close the door after some time
-		if (pos.behaviour == PASSENGER_TRANSFER || (pos.behaviour == OBSTRCTED && pos.door.IsOpen())) {
-			if (time.Since(pos.door.changeTime) > doorOpenTime) {
+		if pos.behaviour == PASSENGER_TRANSFER || (pos.behaviour == OBSTRUCTED && pos.door.IsOpen()) {
+			if time.Since(pos.door.changeTime) > doorOpenTime {
 				err := pos.door.Close()
 				if err != nil {
-					pos.behaviour = OBSTRCTED
+					pos.behaviour = OBSTRUCTED
 				} else {
 					pos.behaviour = IDLE
 				}

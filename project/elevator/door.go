@@ -23,13 +23,13 @@ func (door *Door) Open() {
 	door.changeTime = time.Now()
 }
 
-func (door *Door) IsObsrcted() bool {
+func (door *Door) IsObstructed() bool {
 	return elevio.GetObstruction()
 }
 
 func (door *Door) Close() error {
-	if door.IsObsrcted() {
-		return errors.New("The door is obstrcted, cannot close the door")
+	if door.IsObstructed() {
+		return errors.New("The door is obstructed, cannot close the door")
 	}
 
 	elevio.SetDoorOpenLamp(false)
@@ -40,5 +40,5 @@ func (door *Door) Close() error {
 }
 
 func (door *Door) ShouldClose() bool {
-	return !door.IsOpen() && time.Since(door.changeTime) > doorOpenTime
+	return door.IsOpen() && time.Since(door.changeTime) > doorOpenTime
 }

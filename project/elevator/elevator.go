@@ -1,9 +1,9 @@
 package elevator
 
 import (
+	"fmt"
 	"Driver-go/elevio"
 	. "project/shared"
-	"fmt"
 )
 
 func ElevatorProcess() {
