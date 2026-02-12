@@ -32,6 +32,7 @@ var myId NodeId
 /*
 	TODO:
 	- Implement a function that returns all the nodes that know about me as a nodeIdSet
+	- Fix knows about me, it is bricked
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
