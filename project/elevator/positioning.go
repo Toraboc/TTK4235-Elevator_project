@@ -170,6 +170,8 @@ func getBehaviourString(behaviour ElevatorBehaviour) string {
 		return "FAULTY_MOTOR"
 	case DOOR_OBSTRUCTED:
 		return "DOOR_OBSTRUCTED"
+	case DISCONNECTED:
+		return "DISCONNECTED"
 	default:
 		panic("Undefined behaviour")
 	}

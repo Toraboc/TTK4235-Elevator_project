@@ -13,6 +13,7 @@ const (
     PASSENGER_TRANSFER
     DOOR_OBSTRUCTED
     FAULTY_MOTOR
+    DISCONNECTED
 )
 
 func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
