@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	//. "project/elevator"
 	. "project/network"
@@ -11,9 +12,11 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	fmt.Printf("My Ip: %s\n", NodeIdtoString(GetOwnId()))
-	//go NetworkProcess()
+	go NetworkProcess()
 
 	//ElevatorProcess()
 
+	for {
+		time.Sleep(1 * time.Second)
+	}
 }

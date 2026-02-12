@@ -31,14 +31,12 @@ var knowsMe KnowsMe
 TODO LIST:
 - Fix knowsMe structure to work properly
 - implement nodesOnline structure to keep track of which nodes are online
-- Implement clock offset compensation
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %s\n", NodeIdtoString(GetOwnId()))
-	worldview = Worldview{}
 	knowsMe.Node = make(map[NodeId]bool)
 
 	go udpListen()
@@ -82,6 +80,7 @@ func createOutgoingSync() SyncMessage {
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
 	syncMsg.KnownNodes = make([]NodeId, len(worldview.ConnectedNodes))
 	copy(syncMsg.KnownNodes, worldview.ConnectedNodes)
+	syncMsg.SendTime = time.Now()
 	return syncMsg
 }
 
@@ -142,6 +141,25 @@ func (nodes *KnownNodes) listActivePeers() []NodeId {
 	return ids
 }
 
+func clockOffsetCompensation(syncMsg *SyncMessage) {
+	// This is a placeholder for clock offset compensation logic.
+	offset := time.Since(syncMsg.SendTime)
+	for order := range syncMsg.Orders.HallUpOrders {
+		syncMsg.Orders.HallUpOrders[order].LastUpdate = syncMsg.Orders.HallUpOrders[order].LastUpdate.Add(offset)
+	}
+	for order := range syncMsg.Orders.HallDownOrders {
+		syncMsg.Orders.HallDownOrders[order].LastUpdate = syncMsg.Orders.HallDownOrders[order].LastUpdate.Add(offset)
+	}
+	for nodeID, cabOrders := range syncMsg.Orders.CabOrders {
+		for floor := range NumberOfFloors {
+			order := cabOrders[floor]
+			order.LastUpdate = order.LastUpdate.Add(offset)
+			cabOrders[floor] = order
+		}
+		syncMsg.Orders.CabOrders[nodeID] = cabOrders
+	}
+}
+
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
 func udpListen() {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
@@ -177,6 +195,7 @@ func udpListen() {
 
 		updateKnowsMe(syncMsg)
 		//fmt.Printf("Knows about me %v\n", knowsMe.node)
+		clockOffsetCompensation(&syncMsg)
 		MergeWorldView(syncMsg)
 	}
 }
