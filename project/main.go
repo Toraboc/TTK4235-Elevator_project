@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	. "project/elevator"
+	//. "project/elevator"
 	. "project/network"
 )
 
@@ -11,8 +11,9 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	go NetworkProcess()
+	fmt.Printf("My Ip: %s\n", NodeIdtoString(GetOwnId()))
+	//go NetworkProcess()
 
-	ElevatorProcess()
+	//ElevatorProcess()
 
 }
