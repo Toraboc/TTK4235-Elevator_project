@@ -159,7 +159,7 @@ func clockOffsetCompensation(syncMsg *SyncMessage) {
 		syncMsg.Orders.HallDownOrders[order].LastUpdate = syncMsg.Orders.HallDownOrders[order].LastUpdate.Add(offset)
 	}
 	for nodeID, cabOrders := range syncMsg.Orders.CabOrders {
-		for floor := range NumberOfFloors {
+		for floor := range cabOrders {
 			order := cabOrders[floor]
 			order.LastUpdate = order.LastUpdate.Add(offset)
 			cabOrders[floor] = order
