@@ -2,6 +2,7 @@ package orders
 
 import (
 	. "project/shared"
+	"time"
 )
 
 // Merge our worldview with the incomming data in some way, not dependent on network
@@ -13,8 +14,20 @@ func MergeWorldView(SyncMessage SyncMessage) {
 	hallRequestAssigner()
 }
 
-func GetWorldview() Worldview {
-	return Worldview{}
+func CreateOrder() Order {
+	var order Order
+	order.LastEvent = COMPLETED
+	order.ConfirmedBy = make([]NodeId, 0)
+	order.LastUpdate = time.Unix(0, 0)
+	return order
+}
+
+func CreateOrderList() [NumberOfFloors]Order {
+	var orders [NumberOfFloors]Order
+	for i := range NumberOfFloors {
+		orders[i] = CreateOrder()
+	}
+	return orders
 }
 
 func hallRequestAssigner() {
@@ -27,7 +40,7 @@ func ElevatorStateChange(state ElevatorState) {
 }
 
 // The datainout here will we figure out later
-func newOrder() {
+func NewOrder() {
 
 }
 

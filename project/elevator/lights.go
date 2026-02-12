@@ -2,38 +2,60 @@ package elevator
 
 import (
 	"Driver-go/elevio"
+	"project/network"
+	"project/orders"
 	. "project/shared"
+	"time"
 )
 
-func (lightStatus *OrderButtons) updateLights(currentOrders OrderButtons) {
-	updateSingleLight := func (floor int, matrixIndex int, lamp elevio.ButtonType) {
-		if lightStatus[floor][matrixIndex] != currentOrders[floor][matrixIndex] {
-			lightStatus[floor][matrixIndex] = currentOrders[floor][matrixIndex]
-			elevio.SetButtonLamp(lamp, floor, lightStatus[floor][matrixIndex])
+type LightStrip [NumberOfFloors]bool
+
+type LightStatus struct {
+	hallUp LightStrip
+	hallDown LightStrip
+	cab LightStrip
+}
+
+var lightStatus LightStatus
+
+func (lightStrip *LightStrip) update(lamp elevio.ButtonType, confirmedOrders [NumberOfFloors]OrderStatus) {
+	for floor := range NumberOfFloors {
+		orderConfirmed := confirmedOrders[floor] == NEW
+		if orderConfirmed != lightStrip[floor] {
+			lightStrip[floor] = orderConfirmed
+			elevio.SetButtonLamp(lamp, floor, orderConfirmed)
 		}
 	}
-	for i := range NumberOfFloors {
-		updateSingleLight(i, 0, elevio.BT_HallUp)
-		updateSingleLight(i, 1, elevio.BT_HallDown)
-		updateSingleLight(i, 2, elevio.BT_Cab)
+}
+
+func (lightStatus *LightStatus) updateLights(confirmedOrders orders.ConfirmedOrders) {
+	ownId := network.GetOwnId()
+	cabOrders := confirmedOrders.Cab[ownId]
+
+	lightStatus.hallUp.update(elevio.BT_HallUp, confirmedOrders.HallUp)
+	lightStatus.hallDown.update(elevio.BT_HallDown, confirmedOrders.HallDown)
+	lightStatus.cab.update(elevio.BT_Cab, cabOrders)
+}
+
+func (lightStatus *LightStatus) Init() {
+	for floor := range NumberOfFloors {
+		elevio.SetButtonLamp(elevio.BT_HallUp, floor, false)
+		elevio.SetButtonLamp(elevio.BT_HallDown, floor, false)
+		elevio.SetButtonLamp(elevio.BT_Cab, floor, false)
+
+		lightStatus.hallUp[floor] = false
+		lightStatus.hallDown[floor] = false
+		lightStatus.cab[floor] = false
 	}
 }
 
-var lightStatus OrderButtons
+func handleLights() {
+	lightStatus.Init()
+	for {
+		time.Sleep(40 * time.Millisecond)
 
-func ordersToButtonMatrix(hallUpOrders [NumberOfFloors]Order, hallDownOrders [NumberOfFloors]Order, cabOrders [NumberOfFloors]Order) OrderButtons {
-	var buttonMatrix OrderButtons
-	for i := range NumberOfFloors {
-		// BUG: This is wrong, the orders needs to be confirmed by everyone.
-		buttonMatrix[i][0] = hallUpOrders[i].LastEvent == NEW
-		buttonMatrix[i][1] = hallDownOrders[i].LastEvent == NEW
-		buttonMatrix[i][2] = cabOrders[i].LastEvent == NEW
+		ownId := network.GetOwnId()
+		confirmedOrders := orders.GetConfirmedOrders(ownId)
+		lightStatus.updateLights(confirmedOrders)
 	}
-
-	return buttonMatrix
 }
-
-func SetOrderLights(hallUpOrders [NumberOfFloors]Order, hallDownOrders [NumberOfFloors]Order, cabOrders [NumberOfFloors]Order) {
-	lightStatus.updateLights(ordersToButtonMatrix(hallUpOrders, hallDownOrders, cabOrders))
-}
-

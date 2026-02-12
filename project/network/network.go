@@ -42,7 +42,7 @@ TODO LIST:
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
 	fmt.Println("Starting network process")
-	fmt.Printf("My Ip: %d\n", getOwnId())
+	fmt.Printf("My Ip: %d\n", GetOwnId())
 	nodesOnline = NetworkState{}
 	knowsMe.Node = make(map[NodeId]bool)
 
@@ -51,8 +51,8 @@ func NetworkProcess() {
 
 }
 
-// getOwnId returns the IPv4 address of the computer as a NodeId.
-func getOwnId() NodeId {
+// GetOwnId returns the IPv4 address of the computer as a NodeId.
+func GetOwnId() NodeId {
 	var id NodeId
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -75,10 +75,10 @@ func getOwnId() NodeId {
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
 func createOutgoingSync() SyncMessage {
-	worldview := GetWorldview()
+	worldview := GetWorldview(GetOwnId())
 
 	syncMsg := SyncMessage{}
-	syncMsg.Id = getOwnId()
+	syncMsg.Id = GetOwnId()
 	syncMsg.Orders = worldview.Orders
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
 	syncMsg.KnownNodes = make([]NodeId, len(nodesOnline.ConnectedNodes))
@@ -189,7 +189,7 @@ func updateKnowsMe(syncMsg SyncMessage) { // This is chatted, ignore
 	knowsMe.Mu.Lock()
 	defer knowsMe.Mu.Unlock()
 
-	myID := getOwnId()
+	myID := GetOwnId()
 	knowsMe2 := slices.Contains(syncMsg.KnownNodes, myID)
 	knowsMe.Node[syncMsg.Id] = knowsMe2
 }
