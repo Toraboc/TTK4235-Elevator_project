@@ -1,22 +1,37 @@
 package main
 
-// Merge our worldview with the incomming SyncMessage
+import (
+	. "project/shared"
+)
+
+// Merge our worldview with the incomming data in some way, not dependent on network
 // This will only sync the orders and elevatorStates
-func mergeWorldView(SyncMessage SyncMessage) {
+func MergeWorldView(SyncMessage SyncMessage) {
 
 	// At last
 	// This must also be called if our own elevatorsstate changes
 	hallRequestAssigner()
 }
 
+func GetWorldView() Worldview {
+}
+
 func hallRequestAssigner() {
 
 }
 
-func elevatorStop(floor int) {
+// This function will receive updates from the elevator
+func ElevatorStateChange(state ElevatorState) {
 
 }
 
-func getNextTargetFloor() (int, error) {
+// The datainout here will we figure out later
+func newOrder() {
+
+}
+
+
+// Return the next target floor
+func GetNextTargetFloor() (int, error) {
 	return 1, nil
 }
