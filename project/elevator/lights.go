@@ -54,8 +54,7 @@ func handleLights() {
 	for {
 		time.Sleep(40 * time.Millisecond)
 
-		ownId := network.GetOwnId() // TODO: This will be removed then this stops something we need to pass to the function below
-		confirmedOrders := orders.GetConfirmedOrders(ownId)
+		confirmedOrders := orders.GetConfirmedOrders()
 		lightStatus.updateLights(confirmedOrders)
 	}
 }

@@ -36,9 +36,9 @@ func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, connectedNodes []N
 	return orderStatus
 }
 
-func GetConfirmedOrders(nodeId NodeId) ConfirmedOrders {
+func GetConfirmedOrders() ConfirmedOrders {
 	// TODO: This function should not take nodeId as an argument
-	worldview := GetWorldView(nodeId)
+	worldview := GetWorldView()
 
 	connectedNodes := worldview.ConnectedNodes
 	orders := worldview.Orders

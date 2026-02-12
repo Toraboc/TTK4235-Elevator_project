@@ -1,6 +1,6 @@
 package shared
 
-type NodeId [4]byte // Change to int32
+type NodeId uint32
 
 type NodeIdSet map[NodeId]struct{}
 
@@ -21,8 +21,8 @@ func (set NodeIdSet) Concat(other NodeIdSet) {
 
 func CreateNodeIdSet(nodeIds []NodeId) NodeIdSet {
 	set := make(map[NodeId]struct{})
-    for _, node := range nodeIds {
-        set[node] = struct{}{}
-    }
+	for _, node := range nodeIds {
+		set[node] = struct{}{}
+	}
 	return set
 }
