@@ -119,7 +119,7 @@ func (pos *ElevPositioning) stop() {
 
 func (pos *ElevPositioning) handleElevatorMotor(targetFloor int) {
 
-	fmt.Println("TargetFloor", targetFloor)
+	// fmt.Println("TargetFloor", targetFloor)
 
 	if targetFloor == -1 {
 		if pos.behaviour == MOVING && pos.isAtFloor {
@@ -193,7 +193,7 @@ func (pos *ElevPositioning) handleDriving() {
 			pos.handleElevatorMotor(getAButtonFloor())
 		}
 
-		pos.printState()
+		// pos.printState()
 
 		// Close the door after some time
 		if pos.behaviour == PASSENGER_TRANSFER || pos.behaviour == DOOR_OBSTRUCTED {

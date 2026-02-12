@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	. "project/elevator"
-	. "project/network"
+	// . "project/network"
 )
 
 func main() {
 
 	fmt.Println("Starting elevator")
 
-	go NetworkProcess()
+	// go NetworkProcess()
 
 	ElevatorProcess()
 
