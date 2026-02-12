@@ -8,21 +8,21 @@ import (
 	"time"
 )
 
-type LightStrip [NumberOfFloors]bool
+type LightType [NumberOfFloors]bool
 
 type LightStatus struct {
-	hallUp LightStrip
-	hallDown LightStrip
-	cab LightStrip
+	hallUp LightType
+	hallDown LightType
+	cab LightType
 }
 
 var lightStatus LightStatus
 
-func (lightStrip *LightStrip) update(lamp elevio.ButtonType, confirmedOrders [NumberOfFloors]OrderStatus) {
+func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [NumberOfFloors]OrderStatus) {
 	for floor := range NumberOfFloors {
 		orderConfirmed := confirmedOrders[floor] == NEW
-		if orderConfirmed != lightStrip[floor] {
-			lightStrip[floor] = orderConfirmed
+		if orderConfirmed != lightType[floor] {
+			lightType[floor] = orderConfirmed
 			elevio.SetButtonLamp(lamp, floor, orderConfirmed)
 		}
 	}
