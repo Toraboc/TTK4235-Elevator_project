@@ -15,11 +15,14 @@ func MergeWorldView(SyncMessage SyncMessage) {
 	hallRequestAssigner()
 }
 
-func GetWorldview() Worldview {
-	return WorldView
+func GetWorldView() *Worldview {
+	return &WorldView
 }
 
 func UpdateConnectedNodes(ids []NodeId) {
+	WorldView.Mu.Lock()
+	defer WorldView.Mu.Unlock()
+
 	WorldView.ConnectedNodes = ids
 }
 
