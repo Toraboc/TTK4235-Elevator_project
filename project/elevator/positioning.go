@@ -70,7 +70,7 @@ func (pos *ElevPositioning) updatePosition() {
 		}
 
 		if (!pos.behaviour.CanMove()) {
-			// This is really bad, the elevator shouold not be moving.
+			// This is really bad, the elevator should not be moving.
 			// And we also don't know which floor the elevator is at.
 			// Entry a faulty state
 			if pos.door.IsOpen() {

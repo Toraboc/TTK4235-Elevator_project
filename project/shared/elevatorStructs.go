@@ -25,7 +25,7 @@ func (behaviour ElevatorBehaviour) CanMove() bool {
 }
 
 type ElevatorState struct {
-    bahviour  ElevatorBehaviour
+    behaviour  ElevatorBehaviour
     position  int
     direction Direction
 }

@@ -6,16 +6,16 @@ import (
 )
 
 func (lightStatus *OrderButtons) updateLights(currentOrders OrderButtons) {
-	updateLights := func (floor int, matrixIndex int, lamp elevio.ButtonType) {
+	updateSingleLight := func (floor int, matrixIndex int, lamp elevio.ButtonType) {
 		if lightStatus[floor][matrixIndex] != currentOrders[floor][matrixIndex] {
 			lightStatus[floor][matrixIndex] = currentOrders[floor][matrixIndex]
-			elevio.SetButtonLamp(elevio.BT_HallUp, floor, lightStatus[floor][matrixIndex])
+			elevio.SetButtonLamp(lamp, floor, lightStatus[floor][matrixIndex])
 		}
 	}
 	for i := range NumberOfFloors {
-		updateLights(i, 0, elevio.BT_HallUp)
-		updateLights(i, 1, elevio.BT_HallDown)
-		updateLights(i, 2, elevio.BT_Cab)
+		updateSingleLight(i, 0, elevio.BT_HallUp)
+		updateSingleLight(i, 1, elevio.BT_HallDown)
+		updateSingleLight(i, 2, elevio.BT_Cab)
 	}
 }
 
