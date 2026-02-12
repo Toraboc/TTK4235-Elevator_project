@@ -1,4 +1,4 @@
-package shared
+package orders
 
 import (
     "time"
@@ -22,8 +22,9 @@ type Orders struct {
     CabOrders map[NodeId][NumberOfFloors]Order
 }
 
-type Worldview struct {
+type WorldView struct {
     Orders Orders
+    ConnectedNodes []nodeId
     ElevatorStates map[NodeId]ElevatorState
     AssignedHallUpOrders [NumberOfFloors]bool
     AssignedHallDownOrders [NumberOfFloors]bool

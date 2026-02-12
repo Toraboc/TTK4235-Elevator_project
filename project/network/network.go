@@ -73,14 +73,14 @@ func getOwnId() NodeId {
 	return id
 }
 
-// createOutgoingSync constructs a SyncMessage representing the current worldview.
+// createOutgoingSync constructs a SyncMessage representing the current worldView.
 func createOutgoingSync() SyncMessage {
-	worldview := GetWorldview()
+	worldView := GetWorldView()
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = getOwnId()
-	syncMsg.Orders = worldview.Orders
-	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
+	syncMsg.Orders = worldView.Orders
+	syncMsg.MyState = worldView.ElevatorStates[syncMsg.Id]
 	syncMsg.KnownNodes = make([]NodeId, len(nodesOnline.ConnectedNodes))
 	for i, node := range nodesOnline.ConnectedNodes {
 		syncMsg.KnownNodes[i] = node.Id
@@ -145,7 +145,7 @@ func (nodes *KnownNodes) listActivePeers() []string {
 	return ips
 }
 
-// udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
+// udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldView on each received message.
 func udpListen() {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
