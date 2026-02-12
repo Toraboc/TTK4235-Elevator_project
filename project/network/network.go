@@ -17,7 +17,7 @@ type KnowsAboutMe struct {
 	LastReceived time.Time
 }
 
-type PeerAwareness struct {
+type PeersAwareOfMe struct {
 	mu           sync.Mutex
 	knowsAboutMe map[NodeId]KnowsAboutMe
 }
@@ -29,12 +29,17 @@ type KnownNodes struct {
 
 var myId NodeId
 
+/*
+	TODO:
+	- Implement a function that returns all the nodes that know about me as a nodeIdSet
+*/
+
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
 	myId = GetOwnId()
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %s\n", NodeIdtoString(myId))
-	otherNodes := PeerAwareness{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
+	otherNodes := PeersAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 
 	go udpListen(&otherNodes)
 	udpBroadcast()
@@ -167,7 +172,7 @@ func clockOffsetCompensation(syncMsg *SyncMessage) {
 }
 
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
-func udpListen(otherNodes *PeerAwareness) {
+func udpListen(otherNodes *PeersAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		return
@@ -208,14 +213,9 @@ func udpListen(otherNodes *PeerAwareness) {
 }
 
 // updateKnowsMe updates the knowsAboutMe based on the received SyncMessage.
-func updateKnowsMe(syncMsg SyncMessage, otherNodes *PeerAwareness) {
+func updateKnowsMe(syncMsg SyncMessage, otherNodes *PeersAwareOfMe) {
 	otherNodes.mu.Lock()
 	defer otherNodes.mu.Unlock()
-
-	// Gå gjennom Idene i syncMsg
-	// se etter min id
-	// sett som true hvis jeg er i listen
-	// return
 
 	for i := range syncMsg.KnownNodes {
 		if syncMsg.KnownNodes[i] == myId {
@@ -227,13 +227,13 @@ func updateKnowsMe(syncMsg SyncMessage, otherNodes *PeerAwareness) {
 	}
 }
 
-func purgeStaleKnowsMe(peerAwareness *PeerAwareness) {
-	peerAwareness.mu.Lock()
-	defer peerAwareness.mu.Unlock()
-	for id, entry := range peerAwareness.knowsAboutMe {
+func purgeStaleKnowsMe(peersAwareOfMe *PeersAwareOfMe) {
+	peersAwareOfMe.mu.Lock()
+	defer peersAwareOfMe.mu.Unlock()
+	for id, entry := range peersAwareOfMe.knowsAboutMe {
 		if time.Since(entry.LastReceived) > StaleThreshold {
 			entry.Node = false
-			peerAwareness.knowsAboutMe[id] = entry
+			peersAwareOfMe.knowsAboutMe[id] = entry
 		}
 	}
 }
