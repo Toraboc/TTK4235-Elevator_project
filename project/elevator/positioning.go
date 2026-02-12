@@ -1,101 +1,138 @@
 package elevator
 
 import (
+	"fmt"
+	"time"
 	"Driver-go/elevio"
+	. "project/shared"
 )
 
-type Direction int
-
-const (
-	DirUp Direction = iota
-	DirDown
-	DirStop
-)
-
-type Position struct {
-	direction     Direction
-	LastDirection Direction
-	LastFloor     int
-	floorBelow    int
-	isAtAFloor    bool
-	TargetFloor   int
+type ElevPositioning struct {
+	direction             Direction
+	behaviour             ElevatorBehaviour
+	lastFloorSensorChange time.Time
+	lastFloor             int
+	floorBelow            int
+	isAtFloor             bool
+	door                  Door
 }
 
-/*
-getPosition(pointer to Position) int
-Returns the last known floor of the elevator.
-*/
-func getPosition(pos *Position) int {
-	return pos.LastFloor
-}
+func InitPositioning() ElevPositioning {
+	var door Door
+	err := door.Close()
+	if err != nil {
+		panic("Failed to close the door at start up. This must be done to make sure the door is closed before the elevator starts to move")
+	}
 
-/*
-getDirection(pointer to Position) Direction
-Returns the current direction of the elevator.
-*/
-func GetDirection(pos *Position) Direction {
-	return pos.direction
-}
-
-func GotoFloor(pos *Position, door *Door, floor int) {
-	pos.TargetFloor = floor
-	door.WillOpen = true
-}
-
-func InitPosition(pos *Position) {
-	pos.direction = DirStop
-	pos.LastDirection = DirDown
-	pos.LastFloor = 0
-	pos.TargetFloor = -1
-
+	// TODO: The elevator could be broken at this point, some checks should be implemented
 	elevio.SetMotorDirection(elevio.MD_Down)
 	for elevio.GetFloor() == -1 {
 	}
-	pos.TargetFloor = 0
+	elevio.SetMotorDirection(elevio.MD_Stop)
+
+	var pos ElevPositioning
+	pos.direction = UP
+	pos.behaviour = IDLE
+	pos.lastFloorSensorChange = time.Now()
+	pos.lastFloor = elevio.GetFloor()
+	pos.floorBelow = elevio.GetFloor()
+	pos.isAtFloor = true
+	pos.door = door
+
+	return pos
+}
+
+func (pos *ElevPositioning) updatePosition() {
+	// TODO: This logic does not handle if someone moves the elevator by force
+	// We could implemented a check that the floorBelow only is updated if the behaviour is MOVING, else panic or something
+	// or go into an obstructed state
+	floor := elevio.GetFloor()
+	if floor != -1 {
+		if !pos.isAtFloor {
+			pos.lastFloorSensorChange = time.Now()
+		}
+		pos.lastFloor = floor
+		pos.floorBelow = floor
+		pos.isAtFloor = true
+		elevio.SetFloorIndicator(pos.lastFloor)
+	} else if pos.isAtFloor {
+		pos.isAtFloor = false
+		pos.lastFloorSensorChange = time.Now()
+		if pos.direction == DOWN {
+			pos.floorBelow--
+		}
+	}
+}
+
+func (pos *ElevPositioning) drive(direction Direction) {
+	pos.behaviour = MOVING
+	pos.direction = direction
+	if direction == UP {
+		elevio.SetMotorDirection(elevio.MD_Up)
+	} else {
+		elevio.SetMotorDirection(elevio.MD_Down)
+	}
+}
+
+func (pos *ElevPositioning) stop() {
+	pos.behaviour = IDLE
 	elevio.SetMotorDirection(elevio.MD_Stop)
 }
 
-func PositionModuleLoop(pos *Position, door *Door) {
-	temp_floor := elevio.GetFloor()
-	if temp_floor != -1 { // Elevator is at a floor
-		pos.LastFloor = temp_floor
-		pos.floorBelow = pos.LastFloor
-		pos.isAtAFloor = true
-		elevio.SetFloorIndicator(pos.LastFloor)
-	} else {
-		if pos.isAtAFloor {
-			if pos.direction == DirDown {
-				pos.floorBelow = pos.LastFloor - 1
+func (pos *ElevPositioning) handleElevatorMotor(targetFloor int) {
+
+	// TODO: this needs some cleanup
+	if targetFloor == -1 {
+		if pos.behaviour == MOVING {
+			pos.stop()
+		}
+	} else if pos.isAtFloor && pos.lastFloor == targetFloor {
+		// We are at the target
+		// Check if we just arrived
+		if pos.behaviour == MOVING {
+			pos.stop()
+
+			pos.door.Open()
+			pos.behaviour = PASSENGER_TRANSFER
+			// TODO: Tell the orderHandler that we have stopped
+		}
+
+	} else if pos.behaviour == IDLE || pos.behaviour == MOVING {
+		if pos.floorBelow < targetFloor {
+			pos.drive(UP)
+		} else if pos.floorBelow >= targetFloor {
+			pos.drive(DOWN)
+		}
+	}
+}
+
+func (pos *ElevPositioning) printState() {
+	fmt.Println("lastFloor:", pos.lastFloor, "floorBelow", pos.floorBelow, "direction", pos.direction, "behaviour", pos.behaviour)
+}
+
+func (pos *ElevPositioning) handleDriving() {
+	for {
+		time.Sleep(50 * time.Millisecond)
+		pos.updatePosition()
+
+		// TODO: Change the target floor to a floor from the orderHandler
+		pos.handleElevatorMotor(1)
+
+		pos.printState()
+
+		// Close the door after some time
+		if pos.behaviour == PASSENGER_TRANSFER || (pos.behaviour == OBSTRUCTED && pos.door.IsOpen()) {
+			if time.Since(pos.door.changeTime) > doorOpenTime {
+				err := pos.door.Close()
+				if err != nil {
+					pos.behaviour = OBSTRUCTED
+				} else {
+					pos.behaviour = IDLE
+				}
 			}
 		}
-		pos.isAtAFloor = false
+
+		// TODO: Add some logic to check if the elevator uses too much time on movements
 	}
 
-	if pos.TargetFloor == -1 {
-		pos.direction = DirStop
-		elevio.SetMotorDirection(elevio.MD_Stop)
-	} else if pos.isAtAFloor && pos.LastFloor == pos.TargetFloor {
-		// Elevator has arrived at target floor
-		pos.direction = DirStop
-		elevio.SetMotorDirection(elevio.MD_Stop)
-		pos.TargetFloor = -1
-		if !(door.IsOpen) && door.WillOpen {
-			door.WillOpen = false
-			openDoor(door)
-		}
-	} else if pos.floorBelow < pos.TargetFloor {
-		// Elevator needs to go up
-		if !(door.IsOpen) {
-			pos.direction = DirUp
-			pos.LastDirection = DirUp
-			elevio.SetMotorDirection(elevio.MD_Up)
-		}
-	} else if pos.floorBelow >= pos.TargetFloor {
-		// Elevator needs to go down
-		if !(door.IsOpen) {
-			pos.direction = DirDown
-			pos.LastDirection = DirDown
-			elevio.SetMotorDirection(elevio.MD_Down)
-		}
-	}
 }
