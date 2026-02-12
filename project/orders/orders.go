@@ -4,6 +4,8 @@ import (
 	. "project/shared"
 )
 
+var WorldView Worldview
+
 // Merge our worldview with the incomming data in some way, not dependent on network
 // This will only sync the orders and elevatorStates
 func MergeWorldView(SyncMessage SyncMessage) {
@@ -14,7 +16,11 @@ func MergeWorldView(SyncMessage SyncMessage) {
 }
 
 func GetWorldview() Worldview {
-	return Worldview{}
+	return WorldView
+}
+
+func UpdateConnectedNodes(ids []NodeId) {
+	WorldView.ConnectedNodes = ids
 }
 
 func hallRequestAssigner() {
