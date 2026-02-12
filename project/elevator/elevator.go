@@ -12,6 +12,8 @@ func ElevatorProcess() {
 
 	fmt.Println("Elevator state is determined.")
 
+	elevio.SetStopLamp(false)
+
 	go handleButtonPresses()
 
 	positioning.handleDriving()
