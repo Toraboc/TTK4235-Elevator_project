@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"sync"
 	"time"
 )
 
@@ -24,8 +23,7 @@ type Orders struct {
 	CabOrders      map[NodeId][NumberOfFloors]Order
 }
 
-type Worldview struct {
-	Mu                     sync.Mutex
+type WorldView struct {
 	Orders                 Orders
 	ConnectedNodes         []NodeId
 	ElevatorStates         map[NodeId]ElevatorState
