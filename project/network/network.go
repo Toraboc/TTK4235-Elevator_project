@@ -25,11 +25,13 @@ type KnownNodes struct {
 
 var broadcast string
 var knowsAboutMe KnowsAboutMe
+var myId NodeId
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
+	myId = GetOwnId()
 	fmt.Println("Starting network process")
-	fmt.Printf("My Ip: %s\n", NodeIdtoString(GetOwnId()))
+	fmt.Printf("My Ip: %s\n", NodeIdtoString(myId))
 	knowsAboutMe.Node = make(map[NodeId]bool)
 	knowsAboutMe.LastReceived = make(map[NodeId]time.Time)
 
@@ -79,7 +81,7 @@ func createOutgoingSync() SyncMessage {
 	worldview := GetWorldView()
 
 	syncMsg := SyncMessage{}
-	syncMsg.Id = GetOwnId()
+	syncMsg.Id = myId
 	syncMsg.Orders = worldview.Orders
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
 	syncMsg.KnownNodes = make([]NodeId, len(worldview.ConnectedNodes))
@@ -220,7 +222,7 @@ func updateKnowsMe(syncMsg SyncMessage) {
 	}
 
 	for i := range syncMsg.KnownNodes {
-		if syncMsg.KnownNodes[i] == GetOwnId() {
+		if syncMsg.KnownNodes[i] == myId {
 			knowsAboutMe.Node[syncMsg.Id] = true
 			knowsAboutMe.LastReceived[syncMsg.Id] = time.Now()
 			return
