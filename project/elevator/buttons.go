@@ -4,7 +4,7 @@ import (
 	"Driver-go/elevio"
 	. "project/shared"
 	"time"
-	"fmt"
+	// "fmt"
 )
 
 type OrderButtons [NumberOfFloors][3]bool
@@ -24,11 +24,11 @@ func getButtonsPresses() (OrderButtons, bool) {
 func handleButtonPresses() {
 	for {
 		time.Sleep(20 * time.Millisecond)
-		_, anyPressed := getButtonsPresses()
-		if (anyPressed) {
-			fmt.Println("Some buttons are pressed")
-			// TODO: Notify the orderHandler
-		}
+		// _, anyPressed := getButtonsPresses()
+		// if (anyPressed) {
+		// 	fmt.Println("Some buttons are pressed")
+		// 	// TODO: Notify the orderHandler
+		// }
 	}
 }
 

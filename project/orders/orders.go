@@ -2,6 +2,7 @@ package orders
 
 import (
 	. "project/shared"
+	"time"
 )
 
 var worldView WorldView
@@ -47,6 +48,21 @@ func (vWOrder *Order) MergeOrder(syncOrder Order) {
 		}
 	}
 }
+func CreateOrder() Order {
+	var order Order
+	order.LastEvent = COMPLETED
+	order.ConfirmedBy = make([]NodeId, 0)
+	order.LastUpdate = time.Unix(0, 0)
+	return order
+}
+
+func CreateOrderList() [NumberOfFloors]Order {
+	var orders [NumberOfFloors]Order
+	for i := range NumberOfFloors {
+		orders[i] = CreateOrder()
+	}
+	return orders
+}
 
 func GetWorldview() WorldView {
 	return worldView
@@ -62,7 +78,7 @@ func ElevatorStateChange(state ElevatorState) {
 }
 
 // The datainout here will we figure out later
-func newOrder() {
+func NewOrder() {
 
 }
 
