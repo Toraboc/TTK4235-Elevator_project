@@ -26,11 +26,6 @@ type KnownNodes struct {
 var broadcast string
 var knowsAboutMe KnowsAboutMe
 
-/*
-TODO LIST:
-- Fix knowsAboutMe so they turn false when not transmitting anymore
-*/
-
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
 	fmt.Println("Starting network process")
