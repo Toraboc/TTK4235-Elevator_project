@@ -13,7 +13,7 @@ const (
 type Order struct {
     LastEvent OrderStatus // skal dette vere OrderStatus?
     LastUpdate time.Time
-    ConfirmedBy []NodeId
+    ConfirmedBy NodeIdSet
 }
  
 type Orders struct {
@@ -24,7 +24,7 @@ type Orders struct {
 
 type WorldView struct {
     Orders Orders
-    ConnectedNodes []nodeId
+    ConnectedNodes NodeIdSet
     ElevatorStates map[NodeId]ElevatorState
     AssignedHallUpOrders [NumberOfFloors]bool
     AssignedHallDownOrders [NumberOfFloors]bool

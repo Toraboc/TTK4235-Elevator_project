@@ -11,58 +11,47 @@ func initializeWorldView(worldView WorldView){
 
 }
 
-	worldView.ElevatorStates[SyncMessage.Id] = SyncMessage.MyState
 // This will only sync the orders and elevatorStates
 func MergeWorldView(syncMsg SyncMessage) {
-	//merger først elevatorStates
+	//Oppdaterer staten til heisen m. syncmelding
 	worldView.ElevatorStates[syncMsg.Id] = syncMsg.MyState
 
-	//merger så hallordrer
-	//TODO: Bruk MergeOrder her
+	//merger ordrer
 	for i := 0; i < NumberOfFloors; i++ {
 		if i != 0{
-			worldView.Orders.HallDownOrders
+			worldView.Orders.HallDownOrders[i].MergeOrder(syncMsg.Orders.HallDownOrders[i])
 		}
-
+		if i != (NumberOfFloors -1){
+			worldView.Orders.HallUpOrders[i].MergeOrder(syncMsg.Orders.HallUpOrders[i])
+		}
+		for id := range syncMsg.Orders.CabOrders {
+			worldView.Orders.CabOrders[id][i].MergeOrder(syncMsg.Orders.CabOrders[id][i])
+		}
 	}
 	
-	//slettes snart, structene for oversikt
-	/*
-	type WorldView struct {
-    	Orders Orders
-		ConnectedNodes []nodeId
-    	ElevatorStates map[NodeId]ElevatorState
-    	AssignedHallUpOrders [NumberOfFloors]bool
-    	AssignedHallDownOrders [NumberOfFloors]bool
-    	AssignedCabOrders [NumberOfFloors]bool
-	}
-	type SyncMessage struct {
-		Id         NodeId
-		Orders     Orders
-		MyState    ElevatorState
-		KnownNodes []NodeId
-	}
-	*/
-	// At last
 	// This must also be called if our own elevatorsstate changes
 	hallRequestAssigner()
 }
-func (order1 Order) MergeOrder(order2 Order) Order {
-	// TODO: define merge rules for orders
-	if order1.LastEvent==order2.LastEvent
-	
-	return order1
-}
-/*    Slettes straks
-type Order struct {
-    LastEvent OrderStatus // skal dette vere OrderStatus?
-    LastUpdate time.Time
-    ConfirmedBy []NodeId
-}*/
-func GetWorldview() WorldView {
-	return WorldView{}
+func (vWOrder *Order) MergeOrder(syncOrder Order) {
+	if vWOrder.LastEvent == syncOrder.LastEvent {
+		// select newest timestamp when minor disagreements occur
+		if syncOrder.LastUpdate.After(vWOrder.LastUpdate) {
+			vWOrder.LastUpdate = syncOrder.LastUpdate 
+		}
+		vWOrder.ConfirmedBy.Concat(syncOrder.ConfirmedBy)
+	} else {
+		if syncOrder.LastUpdate.After(vWOrder.LastUpdate) {
+			vWOrder.LastUpdate = syncOrder.LastUpdate 
+			vWOrder.ConfirmedBy = syncOrder.ConfirmedBy
+			vWOrder.ConfirmedBy.Add(getOwnId)
+		}
+	}
 }
 
+func GetWorldview() WorldView {
+	return worldView
+}
+//run the script and update assigned requests
 func hallRequestAssigner() {
 
 }
