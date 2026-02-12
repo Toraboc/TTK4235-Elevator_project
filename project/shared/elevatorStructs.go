@@ -11,11 +11,21 @@ const (
     IDLE ElevatorBehaviour = iota
     MOVING
     PASSENGER_TRANSFER
-    OBSTRUCTED
+    DOOR_OBSTRUCTED
+    FAULTY_MOTOR
+    DISCONNECTED
 )
 
+func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
+    return behaviour == IDLE || behaviour == MOVING || behaviour == PASSENGER_TRANSFER
+}
+
+func (behaviour ElevatorBehaviour) CanMove() bool {
+    return behaviour == MOVING || behaviour == FAULTY_MOTOR
+}
+
 type ElevatorState struct {
-    bahviour  ElevatorBehaviour
+    behaviour  ElevatorBehaviour
     position  int
     direction Direction
 }
