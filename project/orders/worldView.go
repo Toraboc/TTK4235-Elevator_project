@@ -20,6 +20,7 @@ func CreateWorldView(nodeId NodeId) WorldView {
 	return worldView
 }
 
+/*
 func GetWorldView(nodeId NodeId) WorldView {
 	// TODO: This function should not take this parameter
 	// Remember to make this threadsafe
@@ -32,3 +33,4 @@ func GetWorldView(nodeId NodeId) WorldView {
 
 	return worldView
 }
+*/

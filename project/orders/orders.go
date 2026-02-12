@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var worldView WorldView
+
 // Merge our worldview with the incomming data in some way, not dependent on network
 // This will only sync the orders and elevatorStates
 func MergeWorldView(SyncMessage SyncMessage) {
@@ -12,6 +14,13 @@ func MergeWorldView(SyncMessage SyncMessage) {
 	// At last
 	// This must also be called if our own elevatorsstate changes
 	hallRequestAssigner()
+}
+
+func GetWorldView() *WorldView {
+	return &worldView
+}
+
+func UpdateConnectedNodes(ids []NodeId) {
 }
 
 func CreateOrder() Order {
