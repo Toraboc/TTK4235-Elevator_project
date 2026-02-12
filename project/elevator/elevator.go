@@ -12,7 +12,7 @@ func ElevatorProcess() {
 
 	fmt.Println("Elevator state is determined.")
 
-	go handleButtons()
+	go handleButtonPresses()
 
 	positioning.handleDriving()
 }

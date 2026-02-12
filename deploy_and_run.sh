@@ -28,9 +28,6 @@ fi
 ensure_ssh_access() {
     local host="$1"
 
-    if [[ "$(uname -s)" != "Linux" ]]; then
-        return
-    fi
 
     echo "Checking SSH access to $host..."
 
