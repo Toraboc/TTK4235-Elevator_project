@@ -4,8 +4,8 @@ import (
 	. "project/shared"
 )
 
-func CreateWorldView(nodeId NodeId) Worldview {
-	var worldView Worldview
+func CreateWorldView(nodeId NodeId) WorldView {
+	var worldView WorldView
 
 	worldView.ConnectedNodes = make([]NodeId, 1)
 	worldView.ConnectedNodes[0] = nodeId
@@ -20,7 +20,7 @@ func CreateWorldView(nodeId NodeId) Worldview {
 	return worldView
 }
 
-func GetWorldview(nodeId NodeId) Worldview {
+func GetWorldView(nodeId NodeId) WorldView {
 	// TODO: This function should not take this parameter
 	// Remember to make this threadsafe
 

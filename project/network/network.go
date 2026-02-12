@@ -75,7 +75,7 @@ func GetOwnId() NodeId {
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
 func createOutgoingSync() SyncMessage {
-	worldview := GetWorldview(GetOwnId())
+	worldview := GetWorldView(GetOwnId())
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = GetOwnId()

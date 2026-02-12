@@ -22,7 +22,7 @@ type Orders struct {
     CabOrders map[NodeId][NumberOfFloors]Order
 }
 
-type Worldview struct {
+type WorldView struct {
     Orders Orders
     ConnectedNodes []NodeId
     ElevatorStates map[NodeId]ElevatorState

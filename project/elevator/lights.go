@@ -29,7 +29,7 @@ func (lightStrip *LightStrip) update(lamp elevio.ButtonType, confirmedOrders [Nu
 }
 
 func (lightStatus *LightStatus) updateLights(confirmedOrders orders.ConfirmedOrders) {
-	ownId := network.GetOwnId()
+	ownId := network.GetOwnId() // TODO: Use a cache for this
 	cabOrders := confirmedOrders.Cab[ownId]
 
 	lightStatus.hallUp.update(elevio.BT_HallUp, confirmedOrders.HallUp)
@@ -54,7 +54,7 @@ func handleLights() {
 	for {
 		time.Sleep(40 * time.Millisecond)
 
-		ownId := network.GetOwnId()
+		ownId := network.GetOwnId() // TODO: This will be removed then this stops something we need to pass to the function below
 		confirmedOrders := orders.GetConfirmedOrders(ownId)
 		lightStatus.updateLights(confirmedOrders)
 	}

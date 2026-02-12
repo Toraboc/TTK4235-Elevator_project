@@ -10,8 +10,7 @@ type ConfirmedOrders struct {
 	Cab      map[NodeId][NumberOfFloors]OrderStatus
 }
 
-// This needs to be implemented in a way, this is a bit of wierd
-func isConfirmedByEveryOne(nodes []NodeId, connectedNodes []NodeId) bool {
+func isConfirmedByEveryone(nodes []NodeId, connectedNodes []NodeId) bool {
 	set := CreateNodeIdSet(nodes) // TODO: I think we need to use this set in many of our datatypes
 
 	for _, connectedNode := range connectedNodes {
@@ -27,7 +26,7 @@ func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, connectedNodes []N
 	var orderStatus [NumberOfFloors]OrderStatus
 
 	for i := range NumberOfFloors {
-		if orders[i].LastEvent == NEW && isConfirmedByEveryOne(orders[i].ConfirmedBy, connectedNodes) {
+		if orders[i].LastEvent == NEW && isConfirmedByEveryone(orders[i].ConfirmedBy, connectedNodes) {
 			orderStatus[i] = NEW
 		} else {
 			orderStatus[i] = COMPLETED
@@ -39,7 +38,7 @@ func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, connectedNodes []N
 
 func GetConfirmedOrders(nodeId NodeId) ConfirmedOrders {
 	// TODO: This function should not take nodeId as an argument
-	worldview := GetWorldview(nodeId)
+	worldview := GetWorldView(nodeId)
 
 	connectedNodes := worldview.ConnectedNodes
 	orders := worldview.Orders
