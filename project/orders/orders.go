@@ -1,4 +1,4 @@
-package main
+package orders
 
 import (
 	. "project/shared"
@@ -13,7 +13,8 @@ func MergeWorldView(SyncMessage SyncMessage) {
 	hallRequestAssigner()
 }
 
-func GetWorldView() Worldview {
+func GetWorldview() Worldview {
+	return Worldview{}
 }
 
 func hallRequestAssigner() {
@@ -29,7 +30,6 @@ func ElevatorStateChange(state ElevatorState) {
 func newOrder() {
 
 }
-
 
 // Return the next target floor
 func GetNextTargetFloor() (int, error) {

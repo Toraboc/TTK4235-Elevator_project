@@ -1,4 +1,4 @@
-package main
+package network
 
 import (
 	"encoding/json"
@@ -6,18 +6,37 @@ import (
 	"net"
 	"slices"
 	"sort"
+	"sync"
 	"time"
 
+	. "project/orders"
 	. "project/shared"
 )
 
+type NetworkState struct {
+	ConnectedNodes []NetworkNode
+}
+
+type KnowsMe struct {
+	Node map[NodeId]bool
+	Mu   sync.Mutex
+}
+
+type KnownNodes struct {
+	Mu       sync.Mutex
+	LastSeen map[string]time.Time
+}
+
 var nodesOnline NetworkState
 var broadcast string
+var knowsMe KnowsMe
 
 /*
 TODO LIST:
 - Fix knowsMe structure to work properly
 - implement nodesOnline structure to keep track of which nodes are online
+- change to 32bit NodeId
+- Implement clock offset compensation
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
@@ -25,7 +44,7 @@ func NetworkProcess() {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %d\n", getOwnId())
 	nodesOnline = NetworkState{}
-	knowsMe.node = make(map[NodeId]bool)
+	knowsMe.Node = make(map[NodeId]bool)
 
 	go udpListen()
 	udpBroadcast()
@@ -56,16 +75,15 @@ func getOwnId() NodeId {
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
 func createOutgoingSync() SyncMessage {
-	worldviewMutex.Lock()
-	defer worldviewMutex.Unlock()
+	worldview := GetWorldview()
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = getOwnId()
 	syncMsg.Orders = worldview.Orders
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
-	syncMsg.KnownNodes = make([]NodeId, len(nodesOnline.connectedNodes))
-	for i, node := range nodesOnline.connectedNodes {
-		syncMsg.KnownNodes[i] = node.id
+	syncMsg.KnownNodes = make([]NodeId, len(nodesOnline.ConnectedNodes))
+	for i, node := range nodesOnline.ConnectedNodes {
+		syncMsg.KnownNodes[i] = node.Id
 	}
 	return syncMsg
 }
@@ -99,27 +117,27 @@ func udpBroadcast() {
 
 // newKnownNodes creates an initialized KnownNodes.
 func newKnownNodes() *KnownNodes {
-	return &KnownNodes{lastSeen: make(map[string]time.Time)}
+	return &KnownNodes{LastSeen: make(map[string]time.Time)}
 }
 
 // seen records that the given IP was observed now.
 func (nodeSet *KnownNodes) nodeSeen(ip string) {
-	nodeSet.mu.Lock()
-	nodeSet.lastSeen[ip] = time.Now()
-	nodeSet.mu.Unlock()
+	nodeSet.Mu.Lock()
+	nodeSet.LastSeen[ip] = time.Now()
+	nodeSet.Mu.Unlock()
 }
 
 // list returns the sorted list of active peer IPs and prunes stale entries.
 func (nodes *KnownNodes) listActivePeers() []string {
-	nodes.mu.Lock()
-	defer nodes.mu.Unlock()
-	for ip, seenAt := range nodes.lastSeen {
+	nodes.Mu.Lock()
+	defer nodes.Mu.Unlock()
+	for ip, seenAt := range nodes.LastSeen {
 		if time.Since(seenAt) > StaleThreshold {
-			delete(nodes.lastSeen, ip)
+			delete(nodes.LastSeen, ip)
 		}
 	}
-	ips := make([]string, 0, len(nodes.lastSeen))
-	for ip := range nodes.lastSeen {
+	ips := make([]string, 0, len(nodes.LastSeen))
+	for ip := range nodes.LastSeen {
 		ips = append(ips, ip)
 	}
 	sort.Strings(ips)
@@ -160,18 +178,18 @@ func udpListen() {
 		ip := fmt.Sprintf("%d.%d.%d.%d", syncMsg.Id[0], syncMsg.Id[1], syncMsg.Id[2], syncMsg.Id[3])
 		peers.nodeSeen(ip)
 
-		syncMsg.updateKnowsMe()
+		updateKnowsMe(syncMsg)
 		//fmt.Printf("Knows about me %v\n", knowsMe.node)
-		mergeWorldView(syncMsg)
+		MergeWorldView(syncMsg)
 	}
 }
 
 // updateKnowsMe updates the knowsMe structure based on the received SyncMessage.
-func (syncMsg SyncMessage) updateKnowsMe() { // This is chatted, ignore
-	knowsMe.mu.Lock()
-	defer knowsMe.mu.Unlock()
+func updateKnowsMe(syncMsg SyncMessage) { // This is chatted, ignore
+	knowsMe.Mu.Lock()
+	defer knowsMe.Mu.Unlock()
 
 	myID := getOwnId()
 	knowsMe2 := slices.Contains(syncMsg.KnownNodes, myID)
-	knowsMe.node[syncMsg.Id] = knowsMe2
+	knowsMe.Node[syncMsg.Id] = knowsMe2
 }
