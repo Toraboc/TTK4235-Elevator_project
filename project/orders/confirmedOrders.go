@@ -10,10 +10,10 @@ type ConfirmedOrders struct {
 	Cab      map[NodeId][NumberOfFloors]OrderStatus
 }
 
-func isConfirmedByEveryone(nodes []NodeId, connectedNodes []NodeId) bool {
+func isConfirmedByEveryone(nodes []NodeId, connectedNodes NodeIdSet) bool {
 	set := CreateNodeIdSet(nodes) // TODO: I think we need to use this set in many of our datatypes
 
-	for _, connectedNode := range connectedNodes {
+	for connectedNode := range connectedNodes {
 		if !set.Contains(connectedNode) {
 			return false
 		}
@@ -22,7 +22,7 @@ func isConfirmedByEveryone(nodes []NodeId, connectedNodes []NodeId) bool {
 	return true
 }
 
-func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, connectedNodes []NodeId) [NumberOfFloors]OrderStatus {
+func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, connectedNodes NodeIdSet) [NumberOfFloors]OrderStatus {
 	var orderStatus [NumberOfFloors]OrderStatus
 
 	for i := range NumberOfFloors {

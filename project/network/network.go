@@ -15,22 +15,25 @@ import (
 	- Brew coffee
 	- Take a nap
 	- You know, the usual
+	- Fix so that only nodes with two way communication are sent to orders
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %s\n", NodeIdtoString(GetMyId()))
+	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 	go func() {
 		for {
 			time.Sleep(1 * time.Second)
-			fmt.Println("Knows about me:", nodesAwareOfMe.KnowsMe()) // DEBUG
+			knownNodes.Print()
+			nodesAwareOfMe.Print()
 		}
 	}()
 
-	go udpListen(nodesAwareOfMe)
-	udpBroadcast()
+	go udpListen(knownNodes, nodesAwareOfMe)
+	udpBroadcast(knownNodes)
 }
 
 func NodeIdtoString(id NodeId) string {
@@ -46,21 +49,23 @@ func NodeIdListToStrings(ids []NodeId) []string {
 }
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
-func createOutgoingSync() SyncMessage {
+func createOutgoingSync(knownNodes *KnownNodes) SyncMessage {
 	worldview := GetWorldView()
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = GetMyId()
 	syncMsg.Orders = worldview.Orders
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
-	syncMsg.KnownNodes = make([]NodeId, len(worldview.ConnectedNodes))
-	copy(syncMsg.KnownNodes, worldview.ConnectedNodes)
+	syncMsg.KnownNodes = make([]NodeId, 0, len(knownNodes.LastSeen))
+	for id := range knownNodes.LastSeen {
+		syncMsg.KnownNodes = append(syncMsg.KnownNodes, id)
+	}
 	syncMsg.SendTime = time.Now()
 	return syncMsg
 }
 
 // udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
-func udpBroadcast() {
+func udpBroadcast(KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
 		fmt.Println("Error dialing UDP:", err)
@@ -72,7 +77,7 @@ func udpBroadcast() {
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync()
+		syncMsg := createOutgoingSync(KnownNodes)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
@@ -87,20 +92,20 @@ func udpBroadcast() {
 }
 
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
-func udpListen(nodesAwareOfMe *NodesAwareOfMe) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		return
 	}
 	defer conn.Close()
 
-	peers := newKnownNodes()
 	go func() {
 		printTicker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
 		defer printTicker.Stop()
 		for range printTicker.C {
-			peers.updateConnectedNodes()
-			nodesAwareOfMe.purgeStale()
+			knownNodes.pruneStale()
+			nodesAwareOfMe.pruneStale()
+			UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
 		}
 	}()
 
@@ -118,7 +123,7 @@ func udpListen(nodesAwareOfMe *NodesAwareOfMe) {
 		}
 
 		ip := syncMsg.Id
-		peers.nodeSeen(ip)
+		knownNodes.nodeSeen(ip)
 
 		nodesAwareOfMe.update(syncMsg)
 		//nodesAwareOfMe.Print() // DEBUG

@@ -6,9 +6,14 @@ import (
 	"sync"
 	"time"
 
-	. "project/orders"
+	//. "project/orders"
 	. "project/shared"
 )
+
+type KnownNodes struct {
+	mu       sync.Mutex
+	LastSeen map[NodeId]time.Time
+}
 
 type KnowsAboutMe struct {
 	Node         bool
@@ -20,45 +25,50 @@ type NodesAwareOfMe struct {
 	knowsAboutMe map[NodeId]KnowsAboutMe
 }
 
-type KnownNodes struct {
-	mu       sync.Mutex
-	LastSeen map[NodeId]time.Time
-}
-
-func newNodesAwareOfMe() *NodesAwareOfMe {
-	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
-}
-
 // newKnownNodes creates an initialized KnownNodes.
 func newKnownNodes() *KnownNodes {
 	return &KnownNodes{LastSeen: make(map[NodeId]time.Time)}
 }
 
 // nodeSeen records that the given IP was observed now.
-func (nodeSet *KnownNodes) nodeSeen(id NodeId) {
-	nodeSet.mu.Lock()
-	nodeSet.LastSeen[id] = time.Now()
-	nodeSet.mu.Unlock()
+func (knownNodes *KnownNodes) nodeSeen(id NodeId) {
+	knownNodes.mu.Lock()
+	knownNodes.LastSeen[id] = time.Now()
+	knownNodes.mu.Unlock()
 }
 
-// updateConnectedNodes prunes stale entries and updates the sorted list of active peer IPs via UpdateConnectedNodes.
-func (nodes *KnownNodes) updateConnectedNodes() {
-	nodes.mu.Lock()
-	defer nodes.mu.Unlock()
+// updateKnownNodes prunes stale entries
+func (knownNodes *KnownNodes) pruneStale() {
+	knownNodes.mu.Lock()
+	defer knownNodes.mu.Unlock()
 
-	for id, seenAt := range nodes.LastSeen {
+	for id, seenAt := range knownNodes.LastSeen {
 		if time.Since(seenAt) > StaleThreshold {
-			delete(nodes.LastSeen, id)
+			delete(knownNodes.LastSeen, id)
 		}
 	}
-	ids := make([]NodeId, 0, len(nodes.LastSeen))
-	for id := range nodes.LastSeen {
+	ids := make([]NodeId, 0, len(knownNodes.LastSeen))
+	for id := range knownNodes.LastSeen {
 		ids = append(ids, id)
 	}
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	//fmt.Println("Active peers:", NodeIdListToStrings(ids)) // DEBUG
+}
 
-	UpdateConnectedNodes(ids)
+func (knownNodes *KnownNodes) Print() {
+	knownNodes.mu.Lock()
+	defer knownNodes.mu.Unlock()
+
+	fmt.Printf("Known nodes: ")
+	for id, seenAt := range knownNodes.LastSeen {
+		fmt.Printf("%s (last seen: %s), ", NodeIdtoString(id), seenAt.Format(time.RFC3339))
+	}
+	fmt.Println()
+}
+
+//________________________________________________________________________________________________________
+
+func newNodesAwareOfMe() *NodesAwareOfMe {
+	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 }
 
 // GetKnowsAboutMe returns a NodeIdSet of nodes that know about me.
@@ -90,8 +100,8 @@ func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
 	}
 }
 
-// purgeStaleKnowsMe marks nodes as not knowing about me if they haven't sent a SyncMessage in a while.
-func (nodesAwareOfMe *NodesAwareOfMe) purgeStale() {
+// pruneStale marks nodes as not knowing about me if they haven't sent a SyncMessage in a while.
+func (nodesAwareOfMe *NodesAwareOfMe) pruneStale() {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
 	for id, entry := range nodesAwareOfMe.knowsAboutMe {
@@ -102,6 +112,7 @@ func (nodesAwareOfMe *NodesAwareOfMe) purgeStale() {
 	}
 }
 
+// Print displays the nodes that know about me.
 func (nodesAwareOfMe *NodesAwareOfMe) Print() {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
@@ -111,4 +122,21 @@ func (nodesAwareOfMe *NodesAwareOfMe) Print() {
 		fmt.Printf("%s: %t, ", NodeIdtoString(id), entry.Node)
 	}
 	fmt.Println()
+}
+
+//__________________________________________________________________________________________________________
+
+func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
+	set := make(NodeIdSet)
+	knownNodes.mu.Lock()
+	nodesAwareOfMe.mu.Lock()
+	defer knownNodes.mu.Unlock()
+	defer nodesAwareOfMe.mu.Unlock()
+
+	for id := range knownNodes.LastSeen {
+		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
+			set.Add(id)
+		}
+	}
+	return set
 }
