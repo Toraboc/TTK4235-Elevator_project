@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"sort"
 	"sync"
 	"time"
 
@@ -47,11 +46,6 @@ func (knownNodes *KnownNodes) pruneStale() {
 			delete(knownNodes.LastSeen, id)
 		}
 	}
-	ids := make([]NodeId, 0, len(knownNodes.LastSeen))
-	for id := range knownNodes.LastSeen {
-		ids = append(ids, id)
-	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 }
 
 // Print displays the known nodes and their last seen times.
@@ -73,7 +67,7 @@ func newNodesAwareOfMe() *NodesAwareOfMe {
 	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 }
 
-// GetKnowsAboutMe returns a NodeIdSet of nodes that know about me.
+// KnowsMe returns a NodeIdSet of nodes that know about me.
 func (nodesAwareOfMe *NodesAwareOfMe) KnowsMe() NodeIdSet {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
@@ -91,9 +85,10 @@ func (nodesAwareOfMe *NodesAwareOfMe) KnowsMe() NodeIdSet {
 func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
+	myId := GetMyId()
 
-	for i := range syncMsg.KnownNodes {
-		if syncMsg.KnownNodes[i] == GetMyId() {
+	for _, nodeId := range syncMsg.KnownNodes {
+		if nodeId == myId {
 			entry := nodesAwareOfMe.knowsAboutMe[syncMsg.Id]
 			entry.Node = true
 			entry.LastReceived = time.Now()
@@ -121,7 +116,7 @@ func (nodesAwareOfMe *NodesAwareOfMe) Print() {
 
 	fmt.Printf("Knows about me: ")
 	for id, entry := range nodesAwareOfMe.knowsAboutMe {
-		fmt.Printf("%s: %t, ", id, entry.Node)
+		fmt.Printf("%v: %t, ", id, entry.Node)
 	}
 	fmt.Println()
 }
@@ -133,8 +128,8 @@ func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
 	nodesAwareOfMe.mu.Lock()
-	defer knownNodes.mu.Unlock()
 	defer nodesAwareOfMe.mu.Unlock()
+	defer knownNodes.mu.Unlock()
 
 	for id := range knownNodes.LastSeen {
 		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
