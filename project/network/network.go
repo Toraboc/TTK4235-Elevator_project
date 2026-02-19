@@ -86,26 +86,6 @@ func udpBroadcast() {
 	}
 }
 
-// Clock offset compensation adjusts the timestamps in the SyncMessage to account for clock differences between nodes.
-func clockOffsetCompensation(syncMsg *SyncMessage) {
-	// This is a placeholder for clock offset compensation logic.
-	offset := time.Since(syncMsg.SendTime)
-	for order := range syncMsg.Orders.HallUpOrders {
-		syncMsg.Orders.HallUpOrders[order].LastUpdate = syncMsg.Orders.HallUpOrders[order].LastUpdate.Add(offset)
-	}
-	for order := range syncMsg.Orders.HallDownOrders {
-		syncMsg.Orders.HallDownOrders[order].LastUpdate = syncMsg.Orders.HallDownOrders[order].LastUpdate.Add(offset)
-	}
-	for nodeID, cabOrders := range syncMsg.Orders.CabOrders {
-		for floor := range cabOrders {
-			order := cabOrders[floor]
-			order.LastUpdate = order.LastUpdate.Add(offset)
-			cabOrders[floor] = order
-		}
-		syncMsg.Orders.CabOrders[nodeID] = cabOrders
-	}
-}
-
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
 func udpListen(nodesAwareOfMe *NodesAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
