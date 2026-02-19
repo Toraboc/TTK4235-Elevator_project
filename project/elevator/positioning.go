@@ -1,7 +1,7 @@
 package elevator
 
 import (
-	"Driver-go/elevio"
+	"github.com/angrycompany16/driver-go/elevio"
 	"fmt"
 	. "project/shared"
 	"time"
