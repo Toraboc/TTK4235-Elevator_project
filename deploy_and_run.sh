@@ -12,9 +12,27 @@ SSH_KEY="$HOME/.ssh/id_ed25519"
 SSH_PUB_KEY="$SSH_KEY.pub"
 # ----------------------------------------
 
-if [[ "$#" -eq 0 ]]; then
-    echo "Usage: $0 host1 [host2 ...]"
-    echo "For example ./deploy_and_run.sh 33 34 35"
+# Parse flags
+FAST_MODE=false
+HOSTS=()
+
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -f)
+            FAST_MODE=true
+            shift
+            ;;
+        *)
+            HOSTS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [[ "${#HOSTS[@]}" -eq 0 ]]; then
+    echo "Usage: $0 [-f] host1 [host2 ...]"
+    echo "  -f: Fast mode (skip SSH setup and elevatorserver)"
+    echo "For example: ./deploy_and_run.sh -f 33 34 35"
     exit 1
 fi
 
@@ -69,7 +87,25 @@ cleanup() {
 
 trap cleanup INT
 
-# 3. Copy code and start program
+# 3. Copy code and start program (fast mode)
+run_remote_fast() {
+    local host="$1"
+
+    echo "Fast deploying to $host..."
+
+    # Copy code
+    scp -rq ".$CODE_DIR" "$REMOTE_USER@$host:$REMOTE_BASE_DIR$CODE_DIR"
+
+    # Start go code only
+    ssh "$REMOTE_USER@$host" "
+        set -e
+        cd $REMOTE_BASE_DIR$CODE_DIR
+        go run . 2>&1
+    " | sed "s/^/[$host] /" &
+    JOB_PIDS+=("$!")
+}
+
+# 4. Copy code and start program (full mode)
 run_remote() {
     local host="$1"
 
@@ -81,12 +117,9 @@ run_remote() {
     " || true
 
     # Copy code
-    ssh "$REMOTE_USER@$host" "
-        set -e
-        mkdir -p $REMOTE_BASE_DIR
-        rm -r $REMOTE_BASE_DIR
-    "
-    scp -rq "$LOCAL_GO_DIR"/* "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
+    ssh "$REMOTE_USER@$host" "rm -r $REMOTE_BASE_DIR" || true
+
+    scp -rq ./ "$REMOTE_USER@$host:$REMOTE_BASE_DIR"
 
     # Start elevatorserver and go code
     ssh "$REMOTE_USER@$host" "
@@ -96,24 +129,26 @@ run_remote() {
         echo 'Starting elevatorserver'
         ./elevatorserver > elevatorserver.log 2>&1 &
         sleep 1
-        
+
         cd $REMOTE_BASE_DIR$CODE_DIR
         go run . 2>&1
     " | sed "s/^/[$host] /" &
     JOB_PIDS+=("$!")
 }
 
-# 4. Main loop
-for last_octet in "$@"; do
+# 5. Main loop
+for last_octet in "${HOSTS[@]}"; do
     [[ -z "$last_octet" ]] && continue
 
     # Construct full IP
     host="${IP_PREFIX}${last_octet}"
 
-    ensure_ssh_access "$host"
-
-    # Run each host in background so outputs interleave
-    run_remote "$host"
+    if [[ "$FAST_MODE" == false ]]; then
+        ensure_ssh_access "$host"
+        run_remote "$host"
+    else
+        run_remote_fast "$host"
+    fi
 done
 
 wait

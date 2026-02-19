@@ -22,6 +22,12 @@ For eksempel slik
 ./deploy_and_run.sh 35 36 37
 ```
 
+Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
+
+```bash
+./deploy_and_run.sh -f 35 36 37
+```
+
 ## TODO
 
 - Hvilke prosesser skal vi ha, nettverk, en heismodulen
