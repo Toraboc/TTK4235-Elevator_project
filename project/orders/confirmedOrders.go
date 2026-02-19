@@ -5,52 +5,32 @@ import (
 )
 
 type ConfirmedOrders struct {
-	HallUp   [NumberOfFloors]OrderStatus
-	HallDown [NumberOfFloors]OrderStatus
-	Cab      map[NodeId][NumberOfFloors]OrderStatus
+	HallUp   [NumberOfFloors]bool
+	HallDown [NumberOfFloors]bool
+	Cab      [NumberOfFloors]bool
 }
 
-func isConfirmedByEveryone(nodes []NodeId, connectedNodes []NodeId) bool {
-	set := CreateNodeIdSet(nodes) // TODO: I think we need to use this set in many of our datatypes
+func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, nodeId NodeId) [NumberOfFloors]bool {
+	var confirmed [NumberOfFloors]bool
 
-	for _, connectedNode := range connectedNodes {
-		if !set.Contains(connectedNode) {
-			return false
+	for floor := 0; floor < NumberOfFloors; floor++ {
+		isConfirmed := true
+		status, exists := orders[floor][nodeId]
+		if !exists || status != CONFIRMED {
+			isConfirmed = false
 		}
+		confirmed[floor] = isConfirmed
 	}
-
-	return true
+	return confirmed
 }
 
-func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, connectedNodes []NodeId) [NumberOfFloors]OrderStatus {
-	var orderStatus [NumberOfFloors]OrderStatus
-
-	for i := range NumberOfFloors {
-		if orders[i].LastEvent == NEW && isConfirmedByEveryone(orders[i].ConfirmedBy, connectedNodes) {
-			orderStatus[i] = NEW
-		} else {
-			orderStatus[i] = COMPLETED
-		}
-	}
-
-	return orderStatus
-}
-
-func GetConfirmedOrders(nodeId NodeId) ConfirmedOrders {
-	// TODO: This function should not take nodeId as an argument
-	worldview := GetWorldView(nodeId)
-
-	connectedNodes := worldview.ConnectedNodes
-	orders := worldview.Orders
+func (worldView *WorldView) GetConfirmedOrders() ConfirmedOrders {
 	var confirmedOrders ConfirmedOrders
 
-	confirmedOrders.HallUp = findConfirmedOrdersInArray(orders.HallUpOrders, connectedNodes)
-	confirmedOrders.HallDown = findConfirmedOrdersInArray(orders.HallDownOrders, connectedNodes)
-	confirmedOrders.Cab = make(map[NodeId][NumberOfFloors]OrderStatus)
-
-	for nodeId, orders := range orders.CabOrders {
-		confirmedOrders.Cab[nodeId] = findConfirmedOrdersInArray(orders, connectedNodes)
-	}
+	confirmedOrders.HallUp = findConfirmedOrdersInArray(worldView.Orders.HallUpOrders, getOwnId())
+	confirmedOrders.HallDown = findConfirmedOrdersInArray(worldView.Orders.HallDownOrders, getOwnId())
+	confirmedOrders.Cab = make(map[NodeId][NumberOfFloors]bool)
+	confirmedOrders.Cab = findConfirmedOrdersInArray(worldView.Orders.cabOrders[getOwnId()], getOwnId())
 
 	return confirmedOrders
 }
