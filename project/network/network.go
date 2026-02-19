@@ -4,43 +4,33 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"sort"
-	"sync"
 	"time"
 
 	. "project/orders"
 	. "project/shared"
 )
 
-type KnowsAboutMe struct {
-	Node         bool
-	LastReceived time.Time
-}
-
-type PeersAwareOfMe struct {
-	mu           sync.Mutex
-	knowsAboutMe map[NodeId]KnowsAboutMe
-}
-
-type KnownNodes struct {
-	Mu       sync.Mutex
-	LastSeen map[NodeId]time.Time
-}
-
 var myId NodeId
 
 /*
 	TODO:
 	- Implement a function that returns all the nodes that know about me as a nodeIdSet
-	- Fix knows about me, it is bricked
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
-	myId = GetOwnId()
+	myId = getOwnId()
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %s\n", NodeIdtoString(myId))
 	otherNodes := PeersAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
+	go func() {
+		for {
+			otherNodes.mu.Lock()
+			time.Sleep(1 * time.Second)
+			fmt.Println("Knows about me:", GetKnowsAboutMe(&otherNodes)) // DEBUG
+			otherNodes.mu.Unlock()
+		}
+	}()
 
 	go udpListen(&otherNodes)
 	udpBroadcast()
@@ -58,8 +48,8 @@ func NodeIdListToStrings(ids []NodeId) []string {
 	return result
 }
 
-// getOwnId returns the IPv4 address of the computer as a NodeId.
-func GetOwnId() NodeId {
+// getOwnId returns the IPv4 address of the computer as a NodeId. Heavy process, should only be called once at startup. If no valid IP is found, returns 0.
+func getOwnId() NodeId {
 	var id NodeId
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -78,6 +68,11 @@ func GetOwnId() NodeId {
 		return NodeId(id32)
 	}
 	return 0
+}
+
+// GetMyId returns the NodeId of this node.
+func GetMyId() NodeId {
+	return myId
 }
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
@@ -121,38 +116,7 @@ func udpBroadcast() {
 	}
 }
 
-// newKnownNodes creates an initialized KnownNodes.
-func newKnownNodes() *KnownNodes {
-	return &KnownNodes{LastSeen: make(map[NodeId]time.Time)}
-}
-
-// seen records that the given IP was observed now.
-func (nodeSet *KnownNodes) nodeSeen(id NodeId) {
-	nodeSet.Mu.Lock()
-	nodeSet.LastSeen[id] = time.Now()
-	nodeSet.Mu.Unlock()
-}
-
-// list returns the sorted list of active peer IPs and prunes stale entries.
-func (nodes *KnownNodes) listActivePeers() []NodeId {
-	nodes.Mu.Lock()
-	defer nodes.Mu.Unlock()
-	for id, seenAt := range nodes.LastSeen {
-		if time.Since(seenAt) > StaleThreshold {
-			delete(nodes.LastSeen, id)
-		}
-	}
-	ids := make([]NodeId, 0, len(nodes.LastSeen))
-	for id := range nodes.LastSeen {
-		ids = append(ids, id)
-	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	fmt.Println("Active peers:", NodeIdListToStrings(ids))
-
-	UpdateConnectedNodes(ids)
-	return ids
-}
-
+// Clock offset compensation adjusts the timestamps in the SyncMessage to account for clock differences between nodes.
 func clockOffsetCompensation(syncMsg *SyncMessage) {
 	// This is a placeholder for clock offset compensation logic.
 	offset := time.Since(syncMsg.SendTime)
@@ -207,34 +171,8 @@ func udpListen(otherNodes *PeersAwareOfMe) {
 		peers.nodeSeen(ip)
 
 		updateKnowsMe(syncMsg, otherNodes)
-		fmt.Printf("Knows about me %v\n", otherNodes.knowsAboutMe)
+		//printKnowsAboutMe(otherNodes) // DEBUG
 		//clockOffsetCompensation(&syncMsg)
 		MergeWorldView(syncMsg)
-	}
-}
-
-// updateKnowsMe updates the knowsAboutMe based on the received SyncMessage.
-func updateKnowsMe(syncMsg SyncMessage, otherNodes *PeersAwareOfMe) {
-	otherNodes.mu.Lock()
-	defer otherNodes.mu.Unlock()
-
-	for i := range syncMsg.KnownNodes {
-		if syncMsg.KnownNodes[i] == myId {
-			entry := otherNodes.knowsAboutMe[syncMsg.Id]
-			entry.Node = true
-			entry.LastReceived = time.Now()
-			otherNodes.knowsAboutMe[syncMsg.Id] = entry
-		}
-	}
-}
-
-func purgeStaleKnowsMe(peersAwareOfMe *PeersAwareOfMe) {
-	peersAwareOfMe.mu.Lock()
-	defer peersAwareOfMe.mu.Unlock()
-	for id, entry := range peersAwareOfMe.knowsAboutMe {
-		if time.Since(entry.LastReceived) > StaleThreshold {
-			entry.Node = false
-			peersAwareOfMe.knowsAboutMe[id] = entry
-		}
 	}
 }
