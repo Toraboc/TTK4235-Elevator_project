@@ -12,11 +12,11 @@ func CreateOrder(nodeId NodeId) Order {
 }
 
 func (order *Order) Copy() Order {
-	copyOrder := make(Order)
+	copy := make(Order)
 		for nodeId, status := range *order {
-			copyOrder[nodeId] = status
+			copy[nodeId] = status
 		}
-	return copyOrder
+	return copy
 }
 
 func CreateOrderList() [NumberOfFloors]Order {
