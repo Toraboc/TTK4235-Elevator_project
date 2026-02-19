@@ -14,14 +14,14 @@ func CreateWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
-	worldView.ConnectedNodes.Add(getOwnId())//circular dependency, will be fixed later
+	worldView.ConnectedNodes.Add(GetMyId())//circular dependency, will be fixed later
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 
 	worldView.Orders.HallUpOrders = CreateOrderList()
 	worldView.Orders.HallDownOrders = CreateOrderList()
 	worldView.Orders.CabOrders = make(map[NodeId][NumberOfFloors]Order)
-	worldView.Orders.CabOrders[getOwnId()] = CreateOrderList()//circular dependency
+	worldView.Orders.CabOrders[GetMyId()] = CreateOrderList()//circular dependency
 
 	return worldView
 }
@@ -80,7 +80,7 @@ func (worldView *WorldView) Merge(syncMsg SyncMessage) {
 // This function will receive updates from the elevator
 func (worldView *WorldView) ChangeElevatorState(state ElevatorState) {
 
-	worldView.ElevatorStates[getOwnId()] = state
+	worldView.ElevatorStates[GetMyId()] = state
 	worldView.hallRequestAssigner()
 }
 

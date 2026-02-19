@@ -1,5 +1,9 @@
 package shared
 
+import (
+	"fmt"
+)
+
 type NodeId [4]byte // Change to int32
 
 type NodeIdSet map[NodeId]struct{}

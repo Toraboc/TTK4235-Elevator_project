@@ -2,6 +2,7 @@ package orders
 
 import (
     "time"
+    . "project/shared"
 )
 
 type OrderStatus int
@@ -12,7 +13,7 @@ const (
     FINISHED
 )
 
-type Order map[nodeId]OrderStatus
+type Order map[NodeId]OrderStatus
  
 type Orders struct {
     HallUpOrders [NumberOfFloors]Order
