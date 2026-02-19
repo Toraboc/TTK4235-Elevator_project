@@ -64,12 +64,14 @@ func (worldView *WorldView) Merge(syncMsg SyncMessage) {
 		}
 	}
 	for i := 0; i < NumberOfFloors; i++ {
-		worldView.Orders.HallDownOrders[i].Merge(syncMsg.Orders.HallDownOrders[i])
-		worldView.Orders.HallUpOrders[i].Merge(syncMsg.Orders.HallUpOrders[i])
+		worldView.Orders.HallDownOrders[i].Merge(syncMsg.Orders.HallDownOrders[i],syncMsg.Id)
+		worldView.Orders.HallUpOrders[i].Merge(syncMsg.Orders.HallUpOrders[i],syncMsg.Id)
 		for id := range syncMsg.Orders.CabOrders {
-			worldView.Orders.CabOrders[id][i].Merge(syncMsg.Orders.CabOrders[id][i])
+			worldView.Orders.CabOrders[id][i].Merge(syncMsg.Orders.CabOrders[id][i],syncMsg.Id)
 		}
 	}
+	//TODO: update cyclic counter
+	
 	
 	// This must also be called if our own elevatorsstate changes
 	worldView.hallRequestAssigner()

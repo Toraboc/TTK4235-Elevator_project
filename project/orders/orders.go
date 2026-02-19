@@ -35,10 +35,17 @@ func (orders *[NumberOfFloors]Order) Copy() [NumberOfFloors]Order {
 }
 
 //Merge two orders
-func (vorldWiewOrder *Order) Merge(syncOrder Order) {
-
+func (worldViewOrder *Order) Merge(syncOrder Order, syncId NodeId) {
+	for nodeId, syncOrderState := range syncOrder {
+		if nodeId == syncId {
+			(*worldViewOrder)[nodeId] = syncOrderState
+		}
+	}
 }
 
+func (worldViewOrder *Order) UpdateCounter() {
+	
+}
 
 // The datainout here will we figure out later
 func NewOrder() {
@@ -51,5 +58,5 @@ func GetNextTargetFloor(worldView *WorldView) (int, error) {
 	hallDownOrders := worldView.AssignedHallDownOrders
 	cabOrders := worldView.AssignedCabOrders
 
-	
+
 }

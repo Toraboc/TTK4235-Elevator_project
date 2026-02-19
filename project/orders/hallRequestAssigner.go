@@ -40,7 +40,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 			cabRequests = findConfirmedOrdersInArray(cabOrderList, nodeId)[:]
 		}
 
-		states[nodeId.ToString()] = hallRequestAssignerInputState{
+		states[nodeId.String()] = hallRequestAssignerInputState{
 			Behaviour:   "idle",
 			Floor:       0,
 			Direction:   "stop",
@@ -73,7 +73,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 	}
 
 	ownId := getOwnId()
-	assignedHallRequests, exists := hallAssignmentsByElevator[ownId.ToString()]
+	assignedHallRequests, exists := hallAssignmentsByElevator[ownId.String()]
 	if !exists {
 		return
 	}

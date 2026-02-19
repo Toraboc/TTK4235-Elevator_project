@@ -28,6 +28,6 @@ func CreateNodeIdSet(nodeIds []NodeId) NodeIdSet {
 }
 
 
-func (nodeId *NodeId) ToString string {
+func (nodeId NodeId) String() string {
 	return fmt.Sprintf("%d.%d.%d.%d", nodeId[0], nodeId[1], nodeId[2], nodeId[3])
 }
