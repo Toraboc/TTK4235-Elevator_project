@@ -2,8 +2,8 @@ package elevator
 
 import (
 	"fmt"
-	"Driver-go/elevio"
 	. "project/shared"
+	"github.com/angrycompany16/driver-go/elevio"
 )
 
 func ElevatorProcess() {
@@ -11,6 +11,8 @@ func ElevatorProcess() {
 	positioning := InitPositioning()
 
 	fmt.Println("Elevator state is determined.")
+
+	elevio.SetStopLamp(false)
 
 	go handleButtonPresses()
 	go handleLights()

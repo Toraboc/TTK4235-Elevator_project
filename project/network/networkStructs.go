@@ -15,4 +15,5 @@ type SyncMessage struct {
 	Orders     Orders
 	MyState    ElevatorState
 	KnownNodes []NodeId
+	SendTime   time.Time
 }

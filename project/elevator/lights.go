@@ -1,8 +1,8 @@
 package elevator
 
 import (
-	"Driver-go/elevio"
-	"project/network"
+	"github.com/angrycompany16/driver-go/elevio"
+	//"project/network"
 	"project/orders"
 	. "project/shared"
 	"time"
@@ -11,9 +11,9 @@ import (
 type LightType [NumberOfFloors]bool
 
 type LightStatus struct {
-	hallUp LightType
+	hallUp   LightType
 	hallDown LightType
-	cab LightType
+	cab      LightType
 }
 
 var lightStatus LightStatus
@@ -29,7 +29,7 @@ func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [Numb
 }
 
 func (lightStatus *LightStatus) updateLights(confirmedOrders orders.ConfirmedOrders) {
-	ownId := network.GetOwnId() // TODO: Use a cache for this
+	ownId := GetMyId() // TODO: Use a cache for this
 	cabOrders := confirmedOrders.Cab[ownId]
 
 	lightStatus.hallUp.update(elevio.BT_HallUp, confirmedOrders.HallUp)
@@ -54,8 +54,7 @@ func handleLights() {
 	for {
 		time.Sleep(40 * time.Millisecond)
 
-		ownId := network.GetOwnId() // TODO: This will be removed then this stops something we need to pass to the function below
-		confirmedOrders := orders.GetConfirmedOrders(ownId)
+		confirmedOrders := orders.GetConfirmedOrders()
 		lightStatus.updateLights(confirmedOrders)
 	}
 }

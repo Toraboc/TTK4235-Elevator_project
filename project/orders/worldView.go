@@ -14,14 +14,14 @@ func CreateWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
-	worldView.ConnectedNodes.Add(GetMyId())//circular dependency, will be fixed later
+	worldView.ConnectedNodes.Add(GetMyId())
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 
 	worldView.Orders.HallUpOrders = CreateOrderList()
 	worldView.Orders.HallDownOrders = CreateOrderList()
 	worldView.Orders.CabOrders = make(map[NodeId][NumberOfFloors]Order)
-	worldView.Orders.CabOrders[GetMyId()] = CreateOrderList()//circular dependency
+	worldView.Orders.CabOrders[GetMyId()] = CreateOrderList()
 
 	return worldView
 }

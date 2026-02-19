@@ -8,6 +8,26 @@ Dette er kode til TTK4145 prosjekt.
 - [ ] Exercise 4
 - [ ] Exercise 5
 
+## Start koden på andre maskiner
+
+Bruk scriptet til å starte heiskoden på flere maskiner. Gjør dette ved å spesifisere det siste tallet i ip-adressen til maskinene man skal deployere til.
+
+```bash
+./deploy_and_run.sh <number> [number] [number]
+```
+
+For eksempel slik
+
+```bash
+./deploy_and_run.sh 35 36 37
+```
+
+Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
+
+```bash
+./deploy_and_run.sh -f 35 36 37
+```
+
 ## TODO
 
 - Hvilke prosesser skal vi ha, nettverk, en heismodulen
