@@ -61,7 +61,7 @@ func (knownNodes *KnownNodes) Print() {
 
 	fmt.Printf("Known nodes: ")
 	for id, seenAt := range knownNodes.LastSeen {
-		fmt.Printf("%s (last seen: %s), ", NodeIdtoString(id), seenAt.Format(time.RFC3339))
+		fmt.Printf("%v (last seen: %s), ", id, seenAt.Format(time.RFC3339))
 	}
 	fmt.Println()
 }
@@ -121,7 +121,7 @@ func (nodesAwareOfMe *NodesAwareOfMe) Print() {
 
 	fmt.Printf("Knows about me: ")
 	for id, entry := range nodesAwareOfMe.knowsAboutMe {
-		fmt.Printf("%s: %t, ", NodeIdtoString(id), entry.Node)
+		fmt.Printf("%s: %t, ", id, entry.Node)
 	}
 	fmt.Println()
 }

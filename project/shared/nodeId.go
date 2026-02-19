@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -31,6 +32,18 @@ func CreateNodeIdSet(nodeIds []NodeId) NodeIdSet {
 		set[node] = struct{}{}
 	}
 	return set
+}
+
+func (id NodeId) String() string {
+	return fmt.Sprintf("%d.%d.%d.%d", byte(id>>24), byte(id>>16), byte(id>>8), byte(id))
+}
+
+func NodeIdListToStrings(ids []NodeId) []string {
+	result := make([]string, len(ids))
+	for i, id := range ids {
+		result[i] = id.String()
+	}
+	return result
 }
 
 // getOwnId returns the IPv4 address of the computer as a NodeId. Heavy process, should only be called once at startup. If no valid IP is found, returns 0.

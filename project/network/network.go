@@ -20,7 +20,7 @@ import (
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess() {
 	fmt.Println("Starting network process")
-	fmt.Printf("My Ip: %s\n", NodeIdtoString(GetMyId()))
+	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 	go func() {
@@ -33,18 +33,6 @@ func NetworkProcess() {
 
 	go udpListen(knownNodes, nodesAwareOfMe)
 	udpBroadcast(knownNodes)
-}
-
-func NodeIdtoString(id NodeId) string {
-	return fmt.Sprintf("%d.%d.%d.%d", byte(id>>24), byte(id>>16), byte(id>>8), byte(id))
-}
-
-func NodeIdListToStrings(ids []NodeId) []string {
-	result := make([]string, len(ids))
-	for i, id := range ids {
-		result[i] = NodeIdtoString(id)
-	}
-	return result
 }
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
