@@ -46,6 +46,10 @@ func NewOrder() {
 }
 
 // Return the next target floor
-func GetNextTargetFloor() (int, error) {
+func GetNextTargetFloor(worldView *WorldView) (int, error) {
+	hallUpOrders := worldView.AssignedHallUpOrders
+	hallDownOrders := worldView.AssignedHallDownOrders
+	cabOrders := worldView.AssignedCabOrders
+
 	
 }

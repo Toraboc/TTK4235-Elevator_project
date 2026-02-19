@@ -1,6 +1,10 @@
 package orders
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
 	. "project/shared"
 )
 //TODO: Lage no orderhandler og greier med mutex
@@ -78,7 +82,3 @@ func (worldView *WorldView) ChangeElevatorState(state ElevatorState) {
 	worldView.hallRequestAssigner()
 }
 
-//run the script and update assigned requests
-func (worldView *WorldView) hallRequestAssigner() {
-
-}
