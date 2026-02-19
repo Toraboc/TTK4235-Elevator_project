@@ -6,11 +6,13 @@ import (
 
 	//. "project/elevator"
 	. "project/network"
+	. "project/shared"
 )
 
 func main() {
 
 	fmt.Println("Starting elevator")
+	GetMyId() // Initialize myId
 
 	go NetworkProcess()
 

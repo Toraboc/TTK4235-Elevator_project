@@ -2,7 +2,6 @@ package elevator
 
 import (
 	"Driver-go/elevio"
-	"project/network"
 	"project/orders"
 	. "project/shared"
 	"time"
@@ -29,7 +28,7 @@ func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [Numb
 }
 
 func (lightStatus *LightStatus) updateLights(confirmedOrders orders.ConfirmedOrders) {
-	ownId := network.GetMyId() // TODO: Use a cache for this
+	ownId := GetMyId() // TODO: Use a cache for this
 	cabOrders := confirmedOrders.Cab[ownId]
 
 	lightStatus.hallUp.update(elevio.BT_HallUp, confirmedOrders.HallUp)

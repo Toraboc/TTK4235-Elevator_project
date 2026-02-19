@@ -15,14 +15,18 @@ type KnowsAboutMe struct {
 	LastReceived time.Time
 }
 
-type PeersAwareOfMe struct {
+type NodesAwareOfMe struct {
 	mu           sync.Mutex
 	knowsAboutMe map[NodeId]KnowsAboutMe
 }
 
 type KnownNodes struct {
-	Mu       sync.Mutex
+	mu       sync.Mutex
 	LastSeen map[NodeId]time.Time
+}
+
+func newNodesAwareOfMe() *NodesAwareOfMe {
+	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 }
 
 // newKnownNodes creates an initialized KnownNodes.
@@ -32,15 +36,15 @@ func newKnownNodes() *KnownNodes {
 
 // nodeSeen records that the given IP was observed now.
 func (nodeSet *KnownNodes) nodeSeen(id NodeId) {
-	nodeSet.Mu.Lock()
+	nodeSet.mu.Lock()
 	nodeSet.LastSeen[id] = time.Now()
-	nodeSet.Mu.Unlock()
+	nodeSet.mu.Unlock()
 }
 
-// listActivePeers prunes stale entries and updates the sorted list of active peer IPs via UpdateConnectedNodes.
-func (nodes *KnownNodes) listActivePeers() {
-	nodes.Mu.Lock()
-	defer nodes.Mu.Unlock()
+// updateConnectedNodes prunes stale entries and updates the sorted list of active peer IPs via UpdateConnectedNodes.
+func (nodes *KnownNodes) updateConnectedNodes() {
+	nodes.mu.Lock()
+	defer nodes.mu.Unlock()
 
 	for id, seenAt := range nodes.LastSeen {
 		if time.Since(seenAt) > StaleThreshold {
@@ -58,12 +62,12 @@ func (nodes *KnownNodes) listActivePeers() {
 }
 
 // GetKnowsAboutMe returns a NodeIdSet of nodes that know about me.
-func GetKnowsAboutMe(peersAwareOfMe *PeersAwareOfMe) NodeIdSet {
-	peersAwareOfMe.mu.Lock()
-	defer peersAwareOfMe.mu.Unlock()
+func (nodesAwareOfMe *NodesAwareOfMe) KnowsMe() NodeIdSet {
+	nodesAwareOfMe.mu.Lock()
+	defer nodesAwareOfMe.mu.Unlock()
 
 	set := make(NodeIdSet)
-	for id, entry := range peersAwareOfMe.knowsAboutMe {
+	for id, entry := range nodesAwareOfMe.knowsAboutMe {
 		if entry.Node {
 			set.Add(id)
 		}
@@ -72,38 +76,38 @@ func GetKnowsAboutMe(peersAwareOfMe *PeersAwareOfMe) NodeIdSet {
 }
 
 // updateKnowsMe updates the knowsAboutMe based on the received SyncMessage.
-func updateKnowsMe(syncMsg SyncMessage, otherNodes *PeersAwareOfMe) {
-	otherNodes.mu.Lock()
-	defer otherNodes.mu.Unlock()
+func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
+	nodesAwareOfMe.mu.Lock()
+	defer nodesAwareOfMe.mu.Unlock()
 
 	for i := range syncMsg.KnownNodes {
-		if syncMsg.KnownNodes[i] == myId {
-			entry := otherNodes.knowsAboutMe[syncMsg.Id]
+		if syncMsg.KnownNodes[i] == GetMyId() {
+			entry := nodesAwareOfMe.knowsAboutMe[syncMsg.Id]
 			entry.Node = true
 			entry.LastReceived = time.Now()
-			otherNodes.knowsAboutMe[syncMsg.Id] = entry
+			nodesAwareOfMe.knowsAboutMe[syncMsg.Id] = entry
 		}
 	}
 }
 
 // purgeStaleKnowsMe marks nodes as not knowing about me if they haven't sent a SyncMessage in a while.
-func purgeStaleKnowsMe(peersAwareOfMe *PeersAwareOfMe) {
-	peersAwareOfMe.mu.Lock()
-	defer peersAwareOfMe.mu.Unlock()
-	for id, entry := range peersAwareOfMe.knowsAboutMe {
+func (nodesAwareOfMe *NodesAwareOfMe) purgeStale() {
+	nodesAwareOfMe.mu.Lock()
+	defer nodesAwareOfMe.mu.Unlock()
+	for id, entry := range nodesAwareOfMe.knowsAboutMe {
 		if time.Since(entry.LastReceived) > StaleThreshold {
 			entry.Node = false
-			peersAwareOfMe.knowsAboutMe[id] = entry
+			nodesAwareOfMe.knowsAboutMe[id] = entry
 		}
 	}
 }
 
-func printKnowsAboutMe(peersAwareOfMe *PeersAwareOfMe) {
-	peersAwareOfMe.mu.Lock()
-	defer peersAwareOfMe.mu.Unlock()
+func (nodesAwareOfMe *NodesAwareOfMe) Print() {
+	nodesAwareOfMe.mu.Lock()
+	defer nodesAwareOfMe.mu.Unlock()
 
 	fmt.Printf("Knows about me: ")
-	for id, entry := range peersAwareOfMe.knowsAboutMe {
+	for id, entry := range nodesAwareOfMe.knowsAboutMe {
 		fmt.Printf("%s: %t, ", NodeIdtoString(id), entry.Node)
 	}
 	fmt.Println()
