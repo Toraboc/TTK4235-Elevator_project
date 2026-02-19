@@ -10,7 +10,7 @@ type ConfirmedOrders struct {
 	Cab      [NumberOfFloors]bool
 }
 
-func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, nodeId NodeId) [NumberOfFloors]bool {
+func findConfirmedOrdersInArray(orders OrderList, nodeId NodeId) [NumberOfFloors]bool {
 	var confirmed [NumberOfFloors]bool
 
 	for floor := 0; floor < NumberOfFloors; floor++ {
@@ -27,10 +27,9 @@ func findConfirmedOrdersInArray(orders [NumberOfFloors]Order, nodeId NodeId) [Nu
 func (worldView *WorldView) GetConfirmedOrders() ConfirmedOrders {
 	var confirmedOrders ConfirmedOrders
 
-	confirmedOrders.HallUp = findConfirmedOrdersInArray(worldView.Orders.HallUpOrders, getOwnId())
-	confirmedOrders.HallDown = findConfirmedOrdersInArray(worldView.Orders.HallDownOrders, getOwnId())
-	confirmedOrders.Cab = make(map[NodeId][NumberOfFloors]bool)
-	confirmedOrders.Cab = findConfirmedOrdersInArray(worldView.Orders.cabOrders[getOwnId()], getOwnId())
+	confirmedOrders.HallUp = findConfirmedOrdersInArray(worldView.Orders.HallUpOrders, GetMyId())
+	confirmedOrders.HallDown = findConfirmedOrdersInArray(worldView.Orders.HallDownOrders, GetMyId())
+	confirmedOrders.Cab = findConfirmedOrdersInArray(worldView.Orders.CabOrders[GetMyId()], GetMyId())
 
 	return confirmedOrders
 }

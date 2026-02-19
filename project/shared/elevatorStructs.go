@@ -29,3 +29,15 @@ type ElevatorState struct {
     position  int
     direction Direction
 }
+
+func (state ElevatorState) Behaviour() ElevatorBehaviour {
+	return state.behaviour
+}
+
+func (state ElevatorState) Floor() int {
+	return state.position
+}
+
+func (state ElevatorState) Direction() Direction {
+	return state.direction
+}

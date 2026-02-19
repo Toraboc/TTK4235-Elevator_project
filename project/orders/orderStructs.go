@@ -1,8 +1,7 @@
 package orders
 
 import (
-    "time"
-    . "project/shared"
+	. "project/shared"
 )
 
 type OrderStatus int
@@ -15,11 +14,12 @@ const (
 )
 
 type Order map[NodeId]OrderStatus
+type OrderList [NumberOfFloors]Order
  
 type Orders struct {
-	HallUpOrders   [NumberOfFloors]Order
-	HallDownOrders [NumberOfFloors]Order
-	CabOrders      map[NodeId][NumberOfFloors]Order
+	HallUpOrders   OrderList
+	HallDownOrders OrderList
+	CabOrders      map[NodeId]OrderList
 }
 
 type WorldView struct {

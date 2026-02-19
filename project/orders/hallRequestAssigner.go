@@ -3,7 +3,6 @@ package orders
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	. "project/shared"
 )
@@ -37,7 +36,8 @@ func (worldView *WorldView) hallRequestAssigner() {
 	for nodeId := range worldView.ConnectedNodes {
 		cabRequests := make([]bool, NumberOfFloors)
 		if cabOrderList, exists := worldView.Orders.CabOrders[nodeId]; exists {
-			cabRequests = findConfirmedOrdersInArray(cabOrderList, nodeId)[:]
+			confirmedCab := findConfirmedOrdersInArray(cabOrderList, nodeId)
+			cabRequests = confirmedCab[:]
 		}
 
 		states[nodeId.String()] = hallRequestAssignerInputState{
@@ -72,7 +72,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 		return
 	}
 
-	ownId := getOwnId()
+	ownId := GetMyId()
 	assignedHallRequests, exists := hallAssignmentsByElevator[ownId.String()]
 	if !exists {
 		return

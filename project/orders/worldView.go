@@ -1,10 +1,7 @@
 package orders
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"os/exec"
+	"time"
 	. "project/shared"
 )
 //TODO: Lage no orderhandler og greier med mutex
@@ -20,7 +17,7 @@ func CreateWorldView() WorldView {
 
 	worldView.Orders.HallUpOrders = CreateOrderList()
 	worldView.Orders.HallDownOrders = CreateOrderList()
-	worldView.Orders.CabOrders = make(map[NodeId][NumberOfFloors]Order)
+	worldView.Orders.CabOrders = make(map[NodeId]OrderList)
 	worldView.Orders.CabOrders[GetMyId()] = CreateOrderList()
 
 	return worldView
@@ -40,9 +37,9 @@ func (wv *WorldView) Copy() WorldView {
 	worldView.Orders.HallUpOrders = wv.Orders.HallUpOrders.Copy()
 	worldView.Orders.HallDownOrders = wv.Orders.HallDownOrders.Copy()
 
-	worldView.Orders.CabOrders = make(map[NodeId][NumberOfFloors]Order)
+	worldView.Orders.CabOrders = make(map[NodeId]OrderList)
 	for nodeId, cabOrders := range wv.Orders.CabOrders {
-		var copiedCabOrders [NumberOfFloors]Order
+		var copiedCabOrders OrderList
 		for i := 0; i < NumberOfFloors; i++ {
 			copiedCabOrders[i] = cabOrders[i].Copy()
 		}
@@ -52,8 +49,19 @@ func (wv *WorldView) Copy() WorldView {
 	return worldView
 }
 
+
+//NB DENNE ER NÅ TO STEDER; MEN STRUKTUR MÅ ENDRES SLIK AT DENNE BLIR TILGJENGELIG UTEN SIRKULÆRE PAKKEGREIER
+type SyncMessage struct {
+	Id         NodeId
+	Orders     Orders
+	MyState    ElevatorState
+	KnownNodes []NodeId
+	SendTime   time.Time
+}
+
+
 // This will only sync the orders and elevatorStates
-func (worldView *WorldView) Merge(syncMsg SyncMessage) {
+func (worldView *WorldView) Merge(syncMsg *SyncMessage) {
 	//Oppdaterer staten til heisen m. syncmelding
 	worldView.ElevatorStates[syncMsg.Id] = syncMsg.MyState
 	//TODO: Sjekk om en caborderliste eksisterer, hvis ikke lag en tom
@@ -67,7 +75,11 @@ func (worldView *WorldView) Merge(syncMsg SyncMessage) {
 		worldView.Orders.HallDownOrders[i].Merge(syncMsg.Orders.HallDownOrders[i],syncMsg.Id)
 		worldView.Orders.HallUpOrders[i].Merge(syncMsg.Orders.HallUpOrders[i],syncMsg.Id)
 		for id := range syncMsg.Orders.CabOrders {
-			worldView.Orders.CabOrders[id][i].Merge(syncMsg.Orders.CabOrders[id][i],syncMsg.Id)
+			cabOrderList := worldView.Orders.CabOrders[id]
+			cabOrder := cabOrderList[i]
+			cabOrder.Merge(syncMsg.Orders.CabOrders[id][i], syncMsg.Id)
+			cabOrderList[i] = cabOrder
+			worldView.Orders.CabOrders[id] = cabOrderList
 		}
 	}
 	//TODO: update cyclic counter
