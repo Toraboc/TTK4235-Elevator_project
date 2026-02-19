@@ -14,7 +14,6 @@ var myId NodeId
 
 /*
 	TODO:
-	- Implement a function that returns all the nodes that know about me as a nodeIdSet
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
@@ -25,10 +24,8 @@ func NetworkProcess() {
 	otherNodes := PeersAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 	go func() {
 		for {
-			otherNodes.mu.Lock()
 			time.Sleep(1 * time.Second)
 			fmt.Println("Knows about me:", GetKnowsAboutMe(&otherNodes)) // DEBUG
-			otherNodes.mu.Unlock()
 		}
 	}()
 

@@ -30,14 +30,14 @@ func newKnownNodes() *KnownNodes {
 	return &KnownNodes{LastSeen: make(map[NodeId]time.Time)}
 }
 
-// seen records that the given IP was observed now.
+// nodeSeen records that the given IP was observed now.
 func (nodeSet *KnownNodes) nodeSeen(id NodeId) {
 	nodeSet.Mu.Lock()
 	nodeSet.LastSeen[id] = time.Now()
 	nodeSet.Mu.Unlock()
 }
 
-// list returns the sorted list of active peer IPs and prunes stale entries.
+// listActivePeers prunes stale entries and updates the sorted list of active peer IPs via UpdateConnectedNodes.
 func (nodes *KnownNodes) listActivePeers() {
 	nodes.Mu.Lock()
 	defer nodes.Mu.Unlock()
@@ -57,6 +57,7 @@ func (nodes *KnownNodes) listActivePeers() {
 	UpdateConnectedNodes(ids)
 }
 
+// GetKnowsAboutMe returns a NodeIdSet of nodes that know about me.
 func GetKnowsAboutMe(peersAwareOfMe *PeersAwareOfMe) NodeIdSet {
 	peersAwareOfMe.mu.Lock()
 	defer peersAwareOfMe.mu.Unlock()
