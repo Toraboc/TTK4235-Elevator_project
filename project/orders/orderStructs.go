@@ -6,15 +6,13 @@ import (
 
 type OrderStatus int
 const (
-    NEW OrderStatus = iota
-    COMPLETED
+    NO_ORDER OrderStatus = iota
+    UNCONFIRMED
+    CONFIRMED
+    FINISHED
 )
 
-type Order struct {
-    LastEvent OrderStatus // skal dette vere OrderStatus?
-    LastUpdate time.Time
-    ConfirmedBy NodeIdSet
-}
+type Order map[nodeId]OrderStatus
  
 type Orders struct {
     HallUpOrders [NumberOfFloors]Order
