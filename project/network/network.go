@@ -15,7 +15,6 @@ import (
 	- Brew coffee
 	- Take a nap
 	- You know, the usual
-	- Fix so that only nodes with two way communication are sent to orders
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
