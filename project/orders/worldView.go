@@ -7,8 +7,8 @@ import (
 func CreateWorldView(nodeId NodeId) WorldView {
 	var worldView WorldView
 
-	worldView.ConnectedNodes = make([]NodeId, 1)
-	worldView.ConnectedNodes[0] = nodeId
+	worldView.ConnectedNodes = make(NodeIdSet)
+	worldView.ConnectedNodes.Add(nodeId)
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 

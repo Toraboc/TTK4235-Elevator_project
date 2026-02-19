@@ -25,7 +25,7 @@ type Orders struct {
 
 type WorldView struct {
 	Orders                 Orders
-	ConnectedNodes         []NodeId
+	ConnectedNodes         NodeIdSet
 	ElevatorStates         map[NodeId]ElevatorState
 	AssignedHallUpOrders   [NumberOfFloors]bool
 	AssignedHallDownOrders [NumberOfFloors]bool

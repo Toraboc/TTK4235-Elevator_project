@@ -20,7 +20,8 @@ func GetWorldView() *WorldView {
 	return &worldView
 }
 
-func UpdateConnectedNodes(ids []NodeId) {
+func UpdateConnectedNodes(ids NodeIdSet) {
+	worldView.ConnectedNodes = ids
 }
 
 func CreateOrder() Order {

@@ -2,21 +2,23 @@ package main
 
 import (
 	"fmt"
-	// "time"
+	"time"
 
-	. "project/elevator"
-	// . "project/network"
+	//. "project/elevator"
+	. "project/network"
+	. "project/shared"
 )
 
 func main() {
 
 	fmt.Println("Starting elevator")
+	GetMyId() // Initialize myId
 
-	// go NetworkProcess()
+	go NetworkProcess()
 
-	ElevatorProcess()
+	//ElevatorProcess()
 
-	// for {
-	// 	time.Sleep(1 * time.Second)
-	// }
+	for {
+		time.Sleep(1 * time.Second)
+	}
 }
