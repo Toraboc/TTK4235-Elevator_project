@@ -126,7 +126,6 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 		knownNodes.nodeSeen(ip)
 
 		nodesAwareOfMe.update(syncMsg)
-		//nodesAwareOfMe.Print() // DEBUG
 		MergeWorldView(syncMsg)
 	}
 }

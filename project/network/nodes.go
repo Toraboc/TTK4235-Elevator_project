@@ -37,7 +37,7 @@ func (knownNodes *KnownNodes) nodeSeen(id NodeId) {
 	knownNodes.mu.Unlock()
 }
 
-// updateKnownNodes prunes stale entries
+// pruneStale removes nodes that haven't been seen for a while.
 func (knownNodes *KnownNodes) pruneStale() {
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
@@ -54,6 +54,7 @@ func (knownNodes *KnownNodes) pruneStale() {
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 }
 
+// Print displays the known nodes and their last seen times.
 func (knownNodes *KnownNodes) Print() {
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
@@ -67,6 +68,7 @@ func (knownNodes *KnownNodes) Print() {
 
 //________________________________________________________________________________________________________
 
+// newNodesAwareOfMe creates an initialized NodesAwareOfMe.
 func newNodesAwareOfMe() *NodesAwareOfMe {
 	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 }
@@ -126,6 +128,7 @@ func (nodesAwareOfMe *NodesAwareOfMe) Print() {
 
 //__________________________________________________________________________________________________________
 
+// GetConnectedNodes returns a NodeIdSet of the nodes that have 2-way communication
 func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
