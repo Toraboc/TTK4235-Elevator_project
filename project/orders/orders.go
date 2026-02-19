@@ -35,19 +35,10 @@ func (orders *[NumberOfFloors]Order) Copy() [NumberOfFloors]Order {
 }
 
 //Merge two orders
-func (vWOrder *Order) Merge(syncOrder Order) {
+func (vorldWiewOrder *Order) Merge(syncOrder Order) {
 
 }
 
-//run the script and update assigned requests
-func hallRequestAssigner() {
-
-}
-
-// This function will receive updates from the elevator
-func ElevatorStateChange(state ElevatorState) {
-
-}
 
 // The datainout here will we figure out later
 func NewOrder() {
