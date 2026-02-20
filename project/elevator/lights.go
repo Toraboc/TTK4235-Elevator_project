@@ -18,9 +18,9 @@ type LightStatus struct {
 
 var lightStatus LightStatus
 
-func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [NumberOfFloors]OrderStatus) {
+func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [NumberOfFloors]bool) {
 	for floor := range NumberOfFloors {
-		orderConfirmed := confirmedOrders[floor] == NEW
+		orderConfirmed := confirmedOrders[floor]
 		if orderConfirmed != lightType[floor] {
 			lightType[floor] = orderConfirmed
 			elevio.SetButtonLamp(lamp, floor, orderConfirmed)
@@ -29,12 +29,9 @@ func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [Numb
 }
 
 func (lightStatus *LightStatus) updateLights(confirmedOrders orders.ConfirmedOrders) {
-	ownId := GetMyId() // TODO: Use a cache for this
-	cabOrders := confirmedOrders.Cab[ownId]
-
 	lightStatus.hallUp.update(elevio.BT_HallUp, confirmedOrders.HallUp)
 	lightStatus.hallDown.update(elevio.BT_HallDown, confirmedOrders.HallDown)
-	lightStatus.cab.update(elevio.BT_Cab, cabOrders)
+	lightStatus.cab.update(elevio.BT_Cab, confirmedOrders.Cab)
 }
 
 func (lightStatus *LightStatus) Init() {

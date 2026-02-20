@@ -5,7 +5,6 @@ import (
 )
 
 type OrderStatus int
-
 const (
     NO_ORDER OrderStatus = iota
     UNCONFIRMED
@@ -13,9 +12,8 @@ const (
     FINISHED
 )
 
-type Order map[NodeId]OrderStatus
-type OrderList [NumberOfFloors]Order
- 
+type OrderList [NumberOfFloors]OrderStatus
+
 type Orders struct {
 	HallUpOrders   OrderList
 	HallDownOrders OrderList
@@ -23,7 +21,7 @@ type Orders struct {
 }
 
 type WorldView struct {
-	Orders                 Orders
+	Orders                 map[NodeId]Orders
 	ConnectedNodes         NodeIdSet
 	ElevatorStates         map[NodeId]ElevatorState
 	AssignedHallUpOrders   [NumberOfFloors]bool

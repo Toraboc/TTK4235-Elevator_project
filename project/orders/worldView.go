@@ -1,7 +1,6 @@
 package orders
 
 import (
-	"time"
 	. "project/shared"
 )
 //TODO: Lage no orderhandler og greier med mutex
@@ -11,14 +10,12 @@ func CreateWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
-	worldView.ConnectedNodes.Add(GetMyId())
+	myId := GetMyId()
+	worldView.ConnectedNodes.Add(myId)
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
-
-	worldView.Orders.HallUpOrders = CreateOrderList()
-	worldView.Orders.HallDownOrders = CreateOrderList()
-	worldView.Orders.CabOrders = make(map[NodeId]OrderList)
-	worldView.Orders.CabOrders[GetMyId()] = CreateOrderList()
+	worldView.Orders = make(map[NodeId]Orders)
+	worldView.Orders[myId] = CreateOrders(myId)
 
 	return worldView
 }
@@ -50,23 +47,16 @@ func (wv *WorldView) Copy() WorldView {
 }
 
 
-//NB DENNE ER NÅ TO STEDER; MEN STRUKTUR MÅ ENDRES SLIK AT DENNE BLIR TILGJENGELIG UTEN SIRKULÆRE PAKKEGREIER
-type SyncMessage struct {
-	Id         NodeId
-	Orders     Orders
-	MyState    ElevatorState
-	KnownNodes []NodeId
-	SendTime   time.Time
-}
+
 
 
 // This will only sync the orders and elevatorStates
-func (worldView *WorldView) Merge(syncMsg *SyncMessage) {
+func (worldView *WorldView) Merge(sourceNodeId NodeId, sourceNodeState ElevatorState, sourceOrders Orders) {
 	//Oppdaterer staten til heisen m. syncmelding
-	worldView.ElevatorStates[syncMsg.Id] = syncMsg.MyState
+	worldView.ElevatorStates[sourceNodeId] = sourceNodeState
 	//TODO: Sjekk om en caborderliste eksisterer, hvis ikke lag en tom
 	//merger ordrer
-	for id := range syncMsg.Orders.CabOrders {
+	for id := range sourceOrders.CabOrders {
 		if _, exists := worldView.Orders.CabOrders[id]; !exists {
 			worldView.Orders.CabOrders[id] = CreateOrderList()
 		}

@@ -5,32 +5,30 @@ import (
 	. "project/shared"
 )
 
-func CreateOrder(nodeId NodeId) Order {
-	order := make(Order)
-	order[nodeId] = NO_ORDER
-	return order
-}
+func CreateOrders(nodeId NodeId) Orders {
+	var orders Orders
 
-func (order *Order) Copy() Order {
-	copy := make(Order)
-		for nodeId, status := range *order {
-			copy[nodeId] = status
-		}
-	return copy
+	orders.HallUpOrders = CreateOrderList()
+	orders.HallDownOrders = CreateOrderList()
+	orders.CabOrders[nodeId] = CreateOrderList()
+
+	return orders
 }
 
 func CreateOrderList() OrderList {
 	var orders OrderList
 	for i := range NumberOfFloors {
-		orders[i] = CreateOrder(GetMyId())
+		orders[i] = NO_ORDER
 	}
 	return orders
 }
 
-func (orders *OrderList) Copy() OrderList {
+
+
+func (orders OrderList) Clone() OrderList {
 	var copy OrderList
 	for i := range NumberOfFloors {
-		copy[i] = orders[i].Copy()
+		copy[i] = orders[i]
 	}
 	return copy
 }
@@ -53,8 +51,7 @@ func NewOrder() {
 
 }
 
-func GetNextTargetFloor(worldView *WorldView) (int, error) {
-
+func GetNextTargetFloor(worldView *WorldView) (int, error) {          
 	//Feilsøkingsgreier som kan fjernes etterhvert
 	if worldView == nil {
 		return -1, fmt.Errorf("worldView is nil")
