@@ -35,9 +35,11 @@ func (worldView *WorldView) hallRequestAssigner() {
 	states := make(map[string]hallRequestAssignerInputState)
 	for nodeId := range worldView.ConnectedNodes {
 		cabRequests := make([]bool, NumberOfFloors)
-		if cabOrderList, exists := worldView.Orders.CabOrders[nodeId]; exists {
-			confirmedCab := findConfirmedOrdersInArray(cabOrderList, nodeId)
-			cabRequests = confirmedCab[:]
+		if orders, exists := worldView.Orders[nodeId]; exists {
+			if cabOrders, exists := orders.CabOrders[nodeId]; exists {
+				confirmedCab := findConfirmedOrdersInArray(cabOrders)
+				cabRequests = confirmedCab[:]
+			}
 		}
 
 		states[nodeId.String()] = hallRequestAssignerInputState{

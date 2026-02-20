@@ -10,26 +10,29 @@ type ConfirmedOrders struct {
 	Cab      [NumberOfFloors]bool
 }
 
-func findConfirmedOrdersInArray(orders OrderList, nodeId NodeId) [NumberOfFloors]bool {
+func findConfirmedOrdersInArray(orders OrderList) [NumberOfFloors]bool {
 	var confirmed [NumberOfFloors]bool
 
 	for floor := 0; floor < NumberOfFloors; floor++ {
-		isConfirmed := true
-		status, exists := orders[floor][nodeId]
-		if !exists || status != CONFIRMED {
-			isConfirmed = false
-		}
-		confirmed[floor] = isConfirmed
+		confirmed[floor] = orders[floor] == CONFIRMED
 	}
 	return confirmed
 }
 
 func (worldView *WorldView) GetConfirmedOrders() ConfirmedOrders {
 	var confirmedOrders ConfirmedOrders
+	ownId := GetMyId()
 
-	confirmedOrders.HallUp = findConfirmedOrdersInArray(worldView.Orders.HallUpOrders, GetMyId())
-	confirmedOrders.HallDown = findConfirmedOrdersInArray(worldView.Orders.HallDownOrders, GetMyId())
-	confirmedOrders.Cab = findConfirmedOrdersInArray(worldView.Orders.CabOrders[GetMyId()], GetMyId())
+	orders, exists := worldView.Orders[ownId]
+	if !exists {
+		return confirmedOrders
+	}
+
+	confirmedOrders.HallUp = findConfirmedOrdersInArray(orders.HallUpOrders)
+	confirmedOrders.HallDown = findConfirmedOrdersInArray(orders.HallDownOrders)
+	if cabOrders, exists := orders.CabOrders[ownId]; exists {
+		confirmedOrders.Cab = findConfirmedOrdersInArray(cabOrders)
+	}
 
 	return confirmedOrders
 }

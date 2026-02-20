@@ -10,11 +10,24 @@ func CreateOrders(nodeId NodeId) Orders {
 
 	orders.HallUpOrders = CreateOrderList()
 	orders.HallDownOrders = CreateOrderList()
+	orders.CabOrders = make(map[NodeId]OrderList)
 	orders.CabOrders[nodeId] = CreateOrderList()
 
 	return orders
 }
+func (orders *Orders) Clone() Orders {
+	var copy Orders
 
+	copy.HallUpOrders = orders.HallUpOrders.Clone()
+	copy.HallDownOrders = orders.HallDownOrders.Clone()
+	copy.CabOrders = make(map[NodeId]OrderList)
+	for nodeId := range orders.CabOrders {
+		copy.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
+	}
+
+	return copy
+}
+ 
 func CreateOrderList() OrderList {
 	var orders OrderList
 	for i := range NumberOfFloors {
@@ -34,6 +47,7 @@ func (orders OrderList) Clone() OrderList {
 }
 
 //Merge two orders
+/*
 func (worldViewOrder *Order) Merge(syncOrder Order, syncId NodeId) {
 	for nodeId, syncOrderState := range syncOrder {
 		if nodeId == syncId {
@@ -45,7 +59,7 @@ func (worldViewOrder *Order) Merge(syncOrder Order, syncId NodeId) {
 func (worldViewOrder *Order) UpdateCounter() {
 	
 }
-
+*/
 // The datainout here will we figure out later
 func NewOrder() {
 
