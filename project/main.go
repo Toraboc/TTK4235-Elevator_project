@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	// "time"
+	"time"
 
-	. "project/elevator"
+	// . "project/elevator"
 	// . "project/network"
 )
 
@@ -14,9 +14,14 @@ func main() {
 
 	// go NetworkProcess()
 
-	ElevatorProcess()
+	// ElevatorProcess()
 
 	// for {
 	// 	time.Sleep(1 * time.Second)
 	// }
+
+	for {
+		fmt.Println("Hello World!")
+		time.Sleep(5 * time.Second)
+	}
 }
