@@ -22,7 +22,7 @@ type hallRequestAssignerInput struct {
 //run the script and update assigned requests
 func (worldView *WorldView) hallRequestAssigner() {
 
-	confirmedOrders := worldView.GetConfirmedOrders()
+	confirmedOrders := worldView.getConfirmedOrders()
 
 	worldView.AssignedCabOrders = confirmedOrders.Cab
 

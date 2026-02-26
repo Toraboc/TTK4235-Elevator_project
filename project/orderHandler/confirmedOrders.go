@@ -19,7 +19,7 @@ func findConfirmedOrdersInArray(orders OrderList) [NumberOfFloors]bool {
 	return confirmed
 }
 
-func (worldView *WorldView) GetConfirmedOrders() ConfirmedOrders {
+func (worldView *WorldView) getConfirmedOrders() ConfirmedOrders {
 	var confirmedOrders ConfirmedOrders
 	ownId := GetMyId()
 

@@ -14,30 +14,30 @@ type Orders struct {
 	CabOrders      map[NodeId]OrderList
 }
 
-func NewOrders(nodeId NodeId) Orders {
+func newOrders(nodeId NodeId) Orders {
 	var orders Orders
 
-	orders.HallUpOrders = NewOrderList()
-	orders.HallDownOrders = NewOrderList()
+	orders.HallUpOrders = newOrderList()
+	orders.HallDownOrders = newOrderList()
 	orders.CabOrders = make(map[NodeId]OrderList)
-	orders.CabOrders[nodeId] = NewOrderList()
+	orders.CabOrders[nodeId] = newOrderList()
 
 	return orders
 }
-func (orders *Orders) Clone() Orders {
+func (orders *Orders) clone() Orders {
 	var copy Orders
 
-	copy.HallUpOrders = orders.HallUpOrders.Clone()
-	copy.HallDownOrders = orders.HallDownOrders.Clone()
+	copy.HallUpOrders = orders.HallUpOrders.clone()
+	copy.HallDownOrders = orders.HallDownOrders.clone()
 	copy.CabOrders = make(map[NodeId]OrderList)
 	for nodeId := range orders.CabOrders {
-		copy.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
+		copy.CabOrders[nodeId] = orders.CabOrders[nodeId].clone()
 	}
 
 	return copy
 }
  
-func NewOrderList() OrderList {
+func newOrderList() OrderList {
 	var orders OrderList
 	for i := range NumberOfFloors {
 		orders[i] = NO_ORDER
@@ -47,7 +47,7 @@ func NewOrderList() OrderList {
 
 
 
-func (orders OrderList) Clone() OrderList {
+func (orders OrderList) clone() OrderList {
 	var copy OrderList
 	for i := range NumberOfFloors {
 		copy[i] = orders[i]
@@ -56,7 +56,7 @@ func (orders OrderList) Clone() OrderList {
 }
 
 
-func (worldView *WorldView) GetNextTargetFloor() (int, error) {          
+func (worldView *WorldView) getNextTargetFloor() (int, error) {          
 	//Feilsøkingsgreier som kan fjernes etterhvert
 	if worldView == nil {
 		return -1, fmt.Errorf("worldView is nil")

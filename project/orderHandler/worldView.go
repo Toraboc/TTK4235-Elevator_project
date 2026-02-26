@@ -17,7 +17,7 @@ type WorldView struct {
 
 //TODO: Lage no orderhandler og greier med mutex
 
-func NewWorldView() WorldView {
+func newWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
@@ -26,12 +26,12 @@ func NewWorldView() WorldView {
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 	worldView.Orders = make(map[NodeId]Orders)
-	worldView.Orders[myId] = NewOrders(myId)
+	worldView.Orders[myId] = newOrders(myId)
 
 	return worldView
 }
 
-func (worldView *WorldView) Clone() WorldView {
+func (worldView *WorldView) clone() WorldView {
 	var clone WorldView
 
 	clone.ConnectedNodes = make(NodeIdSet)
@@ -44,7 +44,7 @@ func (worldView *WorldView) Clone() WorldView {
 
 	clone.Orders = make(map[NodeId]Orders)
 	for nodeId, orders := range worldView.Orders {
-		clone.Orders[nodeId] = orders.Clone()
+		clone.Orders[nodeId] = orders.clone()
 	}
 
 	clone.AssignedHallUpOrders = worldView.AssignedHallUpOrders
@@ -55,21 +55,21 @@ func (worldView *WorldView) Clone() WorldView {
 }
 
 // This will only sync the orders and elevatorStates
-func (worldView *WorldView) Merge(sourceNodeId NodeId, sourceNodeState ElevatorState, sourceOrders Orders) {
+func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorState, sourceOrders Orders) {
 	//Oppdaterer staten til heisen m. syncmelding
 	worldView.ElevatorStates[sourceNodeId] = sourceNodeState
 
 	// Sync merged orders for source node.
-	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
+	worldView.Orders[sourceNodeId] = sourceOrders.clone()
 
-	worldView.UpdateCyclicCounter()
+	worldView.updateCyclicCounter()
 
 	// This must also be called if our own elevatorsstate changes
 	worldView.hallRequestAssigner()
 }
 
 
-func (worldView *WorldView) UpdateCyclicCounter() {
+func (worldView *WorldView) updateCyclicCounter() {
 	myId := GetMyId()
 	connectedNodes := worldView.ConnectedNodes
 	connectedNodes.Remove(myId)
