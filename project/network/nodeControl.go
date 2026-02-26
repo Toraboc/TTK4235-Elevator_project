@@ -35,11 +35,11 @@ func pruneNodes(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOf
 	}
 }
 
-func printConnectedNodes(KnownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	connectedNodes := GetConnectedNodes(KnownNodes, nodesAwareOfMe)
+func printConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+	connectedNodes := GetConnectedNodes(knownNodes, nodesAwareOfMe)
 	for {
 		time.Sleep(1 * time.Second)
-		connectedNodes = GetConnectedNodes(KnownNodes, nodesAwareOfMe)
+		connectedNodes = GetConnectedNodes(knownNodes, nodesAwareOfMe)
 		fmt.Printf("Connected nodes: ")
 		for id := range connectedNodes {
 			fmt.Printf("%v, ", id)
