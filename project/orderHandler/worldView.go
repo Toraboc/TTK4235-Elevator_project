@@ -31,27 +31,27 @@ func NewWorldView() WorldView {
 	return worldView
 }
 
-func (wv *WorldView) Clone() WorldView {
-	var worldView WorldView
+func (worldView *WorldView) Clone() WorldView {
+	var clone WorldView
 
-	worldView.ConnectedNodes = make(NodeIdSet)
-	worldView.ConnectedNodes.Concat(wv.ConnectedNodes)
+	clone.ConnectedNodes = make(NodeIdSet)
+	clone.ConnectedNodes.Concat(worldView.ConnectedNodes)
 
-	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
-	for nodeId, elevatorState := range wv.ElevatorStates {
-		worldView.ElevatorStates[nodeId] = elevatorState
+	clone.ElevatorStates = make(map[NodeId]ElevatorState)
+	for nodeId, elevatorState := range worldView.ElevatorStates {
+		clone.ElevatorStates[nodeId] = elevatorState
 	}
 
-	worldView.Orders = make(map[NodeId]Orders)
-	for nodeId, orders := range wv.Orders {
-		worldView.Orders[nodeId] = orders.Clone()
+	clone.Orders = make(map[NodeId]Orders)
+	for nodeId, orders := range worldView.Orders {
+		clone.Orders[nodeId] = orders.Clone()
 	}
 
-	worldView.AssignedHallUpOrders = wv.AssignedHallUpOrders
-	worldView.AssignedHallDownOrders = wv.AssignedHallDownOrders
-	worldView.AssignedCabOrders = wv.AssignedCabOrders
+	clone.AssignedHallUpOrders = worldView.AssignedHallUpOrders
+	clone.AssignedHallDownOrders = worldView.AssignedHallDownOrders
+	clone.AssignedCabOrders = worldView.AssignedCabOrders
 
-	return worldView
+	return clone
 }
 
 // This will only sync the orders and elevatorStates
