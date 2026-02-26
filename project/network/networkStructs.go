@@ -2,7 +2,7 @@ package network
 
 import (
 	"time"
-	. "project/orders"
+	. "project/orderHandler"
 	. "project/shared"
 )
 

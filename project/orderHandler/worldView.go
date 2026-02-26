@@ -17,7 +17,7 @@ type WorldView struct {
 
 //TODO: Lage no orderhandler og greier med mutex
 
-func CreateWorldView() WorldView {
+func NewWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
@@ -26,7 +26,7 @@ func CreateWorldView() WorldView {
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 	worldView.Orders = make(map[NodeId]Orders)
-	worldView.Orders[myId] = CreateOrders(myId)
+	worldView.Orders[myId] = NewOrders(myId)
 
 	return worldView
 }
