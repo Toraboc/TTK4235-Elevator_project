@@ -23,24 +23,6 @@ func NetworkProcess(orderHandler *OrderHandler) {
 	udpBroadcast(orderHandler, knownNodes)
 }
 
-// createOutgoingSync constructs a SyncMessage representing the current worldview.
-func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
-	worldview := orderHandler.GetWorldView()
-
-	syncMsg := SyncMessage{}
-	syncMsg.Id = GetMyId()
-	syncMsg.Orders = *worldview.Orders[syncMsg.Id].Clone()
-	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
-	knownNodes.mu.Lock()
-	defer knownNodes.mu.Unlock()
-	syncMsg.KnownNodes = make([]NodeId, 0, len(knownNodes.LastSeen))
-	for id := range knownNodes.LastSeen {
-		syncMsg.KnownNodes = append(syncMsg.KnownNodes, id)
-	}
-	syncMsg.SendTime = time.Now()
-	return syncMsg
-}
-
 // udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
 func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})

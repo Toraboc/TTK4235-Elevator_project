@@ -23,20 +23,6 @@ func newNodesAwareOfMe() *NodesAwareOfMe {
 	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 }
 
-// KnowsMe returns a NodeIdSet of nodes that know about me.
-func (nodesAwareOfMe *NodesAwareOfMe) KnowsMe() NodeIdSet {
-	nodesAwareOfMe.mu.Lock()
-	defer nodesAwareOfMe.mu.Unlock()
-
-	set := make(NodeIdSet)
-	for id, entry := range nodesAwareOfMe.knowsAboutMe {
-		if entry.Node {
-			set.Add(id)
-		}
-	}
-	return set
-}
-
 // updateKnowsMe updates the knowsAboutMe based on the received SyncMessage.
 func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
 	nodesAwareOfMe.mu.Lock()

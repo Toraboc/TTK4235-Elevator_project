@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+type ElevatorState struct {
+	Behaviour ElevatorBehaviour
+	Floor  int
+	Direction Direction
+}
+
 type Direction int
 
 const (
@@ -60,12 +66,6 @@ func (behaviour ElevatorBehaviour) String() string {
 	default:
 		panic("Undefined EleavtorBehaviour")
 	}
-}
-
-type ElevatorState struct {
-	Behaviour ElevatorBehaviour
-	Floor  int
-	Direction Direction
 }
 
 func (elevatorState ElevatorState) String() string {

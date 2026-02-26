@@ -10,7 +10,7 @@ import (
 
 func checkForButtonPress(orderHandler *OrderHandler, floor int, buttonType elevio.ButtonType, orderType OrderType) {
 	if (elevio.GetButton(buttonType, floor)) {
-		orderHandler.UpdateOrder(floor, orderType)
+		orderHandler.UpdateNewOrder(floor, orderType)
 	}
 }
 
