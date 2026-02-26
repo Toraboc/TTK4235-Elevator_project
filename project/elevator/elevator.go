@@ -18,7 +18,7 @@ func ElevatorProcess(orderHandler *OrderHandler) {
 	go handleButtonPresses()
 	go handleLights(orderHandler)
 
-	positioning.handleDriving()
+	positioning.handleDriving(orderHandler)
 }
 
 func GetElevatorState() ElevatorState {

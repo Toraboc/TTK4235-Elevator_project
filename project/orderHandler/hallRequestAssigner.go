@@ -19,6 +19,38 @@ type hallRequestAssignerInput struct {
 	States       map[string]hallRequestAssignerInputState `json:"states"`
 }
 
+func getBehaviourString(elevatorState ElevatorState) string {
+	switch elevatorState.Behaviour {
+	case MOVING:
+		return "moving"
+	case IDLE:
+		return "idle"
+	case PASSENGER_TRANSFER:
+		return "doorOpen"
+	default:
+		panic("Cannot determine behaviour for an elevator that is not either MOVING, IDLE or PASSENGER_TRANSFER")
+	}
+}
+
+func getDirectionString(elevatorState ElevatorState) string {
+	if !elevatorState.Behaviour.CanBeAssignedOrders() {
+		panic("Cannot determine direction for an elevator that is not working properly.")
+	}
+	if elevatorState.Behaviour == MOVING {
+		switch elevatorState.Direction {
+		case UP:
+			return "up"
+		case DOWN:
+			return "down"
+		default:
+			panic("Invalid elevator direction.")
+		}
+	}
+
+	return "stop"
+}
+
+
 //run the script and update assigned requests
 func (worldView *WorldView) hallRequestAssigner() {
 
@@ -34,6 +66,13 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	states := make(map[string]hallRequestAssignerInputState)
 	for nodeId := range worldView.ConnectedNodes {
+		elevatorState := worldView.ElevatorStates[nodeId]
+
+		// Skip elevators that cannot be assigned Orders
+		if (!elevatorState.Behaviour.CanBeAssignedOrders()) {
+			continue
+		}
+
 		cabRequests := make([]bool, NumberOfFloors)
 		if orders, exists := worldView.Orders[nodeId]; exists {
 			if cabOrders, exists := orders.CabOrders[nodeId]; exists {
@@ -43,9 +82,9 @@ func (worldView *WorldView) hallRequestAssigner() {
 		}
 
 		states[nodeId.String()] = hallRequestAssignerInputState{
-			Behaviour:   "idle",
-			Floor:       0,
-			Direction:   "stop",
+			Behaviour:   getBehaviourString(elevatorState),
+			Floor:       elevatorState.Floor,
+			Direction:   getDirectionString(elevatorState),
 			CabRequests: cabRequests,
 		}
 	}

@@ -67,19 +67,19 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 		return -1, fmt.Errorf("missing elevator elevatorState for own node")
 	}
 
-	floor := elevatorState.Floor()
+	floor := elevatorState.Floor
 	if floor < 0 || floor >= NumberOfFloors {
 		return -1, fmt.Errorf("invalid current floor: %d", floor)
 	}
 
 	
 
-	if elevatorState.Direction() == UP {
-		if elevatorState.Behaviour() == PASSENGER_TRANSFER || elevatorState.Behaviour() == IDLE {
+	if elevatorState.Direction == UP {
+		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
 			if hasUpRequestAtFloor(worldView, floor) {
 				return floor, nil
 			}
-			if elevatorState.Behaviour() == IDLE {
+			if elevatorState.Behaviour == IDLE {
 				if hasDownRequestAtFloor(worldView, floor) {
 					return floor, nil
 				}
@@ -106,12 +106,12 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 		return -1, nil
 	}
 	//Denne er vel strengt talt ikke nødvendig, men grei for ryddighetens skyld
-	if elevatorState.Direction() == DOWN{
-		if elevatorState.Behaviour() == PASSENGER_TRANSFER || elevatorState.Behaviour() == IDLE {
+	if elevatorState.Direction == DOWN{
+		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
 			if hasDownRequestAtFloor(worldView, floor) {
 				return floor, nil
 			}
-			if elevatorState.Behaviour() == IDLE {
+			if elevatorState.Behaviour == IDLE {
 				if hasUpRequestAtFloor(worldView, floor) {
 					return floor, nil
 				}

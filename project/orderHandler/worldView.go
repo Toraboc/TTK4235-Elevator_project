@@ -71,7 +71,7 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 func (worldView *WorldView) updateCyclicCounter() {
 	myId := GetMyId()
-	connectedNodes := worldView.ConnectedNodes
+	connectedNodes := worldView.ConnectedNodes.Clone()
 	connectedNodes.Remove(myId)
 
 	getHallDown := func (orders Orders) *OrderList {

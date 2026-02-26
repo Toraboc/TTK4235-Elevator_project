@@ -22,23 +22,23 @@ func AllEquals[T comparable](slice []T, values []T) bool {
 	return true
 }
 
-func getNextValueFromCyclicCounter(myStatus OrderStatus, otherStatuses []OrderStatus) OrderStatus {
+func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
 	// TODO: This will not allow the state to be updated two steps, this probably needs to be fixed
 	switch myStatus {
 	case NO_ORDER:
-		if slices.Contains(otherStatuses, UNCONFIRMED) {
+		if slices.Contains(connectedNodes, UNCONFIRMED) {
 			return UNCONFIRMED
 		}
 	case UNCONFIRMED:
-		if AllEquals(otherStatuses, []OrderStatus{UNCONFIRMED, CONFIRMED}) {
+		if AllEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) {
 			return CONFIRMED
 		}
 	case CONFIRMED:
-		if slices.Contains(otherStatuses, FINISHED) {
+		if slices.Contains(connectedNodes, FINISHED) {
 			return FINISHED
 		}
 	case FINISHED:
-		if AllEquals(otherStatuses, []OrderStatus{FINISHED, NO_ORDER}) {
+		if AllEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
 			return NO_ORDER
 		}
 	}
@@ -54,16 +54,18 @@ type OrderStatusCombined struct {
 func getOrderStatuses(
 	orders map[NodeId]Orders,
 	myId NodeId,
-	otherNodes NodeIdSet,
+	connectedNodes NodeIdSet,
 	fieldSelector func(Orders) *OrderList,
 ) [NumberOfFloors]OrderStatusCombined {
 	var result [NumberOfFloors]OrderStatusCombined
 
 	for floor := range NumberOfFloors {
-		otherStatuses := make([]OrderStatus, len(otherNodes))
+		otherStatuses := make([]OrderStatus, len(connectedNodes))
 
-		for nodeId, _ := range otherNodes {
-			otherStatuses = append(otherStatuses, fieldSelector(orders[nodeId])[floor])
+		i := 0
+		for nodeId, _ := range connectedNodes {
+			otherStatuses[i] = fieldSelector(orders[nodeId])[floor]
+			i++
 		}
 
 		result[floor].otherStatuses = otherStatuses
@@ -76,10 +78,10 @@ func getOrderStatuses(
 func updateCyclicCounter(
 	orders map[NodeId]Orders,
 	myId NodeId,
-	otherNodes NodeIdSet,
+	connectedNodes NodeIdSet,
 	fieldSelector func(Orders) *OrderList,
 ) {
-	currentStatus := getOrderStatuses(orders, myId, otherNodes, fieldSelector)
+	currentStatus := getOrderStatuses(orders, myId, connectedNodes, fieldSelector)
 	for floor := range NumberOfFloors {
 		nextStatus := getNextValueFromCyclicCounter(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
 		if nextStatus != currentStatus[floor].myStatus {
