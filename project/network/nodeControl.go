@@ -35,15 +35,6 @@ func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	}
 }
 
-// printNodes is a debug function that periodically prints the known nodes and nodes aware of me.
-func printNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	for {
-		time.Sleep(1 * time.Second)
-		knownNodes.Print()
-		nodesAwareOfMe.Print()
-	}
-}
-
 func printConnectedNodes(KnownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	connectedNodes := GetConnectedNodes(KnownNodes, nodesAwareOfMe)
 	for {
