@@ -1,12 +1,14 @@
 package orderHandler
 
 import (
+	"fmt"
 	. "project/shared"
+	"strings"
 )
 
 
 type WorldView struct {
-	Orders                 map[NodeId]Orders
+	Orders                 map[NodeId]*Orders
 	ConnectedNodes         NodeIdSet
 	ElevatorStates         map[NodeId]ElevatorState
 	AssignedHallUpOrders   [NumberOfFloors]bool
@@ -25,7 +27,7 @@ func newWorldView() WorldView {
 	worldView.ConnectedNodes.Add(myId)
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
-	worldView.Orders = make(map[NodeId]Orders)
+	worldView.Orders = make(map[NodeId]*Orders)
 	worldView.Orders[myId] = newOrders(myId)
 
 	return worldView
@@ -42,9 +44,9 @@ func (worldView *WorldView) clone() WorldView {
 		clone.ElevatorStates[nodeId] = elevatorState
 	}
 
-	clone.Orders = make(map[NodeId]Orders)
+	clone.Orders = make(map[NodeId]*Orders)
 	for nodeId, orders := range worldView.Orders {
-		clone.Orders[nodeId] = orders.clone()
+		clone.Orders[nodeId] = orders.Clone()
 	}
 
 	clone.AssignedHallUpOrders = worldView.AssignedHallUpOrders
@@ -60,12 +62,14 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 	worldView.ElevatorStates[sourceNodeId] = sourceNodeState
 
 	// Sync merged orders for source node.
-	worldView.Orders[sourceNodeId] = sourceOrders.clone()
+	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
 
 	worldView.updateCyclicCounter()
 
 	// This must also be called if our own elevatorsstate changes
 	worldView.hallRequestAssigner()
+
+	fmt.Println(worldView)
 }
 
 
@@ -74,29 +78,55 @@ func (worldView *WorldView) updateCyclicCounter() {
 	connectedNodes := worldView.ConnectedNodes.Clone()
 	connectedNodes.Remove(myId)
 
-	getHallDown := func (orders Orders) *OrderList {
-		return &orders.HallDownOrders
+	getHallDown := func (orders *Orders) *OrderList {
+		return orders.HallDownOrders
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallDown)
 
-	getHallUp := func (orders Orders) *OrderList {
-		return &orders.HallUpOrders
+	getHallUp := func (orders *Orders) *OrderList {
+		return orders.HallUpOrders
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallUp)
 
 	for nodeId, _ := range connectedNodes {
-		getCabOrder := func (orders Orders) *OrderList {
-			// TODO: This seems sus, maybe this field selector doesn't need to return a pointer?
-			orderList := orders.CabOrders[nodeId]
-			return &orderList
+		getCabOrder := func (orders *Orders) *OrderList {
+			return orders.CabOrders[nodeId]
 		}
 		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
 	}
 
-	getMyCab := func (orders Orders) *OrderList {
-		orderList := orders.CabOrders[myId]
-		return &orderList
+	getMyCab := func (orders *Orders) *OrderList {
+		return orders.CabOrders[myId]
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
 }
 
+func (worldView *WorldView) String() string {
+	var builder strings.Builder
+
+	builder.WriteString("WorldView{\n")
+	builder.WriteString("\tConnectedNodes: ")
+	builder.WriteString(worldView.ConnectedNodes.String())
+	builder.WriteString(",\n")
+
+	builder.WriteString("\tElevatorStates: {\n")
+	for nodeId, elevatorState := range worldView.ElevatorStates {
+		builder.WriteString("\t[" + nodeId.String() + "]: ")
+		stateString := strings.ReplaceAll(elevatorState.String(), "\n", "\n\t\t")
+		builder.WriteString(stateString)
+		builder.WriteString("\n")
+	}
+	builder.WriteString("\t}\n")
+
+	builder.WriteString("\tOrders: {\n")
+	for nodeId, orders := range worldView.Orders {
+		builder.WriteString("\t[" + nodeId.String() + "]: ")
+		ordersString := strings.ReplaceAll(orders.String(), "\n", "\n\t\t")
+		builder.WriteString(ordersString)
+		builder.WriteString("\n")
+	}
+	builder.WriteString("\t}\n")
+
+	builder.WriteString("}")
+	return builder.String()
+}

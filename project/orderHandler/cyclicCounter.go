@@ -1,17 +1,33 @@
 package orderHandler
 
 import (
-	"slices"
 	. "project/shared"
+	"slices"
 )
 
 type OrderStatus int
+
 const (
-    NO_ORDER OrderStatus = iota
-    UNCONFIRMED
-    CONFIRMED
-    FINISHED
+	NO_ORDER OrderStatus = iota
+	UNCONFIRMED
+	CONFIRMED
+	FINISHED
 )
+
+func (orderStatus OrderStatus) String() string {
+	switch orderStatus {
+	case NO_ORDER:
+		return "NO ORDER"
+	case UNCONFIRMED:
+		return "UNCONFIRMED"
+	case CONFIRMED:
+		return "CONFIRMED"
+	case FINISHED:
+		return "FINISHED"
+	default:
+		panic("Invalid orderStatus, could not convert to string")
+	}
+}
 
 func AllEquals[T comparable](slice []T, values []T) bool {
 	for _, item := range slice {
@@ -47,45 +63,53 @@ func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderS
 }
 
 type OrderStatusCombined struct {
-	myStatus OrderStatus
+	myStatus      OrderStatus
 	otherStatuses []OrderStatus
 }
 
 func getOrderStatuses(
-	orders map[NodeId]Orders,
+	orders map[NodeId]*Orders,
 	myId NodeId,
 	connectedNodes NodeIdSet,
-	fieldSelector func(Orders) *OrderList,
+	fieldSelector func(*Orders) *OrderList,
 ) [NumberOfFloors]OrderStatusCombined {
 	var result [NumberOfFloors]OrderStatusCombined
 
 	for floor := range NumberOfFloors {
-		otherStatuses := make([]OrderStatus, len(connectedNodes))
+		otherStatuses := make([]OrderStatus, 0)
 
-		i := 0
 		for nodeId, _ := range connectedNodes {
-			otherStatuses[i] = fieldSelector(orders[nodeId])[floor]
-			i++
+			orderList := fieldSelector(orders[nodeId])
+			// TODO: This is fixing the symptom, not the cause
+			if orderList != nil {
+				otherStatuses = append(otherStatuses, orderList[floor])
+			}
 		}
 
 		result[floor].otherStatuses = otherStatuses
-		result[floor].myStatus = fieldSelector(orders[myId])[floor]
+
+		orderList := fieldSelector(orders[myId])
+		// TODO: This is fixing the symptom, not the cause
+		if orderList != nil {
+			result[floor].myStatus = orderList[floor]
+		}
 
 	}
 	return result
 }
 
 func updateCyclicCounter(
-	orders map[NodeId]Orders,
+	orders map[NodeId]*Orders,
 	myId NodeId,
 	connectedNodes NodeIdSet,
-	fieldSelector func(Orders) *OrderList,
+	fieldSelector func(*Orders) *OrderList,
 ) {
 	currentStatus := getOrderStatuses(orders, myId, connectedNodes, fieldSelector)
 	for floor := range NumberOfFloors {
 		nextStatus := getNextValueFromCyclicCounter(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
 		if nextStatus != currentStatus[floor].myStatus {
-			fieldSelector(orders[myId])[floor] = nextStatus
+			orderList := fieldSelector(orders[myId])
+			orderList[floor] = nextStatus
 		}
 	}
 }

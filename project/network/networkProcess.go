@@ -23,7 +23,6 @@ func NetworkProcess(orderHandler *OrderHandler) {
 	udpBroadcast(orderHandler, knownNodes)
 }
 
-
 // udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
 func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})

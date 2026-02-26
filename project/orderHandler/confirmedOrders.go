@@ -10,7 +10,7 @@ type ConfirmedOrders struct {
 	Cab      [NumberOfFloors]bool
 }
 
-func findConfirmedOrdersInArray(orders OrderList) [NumberOfFloors]bool {
+func findConfirmedOrdersInArray(orders *OrderList) [NumberOfFloors]bool {
 	var confirmed [NumberOfFloors]bool
 
 	for floor := range NumberOfFloors {
@@ -35,4 +35,13 @@ func (worldView *WorldView) getConfirmedOrders() ConfirmedOrders {
 	}
 
 	return confirmedOrders
+}
+
+func noOrdersConfirmed(confirmedOrders ConfirmedOrders) bool {
+	for i := range NumberOfFloors {
+		if confirmedOrders.Cab[i] || confirmedOrders.HallUp[i] || confirmedOrders.HallDown[i] {
+			return false
+		}
+	}
+	return true
 }

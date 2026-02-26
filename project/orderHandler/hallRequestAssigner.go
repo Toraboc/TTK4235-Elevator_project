@@ -2,6 +2,7 @@ package orderHandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	. "project/shared"
 )
@@ -55,6 +56,11 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	confirmedOrders := worldView.getConfirmedOrders()
 
+	if noOrdersConfirmed(confirmedOrders) {
+		// TODO: Set it to be no assigned orders
+		return
+	}
+
 	worldView.AssignedCabOrders = confirmedOrders.Cab
 
 	hallRequests := make([][2]bool, NumberOfFloors)
@@ -101,6 +107,8 @@ func (worldView *WorldView) hallRequestAssigner() {
 	if err != nil {
 		panic("hallRequestAssigner: failed to marshal input: " + err.Error())
 	}
+
+	fmt.Println(string(inputJSON))
 
 	command := exec.Command("./hall_request_assigner", "--input", string(inputJSON))
 	outputJSON, err := command.Output()

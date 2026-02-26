@@ -118,8 +118,12 @@ func (pos *ElevPositioning) stop() {
 	elevio.SetMotorDirection(elevio.MD_Stop)
 }
 
-func (pos *ElevPositioning) handleElevatorMotor(targetFloor int) {
+func (pos *ElevPositioning) handleElevatorMotor(orderHandler *OrderHandler) {
 
+	targetFloor, err := orderHandler.GetNextTargetFloor()
+	if err != nil {
+		panic(err.Error())
+	}
 	// fmt.Println("TargetFloor", targetFloor)
 
 	if targetFloor == -1 {
@@ -134,7 +138,10 @@ func (pos *ElevPositioning) handleElevatorMotor(targetFloor int) {
 
 			pos.door.Open()
 			pos.behaviour = PASSENGER_TRANSFER
-			// TODO: Tell the orderHandler that we have stopped
+
+			// TODO: This below really needs to be fixed, this is not acodring to spec <3
+			orderHandler.UpdateFinishedOrder(pos.lastFloor, UP)
+			orderHandler.UpdateFinishedOrder(pos.lastFloor, DOWN)
 		}
 
 	} else if pos.behaviour == IDLE || pos.behaviour == MOVING {
@@ -178,17 +185,11 @@ func (pos *ElevPositioning) handleDriving(orderHandler *OrderHandler) {
 		time.Sleep(50 * time.Millisecond)
 		pos.updatePosition()
 
-		orderHandler.ChangeElevatorState(pos.GetElevatorState())
-
 		// TODO: Change the target floor to a floor from the orderHandler
 		if (pos.behaviour == FAULTY_MOTOR) {
 			pos.recoverFromFaultyMotor()
 		} else if (pos.behaviour.CanBeAssignedOrders()) {
-			targetFloor, err := orderHandler.GetNextTargetFloor()
-			if err != nil {
-				panic(err.Error())
-			}
-			pos.handleElevatorMotor(targetFloor)
+			pos.handleElevatorMotor(orderHandler)
 		}
 
 		// pos.printState()
@@ -204,6 +205,8 @@ func (pos *ElevPositioning) handleDriving(orderHandler *OrderHandler) {
 				}
 			}
 		}
+
+		orderHandler.ChangeElevatorState(pos.GetElevatorState())
 	}
 
 }

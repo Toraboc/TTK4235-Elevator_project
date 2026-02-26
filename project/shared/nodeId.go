@@ -3,6 +3,7 @@ package shared
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 type NodeId uint32
@@ -38,6 +39,20 @@ func (set NodeIdSet) Clone() NodeIdSet {
 
 func (set NodeIdSet) Remove(nodeId NodeId) {
 	delete(set, nodeId)
+}
+
+func (set NodeIdSet) String() string {
+	var builder strings.Builder
+
+	builder.WriteString("[")
+
+	for nodeId := range set {
+		builder.WriteString(nodeId.String())
+		builder.WriteString(", ")
+	}
+
+	builder.WriteString("]")
+	return builder.String()
 }
 
 func NewNodeIdSet(nodeIds []NodeId) NodeIdSet {
