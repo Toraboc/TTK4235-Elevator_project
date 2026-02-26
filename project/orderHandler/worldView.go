@@ -100,9 +100,3 @@ func (worldView *WorldView) UpdateCyclicCounter() {
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
 }
 
-// This function will receive updates from the elevator
-func (worldView *WorldView) ChangeElevatorState(state ElevatorState) {
-
-	worldView.ElevatorStates[GetMyId()] = state
-	worldView.hallRequestAssigner()
-}

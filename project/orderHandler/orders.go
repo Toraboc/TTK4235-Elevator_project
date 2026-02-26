@@ -56,16 +56,6 @@ func (orders OrderList) Clone() OrderList {
 }
 
 
-func (worldView *WorldView) UpdateCounter() {
-
-	
-}
-
-// The datainout here will we figure out later
-func NewOrder() {
-
-}
-
 func GetNextTargetFloor(worldView *WorldView) (int, error) {          
 	//Feilsøkingsgreier som kan fjernes etterhvert
 	if worldView == nil {

@@ -45,3 +45,12 @@ func (orderHandler *OrderHandler) GetConfirmedOrders() ConfirmedOrders {
 
 	return orderHandler.worldView.GetConfirmedOrders()
 }
+
+
+func (orderHandler *OrderHandler) VhangeElevatorState(state ElevatorState){
+	orderHandler.mu.Lock()
+	defer orderHandler.mu.Unlock()
+
+	orderHandler.worldView.ElevatorStates[GetMyId()] = state
+	orderHandler.worldView.hallRequestAssigner()
+}
