@@ -32,7 +32,7 @@ func NetworkProcess() {
 		}
 	}()
 
-	go pruneTicker(knownNodes, nodesAwareOfMe)
+	go pruneNodes(knownNodes, nodesAwareOfMe)
 	go udpListen(knownNodes, nodesAwareOfMe)
 	udpBroadcast(knownNodes)
 }
@@ -106,16 +106,5 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 		knownNodes.nodeSeen(syncMsg.Id)
 		nodesAwareOfMe.update(syncMsg)
 		MergeWorldView(syncMsg)
-	}
-}
-
-// pruneTicker periodically prunes stale nodes from knownNodes and nodesAwareOfMe, and updates the connected nodes.
-func pruneTicker(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	ticker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
-	defer ticker.Stop()
-	for range ticker.C {
-		knownNodes.pruneStale()
-		nodesAwareOfMe.pruneStale()
-		UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
 	}
 }

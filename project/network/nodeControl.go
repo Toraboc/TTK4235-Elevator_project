@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	//. "project/orders"
+	. "project/orders"
 	. "project/shared"
 )
 
@@ -27,6 +27,35 @@ type NodesAwareOfMe struct {
 }
 
 // --<Methods>--
+
+// GetConnectedNodes returns a NodeIdSet of the nodes that have 2-way communication
+func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
+	set := make(NodeIdSet)
+	knownNodes.mu.Lock()
+	nodesAwareOfMe.mu.Lock()
+	defer nodesAwareOfMe.mu.Unlock()
+	defer knownNodes.mu.Unlock()
+
+	for id := range knownNodes.LastSeen {
+		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
+			set.Add(id)
+		}
+	}
+	return set
+}
+
+// pruneNodes periodically prunes stale nodes from knownNodes and nodesAwareOfMe, and updates the connected nodes.
+func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+	ticker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
+	defer ticker.Stop()
+	for range ticker.C {
+		knownNodes.pruneStale()
+		nodesAwareOfMe.pruneStale()
+		UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
+	}
+}
+
+// ___________________________________________________________________________________________________________
 
 // newKnownNodes creates an initialized KnownNodes.
 func newKnownNodes() *KnownNodes {
@@ -123,22 +152,4 @@ func (nodesAwareOfMe *NodesAwareOfMe) Print() {
 		fmt.Printf("%v: %t, ", id, entry.Node)
 	}
 	fmt.Println()
-}
-
-//__________________________________________________________________________________________________________
-
-// GetConnectedNodes returns a NodeIdSet of the nodes that have 2-way communication
-func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
-	set := make(NodeIdSet)
-	knownNodes.mu.Lock()
-	nodesAwareOfMe.mu.Lock()
-	defer nodesAwareOfMe.mu.Unlock()
-	defer knownNodes.mu.Unlock()
-
-	for id := range knownNodes.LastSeen {
-		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
-			set.Add(id)
-		}
-	}
-	return set
 }
