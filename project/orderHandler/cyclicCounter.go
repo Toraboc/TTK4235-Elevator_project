@@ -1,17 +1,33 @@
 package orderHandler
 
 import (
-	"slices"
 	. "project/shared"
+	"slices"
 )
 
 type OrderStatus int
+
 const (
-    NO_ORDER OrderStatus = iota
-    UNCONFIRMED
-    CONFIRMED
-    FINISHED
+	NO_ORDER OrderStatus = iota
+	UNCONFIRMED
+	CONFIRMED
+	FINISHED
 )
+
+func (orderStatus OrderStatus) String() string {
+	switch orderStatus {
+	case NO_ORDER:
+		return "NO ORDER"
+	case UNCONFIRMED:
+		return "UNCONFIRMED"
+	case CONFIRMED:
+		return "CONFIRMED"
+	case FINISHED:
+		return "FINISHED"
+	default:
+		panic("Invalid orderStatus, could not convert to string")
+	}
+}
 
 func AllEquals[T comparable](slice []T, values []T) bool {
 	for _, item := range slice {
@@ -47,7 +63,7 @@ func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderS
 }
 
 type OrderStatusCombined struct {
-	myStatus OrderStatus
+	myStatus      OrderStatus
 	otherStatuses []OrderStatus
 }
 

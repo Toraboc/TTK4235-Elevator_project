@@ -61,7 +61,7 @@ func (orderHandler *OrderHandler) ChangeElevatorState(state ElevatorState){
 	orderHandler.worldView.hallRequestAssigner()
 }
 
-func (orderHandler *OrderHandler) UpdateOrder(floor int, orderType OrderType){
+func (orderHandler *OrderHandler) UpdateOrder(floor int, orderType OrderType) {
 	orderHandler.mu.Lock()
 	defer orderHandler.mu.Unlock()
 

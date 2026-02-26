@@ -3,10 +3,27 @@ package orderHandler
 import (
 	"fmt"
 	. "project/shared"
+	"strings"
 )
 
 
 type OrderList [NumberOfFloors]OrderStatus
+
+func (orderList OrderList) String() string {
+	var builder strings.Builder
+
+	builder.WriteString("[")
+
+	for i := range NumberOfFloors {
+		if i > 0 {
+			builder.WriteString(", ")
+		}
+		builder.WriteString(orderList[i].String())
+	}
+
+	builder.WriteString("]")
+	return builder.String()
+}
 
 type OrderType int
 
@@ -124,4 +141,29 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 		}
 	}
 	return -1, nil
+}
+
+func (orders Orders) String() string {
+	var builder strings.Builder
+
+	builder.WriteString("Orders{\n")
+	builder.WriteString("\tHallUpOrders: ")
+	builder.WriteString(orders.HallUpOrders.String())
+	builder.WriteString(",\n")
+
+	builder.WriteString("\tHallDownOrders: ")
+	builder.WriteString(orders.HallDownOrders.String())
+	builder.WriteString(",\n")
+
+	builder.WriteString("\tCabOrders: {\n")
+	for nodeId, orderList := range orders.CabOrders {
+		builder.WriteString("\t[" + nodeId.String() + "]: ")
+		orderListString := strings.ReplaceAll(orderList.String(), "\n", "\n\t\t")
+		builder.WriteString(orderListString)
+		builder.WriteString("\n")
+	}
+	builder.WriteString("\t}\n")
+
+	builder.WriteString("}")
+	return builder.String()
 }

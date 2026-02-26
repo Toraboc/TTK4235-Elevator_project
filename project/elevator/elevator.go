@@ -15,7 +15,7 @@ func ElevatorProcess(orderHandler *OrderHandler) {
 
 	elevio.SetStopLamp(false)
 
-	go handleButtonPresses()
+	go handleButtonPresses(orderHandler)
 	go handleLights(orderHandler)
 
 	positioning.handleDriving(orderHandler)

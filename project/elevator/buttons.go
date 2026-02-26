@@ -1,45 +1,27 @@
 package elevator
 
 import (
-	"github.com/angrycompany16/driver-go/elevio"
+	. "project/orderHandler"
 	. "project/shared"
 	"time"
-	// "fmt"
+
+	"github.com/angrycompany16/driver-go/elevio"
 )
 
-type OrderButtons [NumberOfFloors][3]bool
-
-func getButtonsPresses() (OrderButtons, bool) {
-	var buttonPresses OrderButtons
-	anyPressed := false
-	for i := range NumberOfFloors {
-		buttonPresses[i][0] = elevio.GetButton(elevio.BT_HallUp, i)
-		buttonPresses[i][1] = elevio.GetButton(elevio.BT_HallDown, i)
-		buttonPresses[i][2] = elevio.GetButton(elevio.BT_Cab, i)
-		anyPressed = anyPressed || buttonPresses[i][0] || buttonPresses[i][1] || buttonPresses[i][2]
+func checkForButtonPress(orderHandler *OrderHandler, floor int, buttonType elevio.ButtonType, orderType OrderType) {
+	if (elevio.GetButton(buttonType, floor)) {
+		orderHandler.UpdateOrder(floor, orderType)
 	}
-	return buttonPresses, anyPressed
 }
 
-func handleButtonPresses() {
+func handleButtonPresses(orderHandler *OrderHandler) {
 	for {
-		time.Sleep(20 * time.Millisecond)
-		// _, anyPressed := getButtonsPresses()
-		// if (anyPressed) {
-		// 	fmt.Println("Some buttons are pressed")
-		// 	// TODO: Notify the orderHandler
-		// }
-	}
-}
-
-func getAButtonFloor() int {
-	buttons, _ := getButtonsPresses()
-
-	for i := range NumberOfFloors {
-		if buttons[i][2] {
-			return i
+		time.Sleep(40 * time.Millisecond)
+		for i := range NumberOfFloors {
+			checkForButtonPress(orderHandler, i, elevio.BT_HallUp, HALLUP)
+			checkForButtonPress(orderHandler, i, elevio.BT_HallDown, HALLDOWN)
+			checkForButtonPress(orderHandler, i, elevio.BT_Cab, CAB)
 		}
 	}
-
-	return -1
 }
+
