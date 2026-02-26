@@ -54,7 +54,7 @@ func udpBroadcast(KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
 		fmt.Println("Error dialing UDP:", err)
-		return
+		panic("Failed to dial UDP")
 	}
 	defer conn.Close()
 
@@ -80,7 +80,7 @@ func udpBroadcast(KnownNodes *KnownNodes) {
 func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
-		return
+		panic("Failed to listen on UDP")
 	}
 	defer conn.Close()
 
@@ -89,7 +89,7 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	for {
 		n, _, err := conn.ReadFromUDP(buf)
 		if err != nil {
-			return
+			panic("Failed to read from UDP")
 		}
 		var syncMsg SyncMessage
 		err = json.Unmarshal(buf[:n], &syncMsg)
