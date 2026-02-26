@@ -15,6 +15,7 @@ import (
 	- Brew coffee
 	- Take a nap
 	- You know, the usual
+	- Add sleep to udpListen??
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
@@ -23,7 +24,7 @@ func NetworkProcess() {
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
-	go func() {
+	go func() { // Debug loop to print known nodes and nodes aware of me every second
 		for {
 			time.Sleep(1 * time.Second)
 			knownNodes.Print()
@@ -31,6 +32,7 @@ func NetworkProcess() {
 		}
 	}()
 
+	go pruneNodes(knownNodes, nodesAwareOfMe)
 	go udpListen(knownNodes, nodesAwareOfMe)
 	udpBroadcast(knownNodes)
 }
@@ -88,16 +90,6 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	}
 	defer conn.Close()
 
-	go func() {
-		printTicker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
-		defer printTicker.Stop()
-		for range printTicker.C {
-			knownNodes.pruneStale()
-			nodesAwareOfMe.pruneStale()
-			UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
-		}
-	}()
-
 	buf := make([]byte, 1024)
 
 	for {
@@ -111,9 +103,7 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 			continue
 		}
 
-		ip := syncMsg.Id
-		knownNodes.nodeSeen(ip)
-
+		knownNodes.nodeSeen(syncMsg.Id)
 		nodesAwareOfMe.update(syncMsg)
 		MergeWorldView(syncMsg)
 	}
