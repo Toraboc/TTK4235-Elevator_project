@@ -68,10 +68,10 @@ type OrderStatusCombined struct {
 }
 
 func getOrderStatuses(
-	orders map[NodeId]Orders,
+	orders map[NodeId]*Orders,
 	myId NodeId,
 	connectedNodes NodeIdSet,
-	fieldSelector func(Orders) *OrderList,
+	fieldSelector func(*Orders) *OrderList,
 ) [NumberOfFloors]OrderStatusCombined {
 	var result [NumberOfFloors]OrderStatusCombined
 
@@ -92,16 +92,17 @@ func getOrderStatuses(
 }
 
 func updateCyclicCounter(
-	orders map[NodeId]Orders,
+	orders map[NodeId]*Orders,
 	myId NodeId,
 	connectedNodes NodeIdSet,
-	fieldSelector func(Orders) *OrderList,
+	fieldSelector func(*Orders) *OrderList,
 ) {
 	currentStatus := getOrderStatuses(orders, myId, connectedNodes, fieldSelector)
 	for floor := range NumberOfFloors {
 		nextStatus := getNextValueFromCyclicCounter(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
 		if nextStatus != currentStatus[floor].myStatus {
-			fieldSelector(orders[myId])[floor] = nextStatus
+			orderList := fieldSelector(orders[myId])
+			orderList[floor] = nextStatus
 		}
 	}
 }

@@ -29,7 +29,7 @@ func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) Sync
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = GetMyId()
-	syncMsg.Orders = worldview.Orders[syncMsg.Id]
+	syncMsg.Orders = *worldview.Orders[syncMsg.Id].Clone()
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()

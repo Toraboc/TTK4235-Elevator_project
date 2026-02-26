@@ -35,39 +35,41 @@ const(
 
 
 type Orders struct {
-	HallUpOrders   OrderList
-	HallDownOrders OrderList
-	CabOrders      map[NodeId]OrderList
+	HallUpOrders   *OrderList
+	HallDownOrders *OrderList
+	CabOrders      map[NodeId]*OrderList
 }
 
-func newOrders(nodeId NodeId) Orders {
+func newOrders(nodeId NodeId) *Orders {
 	var orders Orders
 
-	orders.CabOrders = make(map[NodeId]OrderList)
-	orders.CabOrders[nodeId] = OrderList{}
+	orders.HallUpOrders = &OrderList{}
+	orders.HallDownOrders = &OrderList{}
+	orders.CabOrders = make(map[NodeId]*OrderList)
+	orders.CabOrders[nodeId] = &OrderList{}
 
-	return orders
+	return &orders
 }
 
-func (orders *Orders) clone() Orders {
+func (orders *Orders) Clone() *Orders {
 	var copy Orders
 
 	copy.HallUpOrders = orders.HallUpOrders.clone()
 	copy.HallDownOrders = orders.HallDownOrders.clone()
-	copy.CabOrders = make(map[NodeId]OrderList)
+	copy.CabOrders = make(map[NodeId]*OrderList)
 	for nodeId := range orders.CabOrders {
 		copy.CabOrders[nodeId] = orders.CabOrders[nodeId].clone()
 	}
 
-	return copy
+	return &copy
 }
 
-func (orders OrderList) clone() OrderList {
+func (orders *OrderList) clone() *OrderList {
 	var copy OrderList
 	for i := range NumberOfFloors {
 		copy[i] = orders[i]
 	}
-	return copy
+	return &copy
 }
 
 

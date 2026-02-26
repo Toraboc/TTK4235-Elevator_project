@@ -10,7 +10,7 @@ type ConfirmedOrders struct {
 	Cab      [NumberOfFloors]bool
 }
 
-func findConfirmedOrdersInArray(orders OrderList) [NumberOfFloors]bool {
+func findConfirmedOrdersInArray(orders *OrderList) [NumberOfFloors]bool {
 	var confirmed [NumberOfFloors]bool
 
 	for floor := range NumberOfFloors {
