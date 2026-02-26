@@ -13,7 +13,7 @@ type ConfirmedOrders struct {
 func findConfirmedOrdersInArray(orders OrderList) [NumberOfFloors]bool {
 	var confirmed [NumberOfFloors]bool
 
-	for floor := 0; floor < NumberOfFloors; floor++ {
+	for floor := range NumberOfFloors {
 		confirmed[floor] = orders[floor] == CONFIRMED
 	}
 	return confirmed
