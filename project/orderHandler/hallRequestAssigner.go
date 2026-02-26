@@ -109,10 +109,10 @@ func (worldView *WorldView) hallRequestAssigner() {
 		panic("hallRequestAssigner: failed to unmarshal output:")
 	}
 
-	ownId := GetMyId()
-	assignedHallRequests, exists := hallAssignmentsByElevator[ownId.String()]
+	myId := GetMyId()
+	assignedHallRequests, exists := hallAssignmentsByElevator[myId.String()]
 	if !exists {
-		return
+		panic("hallRequestAssigner: faild to fetch assigned hallrequests")
 	}
 
 	worldView.AssignedHallUpOrders = [NumberOfFloors]bool{}
