@@ -9,6 +9,8 @@ import (
 	. "project/shared"
 )
 
+// --<Structs>--
+
 type KnownNodes struct {
 	mu       sync.Mutex
 	LastSeen map[NodeId]time.Time
@@ -23,6 +25,8 @@ type NodesAwareOfMe struct {
 	mu           sync.Mutex
 	knowsAboutMe map[NodeId]KnowsAboutMe
 }
+
+// --<Methods>--
 
 // newKnownNodes creates an initialized KnownNodes.
 func newKnownNodes() *KnownNodes {
