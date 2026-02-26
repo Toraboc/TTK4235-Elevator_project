@@ -26,7 +26,7 @@ func NetworkProcess() {
 	nodesAwareOfMe := newNodesAwareOfMe()
 	go func() { // Debug loop to print known nodes and nodes aware of me every second
 		for {
-			time.Sleep(1 * time.Second)
+			time.Sleep(1 * time.Second / PrintHz)
 			knownNodes.Print()
 			nodesAwareOfMe.Print()
 		}
