@@ -38,3 +38,10 @@ func (orderHandler *OrderHandler) UpdateConnectedNodes(connectedNodes NodeIdSet)
 
 	orderHandler.worldView.ConnectedNodes = connectedNodes
 }
+
+func (orderHandler *OrderHandler) GetConfirmedOrders() ConfirmedOrders {
+	orderHandler.mu.Lock()
+	defer orderHandler.mu.Unlock()
+
+	return orderHandler.worldView.GetConfirmedOrders()
+}

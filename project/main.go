@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	//. "project/elevator"
+	. "project/elevator"
 	. "project/network"
 	. "project/shared"
 	. "project/orderHandler"
@@ -19,9 +19,7 @@ func main() {
 
 	go NetworkProcess(orderHandler)
 
-	orderHandler.GetWorldView()
-
-	//ElevatorProcess(orderHandler)
+	go ElevatorProcess(orderHandler)
 
 	for {
 		time.Sleep(1 * time.Second)
