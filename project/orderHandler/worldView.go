@@ -1,6 +1,7 @@
 package orderHandler
 
 import (
+	"fmt"
 	. "project/shared"
 )
 
@@ -66,6 +67,8 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	// This must also be called if our own elevatorsstate changes
 	worldView.hallRequestAssigner()
+
+	fmt.Println(worldView)
 }
 
 
@@ -100,3 +103,7 @@ func (worldView *WorldView) updateCyclicCounter() {
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
 }
 
+func (worldView *WorldView) String() string {
+	fmt.Println("WorldView{")
+	fmt.Println("}")
+}
