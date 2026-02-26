@@ -11,6 +11,8 @@ const (
 	SendHz = 100
 	// printEvery is the interval used for peer list logging.
 	PrintHz = 1
+	// pruneHz is the frequency in Hz for pruning stale peers.
+	PruneHz = 100
 	// staleThreshold is the duration after which a peer is considered stale.
 	StaleThreshold = 200 * time.Millisecond
 )

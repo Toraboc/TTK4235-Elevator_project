@@ -25,7 +25,7 @@ func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 
 // pruneNodes periodically prunes stale nodes from knownNodes and nodesAwareOfMe, and updates the connected nodes.
 func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	ticker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
+	ticker := time.NewTicker(time.Second / PruneHz) // last number controls how often inactive peers are pruned (Hz)
 	defer ticker.Stop()
 	for range ticker.C {
 		knownNodes.pruneStale()
