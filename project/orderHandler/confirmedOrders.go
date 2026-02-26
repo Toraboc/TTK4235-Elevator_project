@@ -21,16 +21,16 @@ func findConfirmedOrdersInArray(orders OrderList) [NumberOfFloors]bool {
 
 func (worldView *WorldView) getConfirmedOrders() ConfirmedOrders {
 	var confirmedOrders ConfirmedOrders
-	ownId := GetMyId()
+	myId := GetMyId()
 
-	orders, exists := worldView.Orders[ownId]
+	orders, exists := worldView.Orders[myId]
 	if !exists {
-		return confirmedOrders
+		panic("No orders, invalid state")
 	}
 
 	confirmedOrders.HallUp = findConfirmedOrdersInArray(orders.HallUpOrders)
 	confirmedOrders.HallDown = findConfirmedOrdersInArray(orders.HallDownOrders)
-	if cabOrders, exists := orders.CabOrders[ownId]; exists {
+	if cabOrders, exists := orders.CabOrders[myId]; exists {
 		confirmedOrders.Cab = findConfirmedOrdersInArray(cabOrders)
 	}
 
