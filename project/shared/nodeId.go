@@ -26,8 +26,22 @@ func (set NodeIdSet) Concat(other NodeIdSet) {
 	}
 }
 
-func CreateNodeIdSet(nodeIds []NodeId) NodeIdSet {
-	set := make(map[NodeId]struct{})
+func (set NodeIdSet) Clone() NodeIdSet {
+	newSet := make(NodeIdSet)
+
+	for key, _ := range set {
+		newSet[key] = struct{}{}
+	}
+
+	return newSet
+}
+
+func (set NodeIdSet) Remove(nodeId NodeId) {
+	delete(set, nodeId)
+}
+
+func NewNodeIdSet(nodeIds []NodeId) NodeIdSet {
+	set := make(NodeIdSet)
 	for _, node := range nodeIds {
 		set[node] = struct{}{}
 	}
