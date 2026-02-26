@@ -18,7 +18,7 @@ import (
 */
 
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
-func NetworkProcess() {
+func NetworkProcess(orderHandler *OrderHandler) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
