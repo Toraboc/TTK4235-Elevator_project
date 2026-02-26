@@ -63,27 +63,29 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 		return -1, fmt.Errorf("invalid current floor: %d", floor)
 	}
 
-	myOrders := worldView.Orders[myId]
+	hallUpOrders := worldView.AssignedHallUpOrders
+	hallDownOrders := worldView.AssignedHallDownOrders
+	cabOrders := worldView.AssignedCabOrders
 
 	if elevatorState.Direction == UP {
 		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
-			if myOrders.CabOrders[myId][floor] == CONFIRMED || myOrders.HallUpOrders[floor] == CONFIRMED {
+			if cabOrders[floor] || hallUpOrders[floor] {
 				return floor, nil
 			}
 		}
 
 		for i := floor + 1; i < NumberOfFloors; i++ {
-			if myOrders.CabOrders[myId][i] == CONFIRMED || myOrders.HallUpOrders[i] == CONFIRMED {
+			if cabOrders[i] || hallUpOrders[i] {
 				return i, nil
 			}
 		}
 		for i := NumberOfFloors - 1; i >= 0; i-- {
-			if myOrders.CabOrders[myId][i] == CONFIRMED || myOrders.HallDownOrders[i] == CONFIRMED {
+			if cabOrders[i] || hallDownOrders[i] {
 				return i, nil
 			}
 		}
 		for i := 0; i <= floor; i++ {
-			if myOrders.CabOrders[myId][i] == CONFIRMED || myOrders.HallUpOrders[i] == CONFIRMED {
+			if cabOrders[i] || hallUpOrders[i] {
 				return i, nil
 			}
 		}
@@ -91,23 +93,23 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 	//Denne er vel strengt talt ikke nødvendig, men grei for ryddighetens skyld
 	if elevatorState.Direction == DOWN{
 		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
-			if myOrders.CabOrders[myId][floor] == CONFIRMED || myOrders.HallDownOrders[floor] == CONFIRMED {
+			if cabOrders[floor] || hallDownOrders[floor] {
 				return floor, nil
 			}
 		}
 
 		for i := floor - 1; i >= 0; i-- {
-			if myOrders.CabOrders[myId][i] == CONFIRMED || myOrders.HallDownOrders[i] == CONFIRMED {
+			if cabOrders[i] || hallDownOrders[i] {
 				return i, nil
 			}
 		}
 		for i := range NumberOfFloors {
-			if myOrders.CabOrders[myId][i] == CONFIRMED || myOrders.HallUpOrders[i] == CONFIRMED {
+			if cabOrders[i] || hallUpOrders[i] {
 				return i, nil
 			}
 		}
 		for i := NumberOfFloors - 1; i >= floor; i-- {
-			if myOrders.CabOrders[myId][i] == CONFIRMED || myOrders.HallDownOrders[i] == CONFIRMED {
+			if cabOrders[i] || hallDownOrders[i] {
 				return i, nil
 			}
 		}
