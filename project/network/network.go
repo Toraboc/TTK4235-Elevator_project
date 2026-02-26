@@ -31,17 +31,17 @@ func NetworkProcess(orderHandler *OrderHandler) {
 		}
 	}()
 
-	go udpListen(knownNodes, nodesAwareOfMe)
-	udpBroadcast(knownNodes)
+	go udpListen(orderHandler, knownNodes, nodesAwareOfMe)
+	udpBroadcast(orderHandler, knownNodes)
 }
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.
-func createOutgoingSync(knownNodes *KnownNodes) SyncMessage {
-	worldview := GetWorldView()
+func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
+	worldview := orderHandler.GetWorldView()
 
 	syncMsg := SyncMessage{}
 	syncMsg.Id = GetMyId()
-	syncMsg.Orders = worldview.Orders
+	syncMsg.Orders  = worldview.Orders[syncMsg.Id]
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
@@ -54,7 +54,7 @@ func createOutgoingSync(knownNodes *KnownNodes) SyncMessage {
 }
 
 // udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
-func udpBroadcast(KnownNodes *KnownNodes) {
+func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
 		fmt.Println("Error dialing UDP:", err)
@@ -66,7 +66,7 @@ func udpBroadcast(KnownNodes *KnownNodes) {
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync(KnownNodes)
+		syncMsg := createOutgoingSync(orderHandler, KnownNodes)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
@@ -81,7 +81,7 @@ func udpBroadcast(KnownNodes *KnownNodes) {
 }
 
 // udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		return
@@ -94,7 +94,7 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 		for range printTicker.C {
 			knownNodes.pruneStale()
 			nodesAwareOfMe.pruneStale()
-			UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
+			orderHandler.UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
 		}
 	}()
 
@@ -115,6 +115,6 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 		knownNodes.nodeSeen(ip)
 
 		nodesAwareOfMe.update(syncMsg)
-		MergeWorldView(syncMsg)
+		orderHandler.MergeWorldView(syncMsg.Id, syncMsg.MyState, syncMsg.Orders)
 	}
 }
