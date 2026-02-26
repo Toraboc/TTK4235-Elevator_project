@@ -10,14 +10,6 @@ import (
 	. "project/shared"
 )
 
-/*
-	TODO:
-	- Brew coffee
-	- Take a nap
-	- You know, the usual
-	- Add sleep to udpListen??
-*/
-
 // NetworkProcess starts the UDP listener and broadcaster for network communication.
 func NetworkProcess(orderHandler *OrderHandler) {
 	fmt.Println("Starting network process")
@@ -53,7 +45,7 @@ func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) Sync
 func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
-		panic("Failed to dial UDP")
+		panic("Failed to dial UDP: " + err.Error())
 	}
 	defer conn.Close()
 
@@ -79,7 +71,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
-		panic("Failed to listen on UDP")
+		panic("Failed to listen on UDP: " + err.Error())
 	}
 	defer conn.Close()
 
@@ -88,7 +80,7 @@ func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfM
 	for {
 		n, _, err := conn.ReadFromUDP(buf)
 		if err != nil {
-			panic("Failed to read from UDP")
+			panic("Failed to read from UDP: " + err.Error())
 		}
 		var syncMsg SyncMessage
 		err = json.Unmarshal(buf[:n], &syncMsg)

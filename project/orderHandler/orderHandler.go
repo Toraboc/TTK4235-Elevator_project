@@ -61,4 +61,31 @@ func (orderHandler *OrderHandler) ChangeElevatorState(state ElevatorState){
 	orderHandler.worldView.hallRequestAssigner()
 }
 
+func (orderHandler *OrderHandler) UpdateOrder(floor int, orderType OrderType){
+	orderHandler.mu.Lock()
+	defer orderHandler.mu.Unlock()
 
+	myId := GetMyId()
+	myOrders := orderHandler.worldView.Orders[myId]
+
+	switch orderType {
+	case HALLUP:
+		if myOrders.HallUpOrders[floor] == NO_ORDER{
+			myOrders.HallUpOrders[floor] = UNCONFIRMED
+		}
+	case HALLDOWN:
+		if myOrders.HallDownOrders[floor] == NO_ORDER{
+			myOrders.HallDownOrders[floor] = UNCONFIRMED
+		}
+	case CAB:
+		myCabOrders := myOrders.CabOrders[myId]
+		if myCabOrders[floor] ==NO_ORDER{
+			myCabOrders[floor] = UNCONFIRMED
+		}
+		myOrders.CabOrders[myId] = myCabOrders
+	default:
+		return
+	}
+
+	orderHandler.worldView.Orders[myId] = myOrders
+}
