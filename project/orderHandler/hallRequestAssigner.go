@@ -118,7 +118,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 	worldView.AssignedHallUpOrders = [NumberOfFloors]bool{}
 	worldView.AssignedHallDownOrders = [NumberOfFloors]bool{}
 
-	for floor := 0; floor < NumberOfFloors; floor++ {
+	for floor := range NumberOfFloors {
 		worldView.AssignedHallUpOrders[floor] = assignedHallRequests[floor][0]
 		worldView.AssignedHallDownOrders[floor] = assignedHallRequests[floor][1]
 	

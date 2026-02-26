@@ -17,13 +17,12 @@ type Orders struct {
 func newOrders(nodeId NodeId) Orders {
 	var orders Orders
 
-	orders.HallUpOrders = newOrderList()
-	orders.HallDownOrders = newOrderList()
 	orders.CabOrders = make(map[NodeId]OrderList)
-	orders.CabOrders[nodeId] = newOrderList()
+	orders.CabOrders[nodeId] = OrderList{}
 
 	return orders
 }
+
 func (orders *Orders) clone() Orders {
 	var copy Orders
 
@@ -36,16 +35,6 @@ func (orders *Orders) clone() Orders {
 
 	return copy
 }
- 
-func newOrderList() OrderList {
-	var orders OrderList
-	for i := range NumberOfFloors {
-		orders[i] = NO_ORDER
-	}
-	return orders
-}
-
-
 
 func (orders OrderList) clone() OrderList {
 	var copy OrderList
