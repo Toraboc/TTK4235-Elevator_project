@@ -10,7 +10,7 @@ const (
 	// sendHz is the broadcast frequency in Hz.
 	SendHz = 100
 	// printEvery is the interval used for peer list logging.
-	PrintHz = 1
+	PrintHz = 2
 	// pruneHz is the frequency in Hz for pruning stale peers.
 	PruneHz = 100
 	// staleThreshold is the duration after which a peer is considered stale.

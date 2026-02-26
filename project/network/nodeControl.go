@@ -51,7 +51,7 @@ func printConnectedNodes(KnownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe)
 		connectedNodes = GetConnectedNodes(KnownNodes, nodesAwareOfMe)
 		fmt.Printf("Connected nodes: ")
 		for id := range connectedNodes {
-			fmt.Printf("%v , ", id)
+			fmt.Printf("%v, ", id)
 		}
 		fmt.Println()
 	}
