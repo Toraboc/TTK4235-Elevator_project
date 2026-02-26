@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"time"
 
 	. "project/orders"
@@ -31,5 +32,27 @@ func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 		knownNodes.pruneStale()
 		nodesAwareOfMe.pruneStale()
 		UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
+	}
+}
+
+// printNodes is a debug function that periodically prints the known nodes and nodes aware of me.
+func printNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+	for {
+		time.Sleep(1 * time.Second)
+		knownNodes.Print()
+		nodesAwareOfMe.Print()
+	}
+}
+
+func printConnectedNodes(KnownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+	connectedNodes := GetConnectedNodes(KnownNodes, nodesAwareOfMe)
+	for {
+		time.Sleep(1 * time.Second)
+		connectedNodes = GetConnectedNodes(KnownNodes, nodesAwareOfMe)
+		fmt.Printf("Connected nodes: ")
+		for id := range connectedNodes {
+			fmt.Printf("%v , ", id)
+		}
+		fmt.Println()
 	}
 }

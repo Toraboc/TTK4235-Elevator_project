@@ -24,14 +24,8 @@ func NetworkProcess() {
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
-	go func() { // Debug loop to print known nodes and nodes aware of me every second
-		for {
-			time.Sleep(1 * time.Second)
-			knownNodes.Print()
-			nodesAwareOfMe.Print()
-		}
-	}()
 
+	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
 	go pruneNodes(knownNodes, nodesAwareOfMe)
 	go udpListen(knownNodes, nodesAwareOfMe)
 	udpBroadcast(knownNodes)

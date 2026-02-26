@@ -47,7 +47,7 @@ func NodeIdListToStrings(ids []NodeId) []string {
 }
 
 // getOwnId returns the IPv4 address of the computer as a NodeId. Heavy process, should only be called once at startup. If no valid IP is found, returns 0.
-func getOwnId() NodeId {
+func getIpAddress() NodeId {
 	var id NodeId
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -71,7 +71,7 @@ func getOwnId() NodeId {
 // GetMyId returns the NodeId of this node.
 func GetMyId() NodeId {
 	if myId == 0 {
-		myId = getOwnId()
+		myId = getIpAddress()
 	}
 	return myId
 }
