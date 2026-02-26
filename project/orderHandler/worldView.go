@@ -1,8 +1,19 @@
-package orders
+package orderHandler
 
 import (
 	. "project/shared"
 )
+
+
+type WorldView struct {
+	Orders                 map[NodeId]Orders
+	ConnectedNodes         NodeIdSet
+	ElevatorStates         map[NodeId]ElevatorState
+	AssignedHallUpOrders   [NumberOfFloors]bool
+	AssignedHallDownOrders [NumberOfFloors]bool
+	AssignedCabOrders      [NumberOfFloors]bool
+}
+
 
 //TODO: Lage no orderhandler og greier med mutex
 

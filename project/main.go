@@ -12,11 +12,15 @@ import (
 func main() {
 
 	fmt.Println("Starting elevator")
-	GetMyId() // Initialize myId
+	GetMyId() // Initialize 
+	
+	orderHandler := NewOrderHandler()
 
-	go NetworkProcess()
+	go NetworkProcess(orderHandler)
 
-	//ElevatorProcess()
+	orderHandler.GetWorldView()
+
+	//ElevatorProcess(orderHandler)
 
 	for {
 		time.Sleep(1 * time.Second)

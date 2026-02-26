@@ -1,4 +1,4 @@
-package orders
+package orderHandler
 
 import (
 	. "project/shared"

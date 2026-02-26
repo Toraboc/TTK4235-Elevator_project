@@ -1,9 +1,25 @@
-package orders
+package orderHandler
 
 import (
 	"fmt"
 	. "project/shared"
 )
+
+type OrderStatus int
+const (
+    NO_ORDER OrderStatus = iota
+    UNCONFIRMED
+    CONFIRMED
+    FINISHED
+)
+
+type OrderList [NumberOfFloors]OrderStatus
+
+type Orders struct {
+	HallUpOrders   OrderList
+	HallDownOrders OrderList
+	CabOrders      map[NodeId]OrderList
+}
 
 func CreateOrders(nodeId NodeId) Orders {
 	var orders Orders
@@ -46,20 +62,12 @@ func (orders OrderList) Clone() OrderList {
 	return copy
 }
 
-//Merge two orders
-/*
-func (worldViewOrder *Order) Merge(syncOrder Order, syncId NodeId) {
-	for nodeId, syncOrderState := range syncOrder {
-		if nodeId == syncId {
-			(*worldViewOrder)[nodeId] = syncOrderState
-		}
-	}
-}
 
-func (worldViewOrder *Order) UpdateCounter() {
+func (worldView *WorldView) UpdateCounter() {
+
 	
 }
-*/
+
 // The datainout here will we figure out later
 func NewOrder() {
 
