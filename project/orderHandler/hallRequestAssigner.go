@@ -88,6 +88,10 @@ func (worldView *WorldView) hallRequestAssigner() {
 		}
 	}
 
+	if len(states) == 0 {
+		return
+	}
+
 	input := hallRequestAssignerInput{
 		HallRequests: hallRequests,
 		States:       states,
@@ -95,18 +99,18 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	inputJSON, err := json.Marshal(input)
 	if err != nil {
-		panic("hallRequestAssigner: failed to marshal input:")
+		panic("hallRequestAssigner: failed to marshal input: " + err.Error())
 	}
 
 	command := exec.Command("./hall_request_assigner", "--input", string(inputJSON))
 	outputJSON, err := command.Output()
 	if err != nil {
-		panic("hallRequestAssigner: command failed:")
+		panic("hallRequestAssigner: command failed: " + err.Error())
 	}
 
 	var hallAssignmentsByElevator map[string][][]bool
 	if err := json.Unmarshal(outputJSON, &hallAssignmentsByElevator); err != nil {
-		panic("hallRequestAssigner: failed to unmarshal output:")
+		panic("hallRequestAssigner: failed to unmarshal output: " + err.Error())
 	}
 
 	myId := GetMyId()

@@ -94,7 +94,7 @@ run_remote_fast() {
     echo "Fast deploying to $host..."
 
     # Copy code
-    scp -rq ".$CODE_DIR" "$REMOTE_USER@$host:$REMOTE_BASE_DIR$CODE_DIR"
+    scp -r ".$CODE_DIR" "$REMOTE_USER@$host:$REMOTE_BASE_DIR"
 
     # Start go code only
     ssh "$REMOTE_USER@$host" "
@@ -117,9 +117,13 @@ run_remote() {
     " || true
 
     # Copy code
-    ssh "$REMOTE_USER@$host" "rm -r $REMOTE_BASE_DIR" || true
+    ssh "$REMOTE_USER@$host" "
+        rm -r $REMOTE_BASE_DIR
+        mkdir -p $REMOTE_BASE_DIR
+    " || true
 
-    scp -rq ./ "$REMOTE_USER@$host:$REMOTE_BASE_DIR"
+    scp -r ".$CODE_DIR" "$REMOTE_USER@$host:$REMOTE_BASE_DIR"
+    scp elevatorserver "$REMOTE_USER@$host:$REMOTE_BASE_DIR"
 
     # Start elevatorserver and go code
     ssh "$REMOTE_USER@$host" "
