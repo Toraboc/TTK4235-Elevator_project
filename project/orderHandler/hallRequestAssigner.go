@@ -2,7 +2,6 @@ package orderHandler
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	. "project/shared"
 )
@@ -96,21 +95,18 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	inputJSON, err := json.Marshal(input)
 	if err != nil {
-		fmt.Println("hallRequestAssigner: failed to marshal input:", err)
-		return
+		panic("hallRequestAssigner: failed to marshal input:")
 	}
 
 	command := exec.Command("./hall_request_assigner", "--input", string(inputJSON))
 	outputJSON, err := command.Output()
 	if err != nil {
-		fmt.Println("hallRequestAssigner: command failed:", err)
-		return
+		panic("hallRequestAssigner: command failed:")
 	}
 
 	var hallAssignmentsByElevator map[string][][]bool
 	if err := json.Unmarshal(outputJSON, &hallAssignmentsByElevator); err != nil {
-		fmt.Println("hallRequestAssigner: failed to unmarshal output:", err)
-		return
+		panic("hallRequestAssigner: failed to unmarshal output:")
 	}
 
 	ownId := GetMyId()
