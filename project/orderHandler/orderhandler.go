@@ -46,6 +46,12 @@ func (orderHandler *OrderHandler) GetConfirmedOrders() ConfirmedOrders {
 	return orderHandler.worldView.GetConfirmedOrders()
 }
 
+func (orderHandler *OrderHandler) GetNextTargetFloor() (int, error){
+	orderHandler.mu.Lock()
+	defer orderHandler.mu.Unlock()
+
+	return orderHandler.worldView.GetNextTargetFloor()
+}
 
 func (orderHandler *OrderHandler) ChangeElevatorState(state ElevatorState){
 	orderHandler.mu.Lock()
@@ -54,3 +60,5 @@ func (orderHandler *OrderHandler) ChangeElevatorState(state ElevatorState){
 	orderHandler.worldView.ElevatorStates[GetMyId()] = state
 	orderHandler.worldView.hallRequestAssigner()
 }
+
+

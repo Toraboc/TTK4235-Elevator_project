@@ -56,7 +56,7 @@ func (orders OrderList) Clone() OrderList {
 }
 
 
-func GetNextTargetFloor(worldView *WorldView) (int, error) {          
+func (worldView *WorldView) GetNextTargetFloor() (int, error) {          
 	//Feilsøkingsgreier som kan fjernes etterhvert
 	if worldView == nil {
 		return -1, fmt.Errorf("worldView is nil")
