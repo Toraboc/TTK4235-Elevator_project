@@ -8,6 +8,15 @@ import (
 
 type OrderList [NumberOfFloors]OrderStatus
 
+type OrderType int
+
+const(
+	HALLUP 		OrderType = iota
+	HALLDOWN
+	CAB
+)
+
+
 type Orders struct {
 	HallUpOrders   OrderList
 	HallDownOrders OrderList
