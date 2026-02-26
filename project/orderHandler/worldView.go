@@ -17,7 +17,7 @@ type WorldView struct {
 
 //TODO: Lage no orderhandler og greier med mutex
 
-func CreateWorldView() WorldView {
+func NewWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
