@@ -3,7 +3,7 @@ package elevator
 import (
 	"github.com/angrycompany16/driver-go/elevio"
 	//"project/network"
-	"project/orderHandler"
+	."project/orderHandler"
 	. "project/shared"
 	"time"
 )
@@ -28,7 +28,7 @@ func (lightType *LightType) update(lamp elevio.ButtonType, confirmedOrders [Numb
 	}
 }
 
-func (lightStatus *LightStatus) updateLights(confirmedOrders orders.ConfirmedOrders) {
+func (lightStatus *LightStatus) updateLights(confirmedOrders ConfirmedOrders) {
 	lightStatus.hallUp.update(elevio.BT_HallUp, confirmedOrders.HallUp)
 	lightStatus.hallDown.update(elevio.BT_HallDown, confirmedOrders.HallDown)
 	lightStatus.cab.update(elevio.BT_Cab, confirmedOrders.Cab)
@@ -46,12 +46,12 @@ func (lightStatus *LightStatus) Init() {
 	}
 }
 
-func handleLights() {
+func handleLights(orderHandler *OrderHandler) {
 	lightStatus.Init()
 	for {
 		time.Sleep(40 * time.Millisecond)
 
-		confirmedOrders := orders.GetConfirmedOrders()
+		confirmedOrders := orderHandler.GetConfirmedOrders()
 		lightStatus.updateLights(confirmedOrders)
 	}
 }
