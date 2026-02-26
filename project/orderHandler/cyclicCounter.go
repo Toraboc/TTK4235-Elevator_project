@@ -76,16 +76,23 @@ func getOrderStatuses(
 	var result [NumberOfFloors]OrderStatusCombined
 
 	for floor := range NumberOfFloors {
-		otherStatuses := make([]OrderStatus, len(connectedNodes))
+		otherStatuses := make([]OrderStatus, 0)
 
-		i := 0
 		for nodeId, _ := range connectedNodes {
-			otherStatuses[i] = fieldSelector(orders[nodeId])[floor]
-			i++
+			orderList := fieldSelector(orders[nodeId])
+			// TODO: This is fixing the symptom, not the cause
+			if orderList != nil {
+				otherStatuses = append(otherStatuses, orderList[floor])
+			}
 		}
 
 		result[floor].otherStatuses = otherStatuses
-		result[floor].myStatus = fieldSelector(orders[myId])[floor]
+
+		orderList := fieldSelector(orders[myId])
+		// TODO: This is fixing the symptom, not the cause
+		if orderList != nil {
+			result[floor].myStatus = orderList[floor]
+		}
 
 	}
 	return result
