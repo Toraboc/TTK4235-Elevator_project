@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"time"
 
 	. "project/orderHandler"
@@ -24,12 +25,25 @@ func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 }
 
 // pruneNodes periodically prunes stale nodes from knownNodes and nodesAwareOfMe, and updates the connected nodes.
-func pruneNodes(orderHandler *OrderHandler,knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	ticker := time.NewTicker(time.Second / 100) // last number controls how often inactive peers are pruned (Hz)
+func pruneNodes(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+	ticker := time.NewTicker(time.Second / PruneHz) // last number controls how often inactive peers are pruned (Hz)
 	defer ticker.Stop()
 	for range ticker.C {
 		knownNodes.pruneStale()
 		nodesAwareOfMe.pruneStale()
 		orderHandler.UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
+	}
+}
+
+func printConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+	connectedNodes := GetConnectedNodes(knownNodes, nodesAwareOfMe)
+	for {
+		time.Sleep(1 * time.Second)
+		connectedNodes = GetConnectedNodes(knownNodes, nodesAwareOfMe)
+		fmt.Printf("Connected nodes: ")
+		for id := range connectedNodes {
+			fmt.Printf("%v, ", id)
+		}
+		fmt.Println()
 	}
 }

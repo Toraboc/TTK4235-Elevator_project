@@ -24,15 +24,9 @@ func NetworkProcess(orderHandler *OrderHandler) {
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
-	go func() { // Debug loop to print known nodes and nodes aware of me every second
-		for {
-			time.Sleep(1 * time.Second)
-			knownNodes.Print()
-			nodesAwareOfMe.Print()
-		}
-	}()
 
-	go pruneNodes(orderHandler,knownNodes, nodesAwareOfMe)
+	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
+	go pruneNodes(orderHandler, knownNodes, nodesAwareOfMe)
 	go udpListen(orderHandler, knownNodes, nodesAwareOfMe)
 	udpBroadcast(orderHandler, knownNodes)
 }
@@ -59,8 +53,7 @@ func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) Sync
 func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
-		fmt.Println("Error dialing UDP:", err)
-		return
+		panic("Failed to dial UDP")
 	}
 	defer conn.Close()
 
@@ -86,7 +79,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
-		return
+		panic("Failed to listen on UDP")
 	}
 	defer conn.Close()
 
@@ -95,7 +88,7 @@ func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfM
 	for {
 		n, _, err := conn.ReadFromUDP(buf)
 		if err != nil {
-			return
+			panic("Failed to read from UDP")
 		}
 		var syncMsg SyncMessage
 		err = json.Unmarshal(buf[:n], &syncMsg)
