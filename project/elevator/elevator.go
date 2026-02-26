@@ -2,11 +2,12 @@ package elevator
 
 import (
 	"fmt"
+	."project/orderHandler"
 	. "project/shared"
 	"github.com/angrycompany16/driver-go/elevio"
 )
 
-func ElevatorProcess() {
+func ElevatorProcess(orderHandler *OrderHandler) {
 	elevio.Init("localhost:15657", 4)
 	positioning := InitPositioning()
 
@@ -15,9 +16,9 @@ func ElevatorProcess() {
 	elevio.SetStopLamp(false)
 
 	go handleButtonPresses()
-	go handleLights()
+	go handleLights(orderHandler)
 
-	positioning.handleDriving()
+	positioning.handleDriving(orderHandler)
 }
 
 func GetElevatorState() ElevatorState {

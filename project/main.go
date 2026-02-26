@@ -4,19 +4,22 @@ import (
 	"fmt"
 	"time"
 
-	//. "project/elevator"
+	. "project/elevator"
 	. "project/network"
 	. "project/shared"
+	. "project/orderHandler"
 )
 
 func main() {
 
 	fmt.Println("Starting elevator")
-	GetMyId() // Initialize myId
+	GetMyId() // Initialize 
+	
+	orderHandler := NewOrderHandler()
 
-	go NetworkProcess()
+	go NetworkProcess(orderHandler)
 
-	//ElevatorProcess()
+	go ElevatorProcess(orderHandler)
 
 	for {
 		time.Sleep(1 * time.Second)

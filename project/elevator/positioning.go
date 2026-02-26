@@ -5,6 +5,7 @@ import (
 	"fmt"
 	. "project/shared"
 	"time"
+	. "project/orderHandler"
 )
 
 type ElevPositioning struct {
@@ -158,39 +159,36 @@ func (pos *ElevPositioning) recoverFromFaultyMotor() {
 	}
 }
 
-func getBehaviourString(behaviour ElevatorBehaviour) string {
-	switch (behaviour) {
-	case IDLE:
-		return "IDLE"
-	case MOVING:
-		return "MOVING"
-	case PASSENGER_TRANSFER:
-		return "PASSENGER_TRANSFER"
-	case FAULTY_MOTOR:
-		return "FAULTY_MOTOR"
-	case DOOR_OBSTRUCTED:
-		return "DOOR_OBSTRUCTED"
-	case DISCONNECTED:
-		return "DISCONNECTED"
-	default:
-		panic("Undefined behaviour")
-	}
-}
-
 func (pos *ElevPositioning) printState() {
-	fmt.Println("lastFloor:", pos.lastFloor, "floorBelow", pos.floorBelow, "direction", pos.direction, "behaviour", getBehaviourString(pos.behaviour))
+	fmt.Println("lastFloor:", pos.lastFloor, "floorBelow", pos.floorBelow, "direction", pos.direction, "behaviour", pos.behaviour)
 }
 
-func (pos *ElevPositioning) handleDriving() {
+func (pos *ElevPositioning) GetElevatorState() ElevatorState {
+	var elevatorState ElevatorState
+
+	elevatorState.Behaviour = pos.behaviour
+	elevatorState.Direction = pos.direction
+	elevatorState.Floor = pos.lastFloor
+
+	return elevatorState
+}
+
+func (pos *ElevPositioning) handleDriving(orderHandler *OrderHandler) {
 	for {
 		time.Sleep(50 * time.Millisecond)
 		pos.updatePosition()
+
+		orderHandler.ChangeElevatorState(pos.GetElevatorState())
 
 		// TODO: Change the target floor to a floor from the orderHandler
 		if (pos.behaviour == FAULTY_MOTOR) {
 			pos.recoverFromFaultyMotor()
 		} else if (pos.behaviour.CanBeAssignedOrders()) {
-			pos.handleElevatorMotor(getAButtonFloor())
+			targetFloor, err := orderHandler.GetNextTargetFloor()
+			if err != nil {
+				panic(err.Error())
+			}
+			pos.handleElevatorMotor(targetFloor)
 		}
 
 		// pos.printState()
