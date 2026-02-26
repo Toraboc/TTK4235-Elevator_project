@@ -53,7 +53,6 @@ func createOutgoingSync(knownNodes *KnownNodes) SyncMessage {
 func udpBroadcast(KnownNodes *KnownNodes) {
 	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
 	if err != nil {
-		fmt.Println("Error dialing UDP:", err)
 		panic("Failed to dial UDP")
 	}
 	defer conn.Close()
