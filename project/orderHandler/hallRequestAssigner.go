@@ -59,7 +59,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 	worldView.AssignedCabOrders = confirmedOrders.Cab
 
 	hallRequests := make([][2]bool, NumberOfFloors)
-	for floor := 0; floor < NumberOfFloors; floor++ {
+	for floor := range NumberOfFloors {
 		hallRequests[floor][0] = confirmedOrders.HallUp[floor]
 		hallRequests[floor][1] = confirmedOrders.HallDown[floor]
 	}
