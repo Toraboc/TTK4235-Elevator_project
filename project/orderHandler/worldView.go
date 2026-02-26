@@ -61,10 +61,43 @@ func (worldView *WorldView) Merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	// Sync merged orders for source node.
 	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
-	//TODO: update cyclic counter
+
+	worldView.UpdateCyclicCounter()
 
 	// This must also be called if our own elevatorsstate changes
 	worldView.hallRequestAssigner()
+}
+
+
+func (worldView *WorldView) UpdateCyclicCounter() {
+	myId := GetMyId()
+	connectedNodes := worldView.ConnectedNodes
+	connectedNodes.Remove(myId)
+
+	getHallDown := func (orders Orders) *OrderList {
+		return &orders.HallDownOrders
+	}
+	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallDown)
+
+	getHallUp := func (orders Orders) *OrderList {
+		return &orders.HallUpOrders
+	}
+	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallUp)
+
+	for nodeId, _ := range connectedNodes {
+		getCabOrder := func (orders Orders) *OrderList {
+			// TODO: This seems sus, maybe this field selector doesn't need to return a pointer?
+			orderList := orders.CabOrders[nodeId]
+			return &orderList
+		}
+		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
+	}
+
+	getMyCab := func (orders Orders) *OrderList {
+		orderList := orders.CabOrders[myId]
+		return &orderList
+	}
+	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
 }
 
 // This function will receive updates from the elevator

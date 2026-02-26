@@ -5,13 +5,6 @@ import (
 	. "project/shared"
 )
 
-type OrderStatus int
-const (
-    NO_ORDER OrderStatus = iota
-    UNCONFIRMED
-    CONFIRMED
-    FINISHED
-)
 
 type OrderList [NumberOfFloors]OrderStatus
 
