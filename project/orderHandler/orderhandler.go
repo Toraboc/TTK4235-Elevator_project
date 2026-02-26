@@ -47,7 +47,7 @@ func (orderHandler *OrderHandler) GetConfirmedOrders() ConfirmedOrders {
 }
 
 
-func (orderHandler *OrderHandler) VhangeElevatorState(state ElevatorState){
+func (orderHandler *OrderHandler) ChangeElevatorState(state ElevatorState){
 	orderHandler.mu.Lock()
 	defer orderHandler.mu.Unlock()
 
