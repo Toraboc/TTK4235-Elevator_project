@@ -18,6 +18,7 @@ const (
 	DISCONNECTED
 )
 
+
 func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
 	return behaviour == IDLE || behaviour == MOVING || behaviour == PASSENGER_TRANSFER
 }
