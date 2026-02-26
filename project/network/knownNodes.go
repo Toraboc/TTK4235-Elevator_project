@@ -38,7 +38,7 @@ func (knownNodes *KnownNodes) pruneStale() {
 }
 
 // Print displays the known nodes and their last seen times.
-func (knownNodes *KnownNodes) Print() {
+func (knownNodes *KnownNodes) print() {
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
 

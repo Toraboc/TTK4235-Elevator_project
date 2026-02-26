@@ -9,7 +9,7 @@ import (
 )
 
 // GetConnectedNodes returns a NodeIdSet of the nodes that have 2-way communication
-func GetConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
+func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
 	nodesAwareOfMe.mu.Lock()
@@ -31,15 +31,15 @@ func pruneNodes(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOf
 	for range ticker.C {
 		knownNodes.pruneStale()
 		nodesAwareOfMe.pruneStale()
-		orderHandler.UpdateConnectedNodes(GetConnectedNodes(knownNodes, nodesAwareOfMe))
+		orderHandler.UpdateConnectedNodes(getConnectedNodes(knownNodes, nodesAwareOfMe))
 	}
 }
 
 func printConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	connectedNodes := GetConnectedNodes(knownNodes, nodesAwareOfMe)
+	connectedNodes := getConnectedNodes(knownNodes, nodesAwareOfMe)
 	for {
 		time.Sleep(1 * time.Second)
-		connectedNodes = GetConnectedNodes(knownNodes, nodesAwareOfMe)
+		connectedNodes = getConnectedNodes(knownNodes, nodesAwareOfMe)
 		fmt.Printf("Connected nodes: ")
 		for id := range connectedNodes {
 			fmt.Printf("%v, ", id)
