@@ -91,24 +91,21 @@ func (orderHandler *OrderHandler) UpdateNewOrder(floor int, orderType OrderType)
 }
 
 
-func (orderHandler *OrderHandler) UpdateFinishedOrder(floor int, orderType OrderType){
+func (orderHandler *OrderHandler) UpdateFinishedOrder(floor int, direction Direction){
 	orderHandler.mu.Lock()
 	defer orderHandler.mu.Unlock()
 
 	myId := GetMyId()
 	myOrders := orderHandler.worldView.Orders[myId]
 
-	switch orderType {
-	case HALLUP:
+	myOrders.CabOrders[myId][floor] = FINISHED
+
+	switch direction {
+	case UP:
 		myOrders.HallUpOrders[floor] = FINISHED
-	case HALLDOWN:
+	case DOWN:
 		myOrders.HallDownOrders[floor] = FINISHED
-	case CAB:
-		myCabOrders := myOrders.CabOrders[myId]
-		myCabOrders[floor] = FINISHED
-		myOrders.CabOrders[myId] = myCabOrders
 	default:
 		return
 	}
-	orderHandler.worldView.Orders[myId] = myOrders
 }
