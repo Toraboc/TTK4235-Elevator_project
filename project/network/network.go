@@ -32,8 +32,6 @@ func NetworkProcess(orderHandler *OrderHandler) {
 		}
 	}()
 
-	go udpListen(orderHandler, knownNodes, nodesAwareOfMe)
-	udpBroadcast(orderHandler, knownNodes)
 	go pruneNodes(orderHandler,knownNodes, nodesAwareOfMe)
 	go udpListen(orderHandler, knownNodes, nodesAwareOfMe)
 	udpBroadcast(orderHandler, knownNodes)
