@@ -15,7 +15,6 @@ type SyncMessage struct {
 	SendTime   time.Time
 }
 
-// createOutgoingSync constructs a SyncMessage representing the current worldview.
 func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
 	worldview := orderHandler.GetWorldView()
 

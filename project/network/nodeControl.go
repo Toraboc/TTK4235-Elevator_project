@@ -8,7 +8,6 @@ import (
 	. "project/shared"
 )
 
-// GetConnectedNodes returns a NodeIdSet of the nodes that have 2-way communication
 func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
@@ -24,9 +23,8 @@ func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 	return set
 }
 
-// pruneNodes periodically prunes stale nodes from knownNodes and nodesAwareOfMe, and updates the connected nodes.
 func pruneNodes(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	ticker := time.NewTicker(time.Second / PruneHz) // last number controls how often inactive peers are pruned (Hz)
+	ticker := time.NewTicker(time.Second / PruneHz)
 	defer ticker.Stop()
 	for range ticker.C {
 		knownNodes.pruneStale()
