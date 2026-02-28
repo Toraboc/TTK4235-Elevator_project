@@ -11,14 +11,14 @@ import (
 func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
-	nodesAwareOfMe.mu.Lock()
-	defer nodesAwareOfMe.mu.Unlock()
 	defer knownNodes.mu.Unlock()
 
 	for id := range knownNodes.LastSeen {
+		nodesAwareOfMe.mu.Lock()
 		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
 			set.Add(id)
 		}
+		nodesAwareOfMe.mu.Unlock()
 	}
 	return set
 }
