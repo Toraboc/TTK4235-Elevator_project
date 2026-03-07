@@ -31,3 +31,10 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
 ## TODO
 
 - Hvilke prosesser skal vi ha, nettverk, en heismodulen
+
+## Docker
+
+```bash
+podman build --platform linux/x86_64 -t sanntid55 .
+podman run --platform linux/x86_64 --rm -it -p 15657:15657 sanntid55 /bin/bash
+```
