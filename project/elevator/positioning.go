@@ -1,24 +1,25 @@
 package elevator
 
 import (
-	"github.com/angrycompany16/driver-go/elevio"
 	"fmt"
+	"github.com/angrycompany16/driver-go/elevio"
+	. "project/orderHandler"
 	. "project/shared"
 	"time"
-	. "project/orderHandler"
 )
 
 type ElevPositioning struct {
-	direction        Direction
-	behaviour        ElevatorBehaviour
-	lastSuccessState time.Time
-	lastFloor        int
-	floorBelow       int
-	isAtFloor        bool
-	door             Door
+	direction            Direction
+	behaviour            ElevatorBehaviour
+	lastFloor            int
+	floorBelow           int
+	isAtFloor            bool
+	door                 Door
+	targetFloor          int // Will be -1 for no target
+	enterFloor           chan int
+	leaveFloor           chan int
+	floorMovementTimeout *time.Timer
 }
-
-const TimeBetweenFloors = 4 * time.Second
 
 func InitPositioning() ElevPositioning {
 	var door Door
@@ -30,80 +31,52 @@ func InitPositioning() ElevPositioning {
 	motorStartTime := time.Now()
 	elevio.SetMotorDirection(elevio.MD_Down)
 	for elevio.GetFloor() == -1 {
-		if (time.Since(motorStartTime) > TimeBetweenFloors) {
+		if time.Since(motorStartTime) > TimeBetweenFloors {
 			panic("Failed to determine the elevator position within the expected time. The elevator is probably not working correctly")
 		}
 	}
 	elevio.SetMotorDirection(elevio.MD_Stop)
 
 	var pos ElevPositioning
-	pos.direction = UP
-	pos.behaviour = IDLE
-	pos.lastSuccessState = time.Now()
+	// pos.direction = UP
+	// pos.behaviour = IDLE
 	pos.lastFloor = elevio.GetFloor()
 	pos.floorBelow = elevio.GetFloor()
 	pos.isAtFloor = true
 	pos.door = door
+	pos.enterFloor = make(chan int)
+	pos.leaveFloor = make(chan int)
+	pos.floorMovementTimeout = time.NewTimer(TimeBetweenFloors)
+
+	go pollPositionUpdates(pos.enterFloor, pos.leaveFloor)
 
 	return pos
 }
 
-func (pos *ElevPositioning) updatePosition() {
-	// TODO: This logic does not handle if someone moves the elevator by force
-	// We could implemented a check that the floorBelow only is updated if the behaviour is MOVING, else panic or something
-	// or go into an obstructed state
-	floor := elevio.GetFloor()
-	if floor != -1 {
-		if !pos.isAtFloor {
-			// The elevator arrived at a floor
-			pos.lastSuccessState = time.Now()
-		}
-		pos.lastFloor = floor
-		pos.floorBelow = floor
-		pos.isAtFloor = true
-		elevio.SetFloorIndicator(pos.lastFloor)
-	} else if pos.isAtFloor {
-		// The elevator is leaving a floor
-		pos.isAtFloor = false
-		pos.lastSuccessState = time.Now()
-		if pos.direction == DOWN {
-			pos.floorBelow--
-		}
+func pollPositionUpdates(enterFloor, leaveFloor chan<- int) {
+	ticker := time.NewTicker(PositionPollInterval)
+	defer ticker.Stop()
 
-		if (!pos.behaviour.CanMove()) {
-			// This is really bad, the elevator should not be moving.
-			// And we also don't know which floor the elevator is at.
-			// Entry a faulty state
-			if pos.door.IsOpen() {
-				// TODO: Fix this panic
-				// I'm not sure that the expected behaviour is in this case
-				panic("The elevator was moving when it should be standing still. And the door is open, therefore we will not try to recover.")
-			}
+	lastFloor := elevio.GetFloor()
 
-			pos.behaviour = FAULTY_MOTOR
-			pos.lastSuccessState = time.Now().Add(-TimeBetweenFloors)
+	for range ticker.C {
+		floor := elevio.GetFloor()
 
-			// Find the most safe direction to try to drive in
-			if (pos.lastFloor > 1) {
-				pos.direction = DOWN
+		if lastFloor != floor {
+			if floor == -1 {
+				leaveFloor <- lastFloor
 			} else {
-				pos.direction = UP
+				enterFloor <- floor
 			}
+			lastFloor = floor
 		}
-	}
-
-	// Detect if the elevator is using too much time on the movements
-	if pos.behaviour == MOVING && time.Since(pos.lastSuccessState) > TimeBetweenFloors {
-		pos.behaviour = FAULTY_MOTOR
-	} else if (pos.behaviour == FAULTY_MOTOR && time.Since(pos.lastSuccessState) < TimeBetweenFloors) {
-		pos.behaviour = MOVING
 	}
 }
 
 func (pos *ElevPositioning) drive(direction Direction) {
-	if (pos.behaviour == IDLE && pos.isAtFloor) {
-		pos.lastSuccessState = time.Now()
-	}
+	// if pos.behaviour == IDLE && pos.isAtFloor {
+	// 	pos.lastSuccessState = time.Now()
+	// }
 	pos.behaviour = MOVING
 	pos.direction = direction
 	if direction == UP {
@@ -116,54 +89,6 @@ func (pos *ElevPositioning) drive(direction Direction) {
 func (pos *ElevPositioning) stop() {
 	pos.behaviour = IDLE
 	elevio.SetMotorDirection(elevio.MD_Stop)
-}
-
-func (pos *ElevPositioning) handleElevatorMotor(orderHandler *OrderHandler) {
-
-	targetFloor, err := orderHandler.GetNextTargetFloor()
-	if err != nil {
-		panic(err.Error())
-	}
-	// fmt.Println("TargetFloor", targetFloor)
-
-	if targetFloor == -1 {
-		if pos.behaviour == MOVING && pos.isAtFloor {
-			pos.stop()
-		}
-	} else if pos.isAtFloor && pos.lastFloor == targetFloor {
-		// We are at the target
-		// Check if we just arrived
-		if pos.behaviour == MOVING {
-			pos.stop()
-
-			pos.door.Open()
-			pos.behaviour = PASSENGER_TRANSFER
-
-			// TODO: This below really needs to be fixed, this is not acodring to spec <3
-			orderHandler.UpdateFinishedOrder(pos.lastFloor, UP)
-			orderHandler.UpdateFinishedOrder(pos.lastFloor, DOWN)
-		}
-
-	} else if pos.behaviour == IDLE || pos.behaviour == MOVING {
-		if pos.floorBelow < targetFloor {
-			pos.drive(UP)
-		} else if pos.floorBelow >= targetFloor {
-			pos.drive(DOWN)
-		}
-	}
-}
-
-func (pos *ElevPositioning) recoverFromFaultyMotor() {
-	if (pos.behaviour != FAULTY_MOTOR) {
-		panic("Cannot recover from a state that is not faulty motors.")
-	}
-
-	// Try to make the elevator continue in the last direction
-	if pos.direction == UP {
-		elevio.SetMotorDirection(elevio.MD_Up)
-	} else {
-		elevio.SetMotorDirection(elevio.MD_Down)
-	}
 }
 
 func (pos *ElevPositioning) printState() {
@@ -180,33 +105,135 @@ func (pos *ElevPositioning) GetElevatorState() ElevatorState {
 	return elevatorState
 }
 
-func (pos *ElevPositioning) handleDriving(orderHandler *OrderHandler) {
-	for {
-		time.Sleep(50 * time.Millisecond)
-		pos.updatePosition()
-
-		// TODO: Change the target floor to a floor from the orderHandler
-		if (pos.behaviour == FAULTY_MOTOR) {
-			pos.recoverFromFaultyMotor()
-		} else if (pos.behaviour.CanBeAssignedOrders()) {
-			pos.handleElevatorMotor(orderHandler)
+func (pos *ElevPositioning) driveToTarget() {
+	// TODO: Make sure this function handes errors correctly
+	if pos.isAtFloor && pos.targetFloor == pos.lastFloor {
+		if pos.behaviour == MOVING {
+			pos.stop()
 		}
-
-		// pos.printState()
-
-		// Close the door after some time
-		if pos.behaviour == PASSENGER_TRANSFER || pos.behaviour == DOOR_OBSTRUCTED {
-			if time.Since(pos.door.changeTime) > doorOpenTime {
-				err := pos.door.Close()
-				if err != nil {
-					pos.behaviour = DOOR_OBSTRUCTED
-				} else {
-					pos.behaviour = IDLE
-				}
-			}
-		}
-
-		orderHandler.ChangeElevatorState(pos.GetElevatorState())
+		pos.door.Open()
+		pos.behaviour = PASSENGER_TRANSFER
+		return
 	}
 
+	if pos.targetFloor > pos.floorBelow {
+		pos.drive(UP)
+	}
+
+	if pos.targetFloor <= pos.floorBelow {
+		pos.drive(DOWN)
+	}
+}
+
+func (pos *ElevPositioning) handleEnterFloor(floor int) {
+	pos.lastFloor = floor
+	pos.floorBelow = floor
+	pos.isAtFloor = true
+
+	// TODO: Maybe this should be moved to a own function, since this is a side effect.
+	elevio.SetFloorIndicator(floor)
+
+	switch pos.behaviour {
+	case IDLE:
+		fallthrough
+	case PASSENGER_TRANSFER:
+		fallthrough
+	case DOOR_OBSTRUCTED:
+		// TODO: This needs to be implemented
+		panic("Enter faulty motor")
+	case FAULTY_MOTOR:
+		pos.behaviour = MOVING
+		fallthrough
+	case MOVING:
+		if pos.targetFloor == floor {
+			pos.stop()
+			pos.behaviour = PASSENGER_TRANSFER
+			pos.door.Open()
+		}
+	case DISCONNECTED:
+		panic("Our elevator can never become DISCONNECTED")
+	}
+}
+
+func (pos *ElevPositioning) handleLeaveFloor(floor int) {
+	pos.isAtFloor = false
+	if pos.direction == DOWN {
+		pos.floorBelow = pos.lastFloor - 1
+	}
+
+	switch pos.behaviour {
+	case IDLE:
+		fallthrough
+	case PASSENGER_TRANSFER:
+		fallthrough
+	case DOOR_OBSTRUCTED:
+		// TODO: This needs to be implemented
+		panic("Enter faulty motor")
+	case FAULTY_MOTOR:
+		pos.behaviour = MOVING
+		fallthrough
+	case MOVING:
+		// This is normal
+	case DISCONNECTED:
+		panic("Our elevator can never become DISCONNECTED")
+	}
+}
+
+func (pos *ElevPositioning) handleTargetFloor(targetFloor int) {
+	pos.targetFloor = targetFloor
+
+	switch pos.behaviour {
+	case IDLE:
+		fallthrough
+	case MOVING:
+		pos.driveToTarget()
+	case FAULTY_MOTOR:
+		fallthrough
+	case DOOR_OBSTRUCTED:
+		fallthrough
+	case PASSENGER_TRANSFER:
+		// Do nothing
+	case DISCONNECTED:
+		panic("Our elevator can never become DISCONNECTED")
+	}
+}
+
+func (pos *ElevPositioning) handleCloseDoorTrigger() {
+	switch pos.behaviour {
+	case IDLE:
+		fallthrough
+	case FAULTY_MOTOR:
+		fallthrough
+	case MOVING:
+		panic("The elevator got a CLOSE DOOR TRIGGER, but in the wrong state. The current state is " + pos.behaviour.String())
+	case DOOR_OBSTRUCTED:
+		fallthrough
+	case PASSENGER_TRANSFER:
+		err := pos.door.Close()
+		if err != nil {
+			pos.behaviour = DOOR_OBSTRUCTED
+			pos.door.Open()
+		} else {
+			pos.behaviour = IDLE
+			// TODO: Create logic to move to a new state
+			// TODO: Tell the order system that this order is finished
+		}
+	case DISCONNECTED:
+		panic("Our elevator can never become DISCONNECTED")
+	}
+}
+
+func (pos *ElevPositioning) handleDriving(targetFloor <-chan int) {
+	for {
+		select {
+		case floor := <-pos.enterFloor:
+			pos.handleEnterFloor(floor)
+		case floor := <-pos.leaveFloor:
+			pos.handleLeaveFloor(floor)
+		case targetFloor := <-targetFloor:
+			pos.handleTargetFloor(targetFloor)
+		case <-pos.door.CloseTrigger():
+			pos.handleCloseDoorTrigger()
+		}
+	}
 }

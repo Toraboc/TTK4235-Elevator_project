@@ -1,16 +1,16 @@
 package elevator
 
 import (
-	"github.com/angrycompany16/driver-go/elevio"
 	"errors"
+	"github.com/angrycompany16/driver-go/elevio"
 	"time"
 )
 
-const doorOpenTime = 3 * time.Second
+const DoorOpenTime = 3 * time.Second
 
 type Door struct {
-	isOpen     bool
-	changeTime time.Time
+	isOpen bool
+	timer  *time.Timer
 }
 
 func (door *Door) IsOpen() bool {
@@ -20,7 +20,12 @@ func (door *Door) IsOpen() bool {
 func (door *Door) Open() {
 	elevio.SetDoorOpenLamp(true)
 	door.isOpen = true
-	door.changeTime = time.Now()
+
+	if door.timer == nil {
+		door.timer = time.NewTimer(DoorOpenTime)
+	}
+
+	door.timer.Reset(DoorOpenTime)
 }
 
 func (door *Door) IsObstructed() bool {
@@ -34,11 +39,21 @@ func (door *Door) Close() error {
 
 	elevio.SetDoorOpenLamp(false)
 	door.isOpen = false
-	door.changeTime = time.Now()
+
+	if door.timer == nil {
+		door.timer = time.NewTimer(DoorOpenTime)
+	}
+
+	door.timer.Stop()
 
 	return nil
 }
 
-func (door *Door) ShouldClose() bool {
-	return door.IsOpen() && time.Since(door.changeTime) > doorOpenTime
+func (door *Door) CloseTrigger() <-chan time.Time {
+	if door.timer == nil {
+		door.timer = time.NewTimer(DoorOpenTime)
+		door.timer.Stop()
+	}
+
+	return door.timer.C
 }

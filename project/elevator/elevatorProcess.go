@@ -8,12 +8,11 @@ import (
 )
 
 func ElevatorProcess(orderHandler *OrderHandler) {
-	elevio.Init("localhost:15657", 4)
+	elevio.Init(ElevatorServer, NumberOfFloors)
+	elevio.SetStopLamp(false)
 	positioning := InitPositioning()
 
 	fmt.Println("Elevator state is determined.")
-
-	elevio.SetStopLamp(false)
 
 	go handleButtonPresses(orderHandler)
 	go handleLights(orderHandler)
