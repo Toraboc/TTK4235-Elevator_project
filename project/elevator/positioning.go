@@ -2,10 +2,11 @@ package elevator
 
 import (
 	"fmt"
-	"github.com/angrycompany16/driver-go/elevio"
-	. "project/orderHandler"
 	. "project/shared"
+	"strings"
 	"time"
+
+	"github.com/angrycompany16/driver-go/elevio"
 )
 
 type ElevPositioning struct {
@@ -77,7 +78,11 @@ func (pos *ElevPositioning) drive(direction Direction) {
 	// if pos.behaviour == IDLE && pos.isAtFloor {
 	// 	pos.lastSuccessState = time.Now()
 	// }
-	pos.behaviour = MOVING
+	if (pos.door.IsOpen()) {
+		panic("Cannot start to move the elevator while the door is open.")
+	}
+
+	// pos.behaviour = MOVING
 	pos.direction = direction
 	if direction == UP {
 		elevio.SetMotorDirection(elevio.MD_Up)
@@ -87,12 +92,25 @@ func (pos *ElevPositioning) drive(direction Direction) {
 }
 
 func (pos *ElevPositioning) stop() {
-	pos.behaviour = IDLE
+	// pos.behaviour = IDLE
 	elevio.SetMotorDirection(elevio.MD_Stop)
 }
 
-func (pos *ElevPositioning) printState() {
-	fmt.Println("lastFloor:", pos.lastFloor, "floorBelow", pos.floorBelow, "direction", pos.direction, "behaviour", pos.behaviour)
+func (pos *ElevPositioning) String() string {
+	var builder strings.Builder
+
+	builder.WriteString("ElevatorController{\n")
+
+	builder.WriteString(fmt.Sprintf("\tDirection: %s,\n", pos.direction.String()))
+	builder.WriteString(fmt.Sprintf("\tBehaviour: %s,\n", pos.behaviour.String()))
+	builder.WriteString(fmt.Sprintf("\tLastFloor: %d,\n", pos.lastFloor))
+	builder.WriteString(fmt.Sprintf("\tFloorBelow: %d,\n", pos.floorBelow))
+	builder.WriteString(fmt.Sprintf("\tIsAtFloor: %t,\n", pos.isAtFloor))
+	builder.WriteString(fmt.Sprintf("\tTargetFloor: %d\n", pos.targetFloor))
+
+	builder.WriteString("}")
+
+	return builder.String()
 }
 
 func (pos *ElevPositioning) GetElevatorState() ElevatorState {
@@ -105,23 +123,43 @@ func (pos *ElevPositioning) GetElevatorState() ElevatorState {
 	return elevatorState
 }
 
+func (pos *ElevPositioning) preparePassengerTransfer() {
+	if !pos.isAtFloor {
+		panic("Cannot prepare Passenger transfer, with not at a floor.")
+	}
+	if pos.behaviour != IDLE {
+		panic("Cannot prepare Passenger transfer, if the state is not IDLE.")
+	}
+
+	pos.behaviour = PASSENGER_TRANSFER
+	fmt.Println("Opening door")
+	pos.door.Open()
+
+	if (pos.lastFloor == pos.targetFloor) {
+		pos.targetFloor = -1
+		// TODO: Tell the order system that we have stopped.
+	}
+}
+
+// Warning: This function does not check if the elevator is in a faulty state
 func (pos *ElevPositioning) driveToTarget() {
-	// TODO: Make sure this function handes errors correctly
 	if pos.isAtFloor && pos.targetFloor == pos.lastFloor {
 		if pos.behaviour == MOVING {
 			pos.stop()
+			pos.behaviour = IDLE
 		}
-		pos.door.Open()
-		pos.behaviour = PASSENGER_TRANSFER
+		pos.preparePassengerTransfer()
 		return
 	}
 
 	if pos.targetFloor > pos.floorBelow {
 		pos.drive(UP)
+		pos.behaviour = MOVING
 	}
 
 	if pos.targetFloor <= pos.floorBelow {
 		pos.drive(DOWN)
+		pos.behaviour = MOVING
 	}
 }
 
@@ -147,8 +185,8 @@ func (pos *ElevPositioning) handleEnterFloor(floor int) {
 	case MOVING:
 		if pos.targetFloor == floor {
 			pos.stop()
-			pos.behaviour = PASSENGER_TRANSFER
-			pos.door.Open()
+			pos.behaviour = IDLE
+			pos.preparePassengerTransfer()
 		}
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
@@ -209,14 +247,21 @@ func (pos *ElevPositioning) handleCloseDoorTrigger() {
 	case DOOR_OBSTRUCTED:
 		fallthrough
 	case PASSENGER_TRANSFER:
+		fmt.Println("Trying to close door")
 		err := pos.door.Close()
 		if err != nil {
+			fmt.Println("Failed to close door")
 			pos.behaviour = DOOR_OBSTRUCTED
 			pos.door.Open()
 		} else {
 			pos.behaviour = IDLE
-			// TODO: Create logic to move to a new state
-			// TODO: Tell the order system that this order is finished
+
+			if pos.targetFloor == -1 {
+				fmt.Println("Door closed, now idle")
+			} else {
+				fmt.Println("Door closed, driving to next target")
+				pos.driveToTarget()
+			}
 		}
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
@@ -233,6 +278,8 @@ func (pos *ElevPositioning) handleDriving(targetFloor <-chan int) {
 		case targetFloor := <-targetFloor:
 			pos.handleTargetFloor(targetFloor)
 		case <-pos.door.CloseTrigger():
+			fmt.Println("Close door trigger")
+			fmt.Println(pos.String())
 			pos.handleCloseDoorTrigger()
 		}
 	}

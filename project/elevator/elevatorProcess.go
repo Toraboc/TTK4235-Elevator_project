@@ -7,7 +7,7 @@ import (
 	"github.com/angrycompany16/driver-go/elevio"
 )
 
-func ElevatorProcess(orderHandler *OrderHandler) {
+func ElevatorProcess(orderHandler *OrderHandler, targetFloorCh <-chan int) {
 	elevio.Init(ElevatorServer, NumberOfFloors)
 	elevio.SetStopLamp(false)
 	positioning := InitPositioning()
@@ -17,7 +17,7 @@ func ElevatorProcess(orderHandler *OrderHandler) {
 	go handleButtonPresses(orderHandler)
 	go handleLights(orderHandler)
 
-	positioning.handleDriving(orderHandler)
+	positioning.handleDriving(targetFloorCh)
 }
 
 func GetElevatorState() ElevatorState {
