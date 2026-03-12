@@ -16,7 +16,7 @@ func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
-	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
+	// go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
 	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
 	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
 	udpBroadcast(orderHandler, knownNodes)

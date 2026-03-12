@@ -1,7 +1,6 @@
 package orderHandler
 
 import (
-	"fmt"
 	. "project/shared"
 	"sync"
 )
@@ -64,14 +63,7 @@ func (orderHandler *OrderHandler) ChangeElevatorState(state ElevatorState) {
 	defer orderHandler.mu.Unlock()
 
 	orderHandler.worldView.ElevatorStates[GetMyId()] = state
-	orderHandler.worldView.hallRequestAssigner()
-	targetFloor, err := orderHandler.worldView.getNextTargetFloor()
-	if err != nil {
-		// panic(err.Error())
-		fmt.Println(err.Error())
-	}
-
-	orderHandler.worldView.targetFloorCh <- targetFloor
+	orderHandler.worldView.handleStateChange()
 }
 
 func (orderHandler *OrderHandler) UpdateNewOrder(floor int, orderType OrderType) {
@@ -102,15 +94,7 @@ func (orderHandler *OrderHandler) UpdateNewOrder(floor int, orderType OrderType)
 
 	orderHandler.worldView.Orders[myId] = myOrders
 
-	orderHandler.worldView.updateCyclicCounter()
-
-	orderHandler.worldView.hallRequestAssigner()
-	targetFloor, err := orderHandler.worldView.getNextTargetFloor()
-	if err != nil {
-		// panic(err.Error())
-		fmt.Println(err.Error())
-	}
-	orderHandler.worldView.targetFloorCh <- targetFloor
+	orderHandler.worldView.handleStateChange()
 }
 
 func (orderHandler *OrderHandler) UpdateFinishedOrder(floor int, direction Direction) {

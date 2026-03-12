@@ -16,8 +16,9 @@ func checkForButtonPress(orderHandler *OrderHandler, floor int, buttonType elevi
 	if newValue && !oldValue {
 		fmt.Printf("Button pressed floor = %d, type = %v\n", floor, orderType)
 		orderHandler.UpdateNewOrder(floor, orderType)
-		floorButtonState[floor][orderType] = newValue
 	}
+
+	floorButtonState[floor][orderType] = newValue
 }
 
 func handleButtonPresses(orderHandler *OrderHandler) {
