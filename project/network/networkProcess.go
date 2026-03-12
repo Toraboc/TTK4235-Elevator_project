@@ -15,12 +15,11 @@ func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateCh chan<- No
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
-	nodesUpdateCh := make(chan int, 10)
 
 	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
-	go nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh, nodesUpdateCh)
-	go pruneNodes(knownNodes, nodesAwareOfMe, nodesUpdateCh)
-	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeCh, nodesUpdateCh)
+	go nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+	go udpListen(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh, worldViewMergeCh)
 	udpBroadcast(orderHandler, knownNodes)
 }
 
@@ -55,7 +54,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeCh chan<- SyncView, nodeUpdateCh chan<- int) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -75,8 +74,8 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldView
 			continue
 		}
 
-		knownNodes.nodeSeen(syncMsg.Id, nodeUpdateCh)
-		nodesAwareOfMe.update(syncMsg, nodeUpdateCh)
+		knownNodes.nodeSeen(syncMsg.Id, nodesAwareOfMe, connectedNodesUpdateCh)
+		nodesAwareOfMe.update(syncMsg, knownNodes, connectedNodesUpdateCh)
 
 		if syncMsg.Id != GetMyId() {
 			worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}

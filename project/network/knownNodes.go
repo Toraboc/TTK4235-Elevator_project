@@ -17,24 +17,31 @@ func newKnownNodes() *KnownNodes {
 	return &KnownNodes{LastSeen: make(map[NodeId]time.Time)}
 }
 
-func (knownNodes *KnownNodes) nodeSeen(id NodeId, nodeUpdateCh chan<- int) {
+func (knownNodes *KnownNodes) nodeSeen(id NodeId, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet) {
 	knownNodes.mu.Lock()
-	if _, exists := knownNodes.LastSeen[id]; !exists {
-		nodeUpdateCh <- 1
-	}
+	_, exists := knownNodes.LastSeen[id]
 	knownNodes.LastSeen[id] = time.Now()
 	knownNodes.mu.Unlock()
+
+	if !exists {
+		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+	}
 }
 
-func (knownNodes *KnownNodes) pruneStale(nodeUpdateCh chan<- int) {
+func (knownNodes *KnownNodes) pruneStale(nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet) {
 	knownNodes.mu.Lock()
-	defer knownNodes.mu.Unlock()
 
+	changed := false
 	for id, seenAt := range knownNodes.LastSeen {
 		if time.Since(seenAt) > StaleThreshold {
 			delete(knownNodes.LastSeen, id)
-			nodeUpdateCh <- 1
+			changed = true
 		}
+	}
+	knownNodes.mu.Unlock()
+
+	if changed {
+		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
 }
 
