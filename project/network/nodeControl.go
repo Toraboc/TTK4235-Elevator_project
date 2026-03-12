@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	. "project/orderHandler"
 	. "project/shared"
 )
 
@@ -12,24 +11,24 @@ func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
+	nodesAwareOfMe.mu.Lock()
+	defer nodesAwareOfMe.mu.Unlock()
 
 	for id := range knownNodes.LastSeen {
-		nodesAwareOfMe.mu.Lock()
 		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
 			set.Add(id)
 		}
-		nodesAwareOfMe.mu.Unlock()
 	}
 	return set
 }
 
-func pruneNodes(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, ConnectedNodesUpdateChannel chan NodeIdSet) {
 	ticker := time.NewTicker(time.Second / PruneHz)
 	defer ticker.Stop()
 	for range ticker.C {
 		knownNodes.pruneStale()
 		nodesAwareOfMe.pruneStale()
-		orderHandler.UpdateConnectedNodes(getConnectedNodes(knownNodes, nodesAwareOfMe))
+		ConnectedNodesUpdateChannel <- getConnectedNodes(knownNodes, nodesAwareOfMe)
 	}
 }
 

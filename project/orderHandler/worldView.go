@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-
 type WorldView struct {
 	Orders                 map[NodeId]*Orders
 	ConnectedNodes         NodeIdSet
@@ -16,6 +15,11 @@ type WorldView struct {
 	AssignedCabOrders      [NumberOfFloors]bool
 }
 
+type SyncView struct {
+	NodeId        NodeId
+	ElevatorState ElevatorState
+	Orders        Orders
+}
 
 //TODO: Lage no orderhandler og greier med mutex
 
@@ -72,30 +76,29 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 	fmt.Println(worldView)
 }
 
-
 func (worldView *WorldView) updateCyclicCounter() {
 	myId := GetMyId()
 	connectedNodes := worldView.ConnectedNodes.Clone()
 	connectedNodes.Remove(myId)
 
-	getHallDown := func (orders *Orders) *OrderList {
+	getHallDown := func(orders *Orders) *OrderList {
 		return orders.HallDownOrders
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallDown)
 
-	getHallUp := func (orders *Orders) *OrderList {
+	getHallUp := func(orders *Orders) *OrderList {
 		return orders.HallUpOrders
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallUp)
 
 	for nodeId, _ := range connectedNodes {
-		getCabOrder := func (orders *Orders) *OrderList {
+		getCabOrder := func(orders *Orders) *OrderList {
 			return orders.CabOrders[nodeId]
 		}
 		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
 	}
 
-	getMyCab := func (orders *Orders) *OrderList {
+	getMyCab := func(orders *Orders) *OrderList {
 		return orders.CabOrders[myId]
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)

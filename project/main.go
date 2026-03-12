@@ -6,18 +6,21 @@ import (
 
 	. "project/elevator"
 	. "project/network"
-	. "project/shared"
 	. "project/orderHandler"
+	. "project/shared"
 )
 
 func main() {
 
 	fmt.Println("Starting elevator")
-	GetMyId() // Initialize 
-	
+	GetMyId() // Initialize
+
 	orderHandler := NewOrderHandler()
 
-	go NetworkProcess(orderHandler)
+	WorldViewMergeChannel := make(chan SyncView)
+	ConnectedNodesUpdateChannel := make(chan NodeIdSet)
+
+	go NetworkProcess(orderHandler, ConnectedNodesUpdateChannel, WorldViewMergeChannel)
 
 	go ElevatorProcess(orderHandler)
 
