@@ -37,15 +37,19 @@ func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
 	}
 }
 
-func (nodesAwareOfMe *NodesAwareOfMe) pruneStale() {
+func (nodesAwareOfMe *NodesAwareOfMe) pruneStale() bool {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
+	changed := false
+
 	for id, entry := range nodesAwareOfMe.knowsAboutMe {
 		if time.Since(entry.LastReceived) > StaleThreshold {
 			entry.Node = false
 			nodesAwareOfMe.knowsAboutMe[id] = entry
+			changed = true
 		}
 	}
+	return changed
 }
 
 func (nodesAwareOfMe *NodesAwareOfMe) Print() {

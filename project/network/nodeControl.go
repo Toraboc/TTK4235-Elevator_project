@@ -26,9 +26,12 @@ func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connecte
 	ticker := time.NewTicker(time.Second / PruneHz)
 	defer ticker.Stop()
 	for range ticker.C {
-		knownNodes.pruneStale()
-		nodesAwareOfMe.pruneStale()
-		connectedNodesUpdateChannel <- getConnectedNodes(knownNodes, nodesAwareOfMe)
+		changedKnown := knownNodes.pruneStale()
+		changedAware := nodesAwareOfMe.pruneStale()
+
+		if changedKnown || changedAware {
+			connectedNodesUpdateChannel <- getConnectedNodes(knownNodes, nodesAwareOfMe)
+		}
 	}
 }
 

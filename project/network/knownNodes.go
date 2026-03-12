@@ -23,15 +23,18 @@ func (knownNodes *KnownNodes) nodeSeen(id NodeId) {
 	knownNodes.mu.Unlock()
 }
 
-func (knownNodes *KnownNodes) pruneStale() {
+func (knownNodes *KnownNodes) pruneStale() bool {
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
+	changed := false
 
 	for id, seenAt := range knownNodes.LastSeen {
 		if time.Since(seenAt) > StaleThreshold {
 			delete(knownNodes.LastSeen, id)
+			changed = true
 		}
 	}
+	return changed
 }
 
 func (knownNodes *KnownNodes) print() {
