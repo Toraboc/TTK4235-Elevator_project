@@ -20,9 +20,12 @@ type ElevPositioning struct {
 	enterFloor           chan int
 	leaveFloor           chan int
 	floorMovementTimeout *time.Timer
+	elevatorStateCh      chan<- ElevatorState
+	orderCompletedCh     chan<- OrderCompleted
+	lastElevatorState    ElevatorState
 }
 
-func InitPositioning() ElevPositioning {
+func InitPositioning(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompleted) ElevPositioning {
 	var door Door
 	err := door.Close()
 	if err != nil {
@@ -40,18 +43,35 @@ func InitPositioning() ElevPositioning {
 
 	var pos ElevPositioning
 	// pos.direction = UP
-	// pos.behaviour = IDLE
+	pos.behaviour = IDLE
 	pos.lastFloor = elevio.GetFloor()
 	pos.floorBelow = elevio.GetFloor()
 	pos.isAtFloor = true
 	pos.door = door
+	pos.targetFloor = -1
 	pos.enterFloor = make(chan int)
 	pos.leaveFloor = make(chan int)
 	pos.floorMovementTimeout = time.NewTimer(TimeBetweenFloors)
+	pos.elevatorStateCh = elevatorStateCh
+	pos.orderCompletedCh = orderCompletedCh
 
 	go pollPositionUpdates(pos.enterFloor, pos.leaveFloor)
 
+	pos.lastElevatorState = pos.GetElevatorState()
+	pos.elevatorStateCh <- pos.lastElevatorState
+
 	return pos
+}
+
+func (pos *ElevPositioning) sendElevatorStateUpdate() {
+	newElevatorState := pos.GetElevatorState()
+
+	if newElevatorState.Behaviour != pos.lastElevatorState.Behaviour ||
+		newElevatorState.Direction != pos.lastElevatorState.Direction ||
+		newElevatorState.Floor != pos.lastElevatorState.Floor {
+		pos.lastElevatorState = newElevatorState
+		pos.elevatorStateCh <- newElevatorState
+	}
 }
 
 func pollPositionUpdates(enterFloor, leaveFloor chan<- int) {
@@ -78,7 +98,7 @@ func (pos *ElevPositioning) drive(direction Direction) {
 	// if pos.behaviour == IDLE && pos.isAtFloor {
 	// 	pos.lastSuccessState = time.Now()
 	// }
-	if (pos.door.IsOpen()) {
+	if pos.door.IsOpen() {
 		panic("Cannot start to move the elevator while the door is open.")
 	}
 
@@ -101,12 +121,12 @@ func (pos *ElevPositioning) String() string {
 
 	builder.WriteString("ElevatorController{\n")
 
-	builder.WriteString(fmt.Sprintf("\tDirection: %s,\n", pos.direction.String()))
-	builder.WriteString(fmt.Sprintf("\tBehaviour: %s,\n", pos.behaviour.String()))
-	builder.WriteString(fmt.Sprintf("\tLastFloor: %d,\n", pos.lastFloor))
-	builder.WriteString(fmt.Sprintf("\tFloorBelow: %d,\n", pos.floorBelow))
-	builder.WriteString(fmt.Sprintf("\tIsAtFloor: %t,\n", pos.isAtFloor))
-	builder.WriteString(fmt.Sprintf("\tTargetFloor: %d\n", pos.targetFloor))
+	fmt.Fprintf(&builder, "\tDirection: %s,\n", pos.direction.String())
+	fmt.Fprintf(&builder, "\tBehaviour: %s,\n", pos.behaviour.String())
+	fmt.Fprintf(&builder, "\tLastFloor: %d,\n", pos.lastFloor)
+	fmt.Fprintf(&builder, "\tFloorBelow: %d,\n", pos.floorBelow)
+	fmt.Fprintf(&builder, "\tIsAtFloor: %t,\n", pos.isAtFloor)
+	fmt.Fprintf(&builder, "\tTargetFloor: %d,\n", pos.targetFloor)
 
 	builder.WriteString("}")
 
@@ -134,10 +154,10 @@ func (pos *ElevPositioning) preparePassengerTransfer() {
 	pos.behaviour = PASSENGER_TRANSFER
 	fmt.Println("Opening door")
 	pos.door.Open()
+	pos.orderCompletedCh <- OrderCompleted{Floor: pos.lastFloor, Direction: pos.direction}
 
-	if (pos.lastFloor == pos.targetFloor) {
+	if pos.lastFloor == pos.targetFloor {
 		pos.targetFloor = -1
-		// TODO: Tell the order system that we have stopped.
 	}
 }
 
@@ -149,6 +169,10 @@ func (pos *ElevPositioning) driveToTarget() {
 			pos.behaviour = IDLE
 		}
 		pos.preparePassengerTransfer()
+		return
+	}
+
+	if pos.targetFloor == -1 {
 		return
 	}
 
@@ -188,9 +212,15 @@ func (pos *ElevPositioning) handleEnterFloor(floor int) {
 			pos.behaviour = IDLE
 			pos.preparePassengerTransfer()
 		}
+
+		if pos.targetFloor == -1 {
+			pos.stop()
+			pos.behaviour = IDLE
+		}
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
 	}
+
 }
 
 func (pos *ElevPositioning) handleLeaveFloor(floor int) {
@@ -270,17 +300,22 @@ func (pos *ElevPositioning) handleCloseDoorTrigger() {
 
 func (pos *ElevPositioning) handleDriving(targetFloor <-chan int) {
 	for {
+		fmt.Println("Listening for events...")
 		select {
 		case floor := <-pos.enterFloor:
+			fmt.Println("ENTER FLOOR")
 			pos.handleEnterFloor(floor)
 		case floor := <-pos.leaveFloor:
+			fmt.Println("LEAVE FLOOR")
 			pos.handleLeaveFloor(floor)
 		case targetFloor := <-targetFloor:
+			fmt.Printf("TARGET FLOOR = %d\n", targetFloor)
 			pos.handleTargetFloor(targetFloor)
 		case <-pos.door.CloseTrigger():
-			fmt.Println("Close door trigger")
+			fmt.Println("CLOSE DOOR")
 			fmt.Println(pos.String())
 			pos.handleCloseDoorTrigger()
 		}
+		pos.sendElevatorStateUpdate()
 	}
 }

@@ -1,11 +1,9 @@
 package orderHandler
 
 import (
-	"fmt"
 	. "project/shared"
 	"strings"
 )
-
 
 type WorldView struct {
 	Orders                 map[NodeId]*Orders
@@ -14,12 +12,12 @@ type WorldView struct {
 	AssignedHallUpOrders   [NumberOfFloors]bool
 	AssignedHallDownOrders [NumberOfFloors]bool
 	AssignedCabOrders      [NumberOfFloors]bool
+	targetFloorCh          chan<- int
 }
-
 
 //TODO: Lage no orderhandler og greier med mutex
 
-func newWorldView() WorldView {
+func newWorldView(targetFloorCh chan<- int) WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
@@ -29,6 +27,8 @@ func newWorldView() WorldView {
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 	worldView.Orders = make(map[NodeId]*Orders)
 	worldView.Orders[myId] = newOrders(myId)
+
+	worldView.targetFloorCh = targetFloorCh
 
 	return worldView
 }
@@ -68,34 +68,36 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	// This must also be called if our own elevatorsstate changes
 	worldView.hallRequestAssigner()
-
-	fmt.Println(worldView)
+	targetFloor, err := worldView.getNextTargetFloor()
+	if err != nil {
+		panic(err.Error())
+	}
+	worldView.targetFloorCh <- targetFloor
 }
-
 
 func (worldView *WorldView) updateCyclicCounter() {
 	myId := GetMyId()
 	connectedNodes := worldView.ConnectedNodes.Clone()
 	connectedNodes.Remove(myId)
 
-	getHallDown := func (orders *Orders) *OrderList {
+	getHallDown := func(orders *Orders) *OrderList {
 		return orders.HallDownOrders
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallDown)
 
-	getHallUp := func (orders *Orders) *OrderList {
+	getHallUp := func(orders *Orders) *OrderList {
 		return orders.HallUpOrders
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallUp)
 
 	for nodeId, _ := range connectedNodes {
-		getCabOrder := func (orders *Orders) *OrderList {
+		getCabOrder := func(orders *Orders) *OrderList {
 			return orders.CabOrders[nodeId]
 		}
 		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
 	}
 
-	getMyCab := func (orders *Orders) *OrderList {
+	getMyCab := func(orders *Orders) *OrderList {
 		return orders.CabOrders[myId]
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)

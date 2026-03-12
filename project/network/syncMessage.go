@@ -12,7 +12,7 @@ type SyncMessage struct {
 	Orders     Orders
 	MyState    ElevatorState
 	KnownNodes []NodeId
-	SendTime   time.Time
+	SendTime   time.Time // TODO: Is this needed ?
 }
 
 // createOutgoingSync constructs a SyncMessage representing the current worldview.

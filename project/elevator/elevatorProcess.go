@@ -7,10 +7,10 @@ import (
 	"github.com/angrycompany16/driver-go/elevio"
 )
 
-func ElevatorProcess(orderHandler *OrderHandler, targetFloorCh <-chan int) {
+func ElevatorProcess(orderHandler *OrderHandler, elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompleted, targetFloorCh <-chan int) {
 	elevio.Init(ElevatorServer, NumberOfFloors)
 	elevio.SetStopLamp(false)
-	positioning := InitPositioning()
+	positioning := InitPositioning(elevatorStateCh, orderCompletedCh)
 
 	fmt.Println("Elevator state is determined.")
 
