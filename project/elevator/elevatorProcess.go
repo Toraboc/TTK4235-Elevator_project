@@ -8,7 +8,7 @@ import (
 )
 
 func ElevatorProcess(orderHandler *OrderHandler, elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompleted, targetFloorCh <-chan int) {
-	elevio.Init(ElevatorServer, NumberOfFloors)
+	elevio.Init(elevatorServer, NumberOfFloors)
 	elevio.SetStopLamp(false)
 	positioning := InitPositioning(elevatorStateCh, orderCompletedCh)
 

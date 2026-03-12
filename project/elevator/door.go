@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const DoorOpenTime = 3 * time.Second
-
 type Door struct {
 	isOpen bool
 	timer  *time.Timer
@@ -22,10 +20,10 @@ func (door *Door) Open() {
 	door.isOpen = true
 
 	if door.timer == nil {
-		door.timer = time.NewTimer(DoorOpenTime)
+		door.timer = time.NewTimer(doorOpenTime)
 	}
 
-	door.timer.Reset(DoorOpenTime)
+	door.timer.Reset(doorOpenTime)
 }
 
 func (door *Door) IsObstructed() bool {
@@ -41,7 +39,7 @@ func (door *Door) Close() error {
 	door.isOpen = false
 
 	if door.timer == nil {
-		door.timer = time.NewTimer(DoorOpenTime)
+		door.timer = time.NewTimer(doorOpenTime)
 	}
 
 	door.timer.Stop()
@@ -51,7 +49,7 @@ func (door *Door) Close() error {
 
 func (door *Door) CloseTrigger() <-chan time.Time {
 	if door.timer == nil {
-		door.timer = time.NewTimer(DoorOpenTime)
+		door.timer = time.NewTimer(doorOpenTime)
 		door.timer.Stop()
 	}
 

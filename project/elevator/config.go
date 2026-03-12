@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
-const ElevatorServer = "localhost:15657"
-const TimeBetweenFloors = 4 * time.Second
-const PositionPollInterval = 50 * time.Millisecond
+const elevatorServer = "localhost:15657"
+const timeBetweenFloors = 4 * time.Second
+const positionPollInterval = 50 * time.Millisecond
+const doorOpenTime = 3 * time.Second

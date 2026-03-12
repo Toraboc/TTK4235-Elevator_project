@@ -35,7 +35,7 @@ func InitPositioning(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan
 	motorStartTime := time.Now()
 	elevio.SetMotorDirection(elevio.MD_Down)
 	for elevio.GetFloor() == -1 {
-		if time.Since(motorStartTime) > TimeBetweenFloors {
+		if time.Since(motorStartTime) > timeBetweenFloors {
 			panic("Failed to determine the elevator position within the expected time. The elevator is probably not working correctly")
 		}
 	}
@@ -51,7 +51,7 @@ func InitPositioning(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan
 	pos.targetFloor = -1
 	pos.enterFloor = make(chan int)
 	pos.leaveFloor = make(chan int)
-	pos.floorMovementTimeout = time.NewTimer(TimeBetweenFloors)
+	pos.floorMovementTimeout = time.NewTimer(timeBetweenFloors)
 	pos.elevatorStateCh = elevatorStateCh
 	pos.orderCompletedCh = orderCompletedCh
 
@@ -75,7 +75,7 @@ func (pos *ElevPositioning) sendElevatorStateUpdate() {
 }
 
 func pollPositionUpdates(enterFloor, leaveFloor chan<- int) {
-	ticker := time.NewTicker(PositionPollInterval)
+	ticker := time.NewTicker(positionPollInterval)
 	defer ticker.Stop()
 
 	lastFloor := elevio.GetFloor()
