@@ -19,22 +19,22 @@ func main() {
 	targetFloorCh := make(chan int)
 	elevatorStateCh := make(chan ElevatorState)
 	orderCompletedCh := make(chan OrderCompleted)
-	worldViewMergeChannel := make(chan SyncView)
-	connectedNodesUpdateChannel := make(chan NodeIdSet)
+	worldViewMergeCh := make(chan SyncView)
+	connectedNodesUpdateCh := make(chan NodeIdSet)
 
 	// write two temp goroutines to read from channels and do nothing to prevent blocking
 	go func() {
-		for range worldViewMergeChannel {
+		for range worldViewMergeCh {
 		}
 	}()
 	go func() {
-		for range connectedNodesUpdateChannel {
+		for range connectedNodesUpdateCh {
 		}
 	}()
 
 	orderHandler := NewOrderHandler(targetFloorCh, elevatorStateCh, orderCompletedCh)
 
-	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
+	go NetworkProcess(orderHandler, connectedNodesUpdateCh, worldViewMergeCh)
 
 	go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
 

@@ -10,15 +10,17 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan<- NodeIdSet, worldViewMergeChannel chan<- SyncView) {
+func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
+	nodesUpdateCh := make(chan int, 10)
 
-	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
-	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
-	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
+	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
+	go nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh, nodesUpdateCh)
+	go pruneNodes(knownNodes, nodesAwareOfMe, nodesUpdateCh)
+	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeCh, nodesUpdateCh)
 	udpBroadcast(orderHandler, knownNodes)
 }
 
@@ -53,7 +55,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeCh chan<- SyncView, nodeUpdateCh chan<- int) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -73,11 +75,11 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldView
 			continue
 		}
 
-		knownNodes.nodeSeen(syncMsg.Id)
-		nodesAwareOfMe.update(syncMsg)
+		knownNodes.nodeSeen(syncMsg.Id, nodeUpdateCh)
+		nodesAwareOfMe.update(syncMsg, nodeUpdateCh)
 
 		if syncMsg.Id != GetMyId() {
-			worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+			worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 		}
 	}
 }

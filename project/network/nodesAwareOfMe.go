@@ -22,13 +22,16 @@ func newNodesAwareOfMe() *NodesAwareOfMe {
 	return &NodesAwareOfMe{knowsAboutMe: make(map[NodeId]KnowsAboutMe)}
 }
 
-func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
+func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage, nodeUpdateCh chan<- int) {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
 	myId := GetMyId()
 
 	for _, nodeId := range syncMsg.KnownNodes {
 		if nodeId == myId {
+			if entry, _ := nodesAwareOfMe.knowsAboutMe[syncMsg.Id]; entry.Node == false {
+				nodeUpdateCh <- 1
+			}
 			entry := nodesAwareOfMe.knowsAboutMe[syncMsg.Id]
 			entry.Node = true
 			entry.LastReceived = time.Now()
@@ -37,19 +40,19 @@ func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage) {
 	}
 }
 
-func (nodesAwareOfMe *NodesAwareOfMe) pruneStale() bool {
+func (nodesAwareOfMe *NodesAwareOfMe) pruneStale(nodeUpdateCh chan<- int) {
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
-	changed := false
 
 	for id, entry := range nodesAwareOfMe.knowsAboutMe {
 		if time.Since(entry.LastReceived) > StaleThreshold {
+			if entry.Node == true {
+				nodeUpdateCh <- 1
+			}
 			entry.Node = false
 			nodesAwareOfMe.knowsAboutMe[id] = entry
-			changed = true
 		}
 	}
-	return changed
 }
 
 func (nodesAwareOfMe *NodesAwareOfMe) Print() {
