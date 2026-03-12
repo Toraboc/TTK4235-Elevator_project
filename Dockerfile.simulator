@@ -1,0 +1,13 @@
+FROM --platform=linux/amd64 dlang2/dmd-ubuntu
+
+RUN apt-get update && apt-get install -y tmux git && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+RUN git clone https://github.com/TTK4145/Simulator-v2.git
+RUN dmd -lowmem -w -g Simulator-v2/src/sim_server.d Simulator-v2/src/timer_event.d -ofelevatorserverSim
+
+COPY simulator.con .
+
+RUN chmod +x elevatorserverSim
+
+CMD tmux new-session -d -s main "./elevatorserverSim" && tail -f /dev/null

@@ -6,8 +6,8 @@ import (
 	. "project/shared"
 )
 
-func ElevatorProcess(channels OrderChannels) {
-	elevio.Init(elevatorServer, NumberOfFloors)
+func ElevatorProcess(elevatorServerHost string, channels OrderChannels) {
+	elevio.Init(elevatorServerHost, NumberOfFloors)
 	elevio.SetStopLamp(false)
 	
 	go handleButtonPresses(channels.NewOrderCh)
