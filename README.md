@@ -37,8 +37,14 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
 
 ## Docker
 
+This can be used to run multiple simulators that will talk to eachother.
+
 ```bash
-podman build --platform linux/x86_64 -t sanntid55 .
-podman run --platform linux/x86_64 --rm -it -p 15657:15657 -v ./project:/app/project --name sanntid55 sanntid55 /bin/bash
-podman exec -it sanntid55 /bin/bash
+docker compose up --build
 ```
+
+To access on of the elevators run
+```bash
+docker exec -it sanntid55-simulator-1-1 tmux attach
+```
+or replace the second last `1` to `2` or `3`.

@@ -2,8 +2,10 @@ FROM golang:bookworm
 
 WORKDIR /app
 COPY project ./project
-RUN cd project && go build -o ../controller .
+WORKDIR /app/project
 
-RUN printf '#!/bin/sh\nwhile true; do\n  ./controller -server "$ELEVATOR_SERVER"\n  echo "Controller crashed, restarting..."\n  sleep 1\ndone\n' > run.sh && chmod +x run.sh
+RUN go build .
+
+RUN printf '#!/bin/sh\nwhile true; do\n sleep 1\n  ./project -server "$ELEVATOR_SERVER"\n  echo "Controller crashed, restarting..."\ndone\n' > run.sh && chmod +x run.sh
 
 CMD ./run.sh
