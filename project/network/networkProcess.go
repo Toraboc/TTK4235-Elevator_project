@@ -10,15 +10,16 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan<- NodeIdSet, worldViewMergeChannel chan<- SyncView) {
+func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
-	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
-	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
-	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
+	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
+	go nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+	go udpListen(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh, worldViewMergeCh)
 	udpBroadcast(orderHandler, knownNodes)
 }
 
@@ -53,7 +54,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -73,11 +74,11 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldView
 			continue
 		}
 
-		knownNodes.nodeSeen(syncMsg.Id)
-		nodesAwareOfMe.update(syncMsg)
+		knownNodes.nodeSeen(syncMsg.Id, nodesAwareOfMe, connectedNodesUpdateCh)
+		nodesAwareOfMe.update(syncMsg, knownNodes, connectedNodesUpdateCh)
 
 		if syncMsg.Id != GetMyId() {
-			worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+			worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 		}
 	}
 }
