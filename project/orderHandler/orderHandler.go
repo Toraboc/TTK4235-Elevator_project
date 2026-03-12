@@ -17,6 +17,7 @@ func NewOrderHandler(targetFloorCh chan<- int, elevatorStateCh <-chan ElevatorSt
 	orderHandler.worldView = newWorldView(targetFloorCh)
 
 	go func() {
+		// TODO: I think this should be implemented in a different way
 		for {
 			select {
 			case newElevatorState := <-elevatorStateCh:
@@ -126,7 +127,5 @@ func (orderHandler *OrderHandler) UpdateFinishedOrder(floor int, direction Direc
 		myOrders.HallUpOrders[floor] = FINISHED
 	case DOWN:
 		myOrders.HallDownOrders[floor] = FINISHED
-	default:
-		return
 	}
 }

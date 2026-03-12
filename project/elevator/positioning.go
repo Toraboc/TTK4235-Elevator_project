@@ -207,15 +207,15 @@ func (pos *ElevPositioning) handleEnterFloor(floor int) {
 		pos.behaviour = MOVING
 		fallthrough
 	case MOVING:
+		if pos.targetFloor == -1 {
+			pos.stop()
+			pos.behaviour = IDLE
+		}
+
 		if pos.targetFloor == floor {
 			pos.stop()
 			pos.behaviour = IDLE
 			pos.preparePassengerTransfer()
-		}
-
-		if pos.targetFloor == -1 {
-			pos.stop()
-			pos.behaviour = IDLE
 		}
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
@@ -303,10 +303,10 @@ func (pos *ElevPositioning) handleDriving(targetFloor <-chan int) {
 		fmt.Println("Listening for events...")
 		select {
 		case floor := <-pos.enterFloor:
-			fmt.Println("ENTER FLOOR")
+			fmt.Printf("ENTER FLOOR %d\n", floor)
 			pos.handleEnterFloor(floor)
 		case floor := <-pos.leaveFloor:
-			fmt.Println("LEAVE FLOOR")
+			fmt.Printf("LEAVE FLOOR %d\n", floor)
 			pos.handleLeaveFloor(floor)
 		case targetFloor := <-targetFloor:
 			fmt.Printf("TARGET FLOOR = %d\n", targetFloor)
@@ -316,6 +316,7 @@ func (pos *ElevPositioning) handleDriving(targetFloor <-chan int) {
 			fmt.Println(pos.String())
 			pos.handleCloseDoorTrigger()
 		}
+		fmt.Printf("AFTER EVENT STATE %v\n", pos)
 		pos.sendElevatorStateUpdate()
 	}
 }
