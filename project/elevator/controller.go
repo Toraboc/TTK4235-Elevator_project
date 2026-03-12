@@ -147,7 +147,7 @@ func (controller *ElevatorController) String() string {
 	builder.WriteString("ElevatorController {\n")
 
 	fmt.Fprintf(&builder, "\tstate: %s,\n", strings.ReplaceAll(controller.state.String(), "\n", "\n\t"))
-	fmt.Fprintf(&builder, "\tdoorOpen: %b\n", controller.door.IsOpen())
+	fmt.Fprintf(&builder, "\tdoorOpen: %t\n", controller.door.IsOpen())
 
 	builder.WriteString("}")
 
