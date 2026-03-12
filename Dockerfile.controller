@@ -1,10 +1,17 @@
 FROM golang:bookworm
 
+RUN apt-get update && apt-get install -y ldc git && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --recurse-submodules https://github.com/TTK4145/Project-resources.git /tmp/project-resources && \
+    cd /tmp/project-resources/cost_fns/hall_request_assigner && \
+    ldc2 main.d config.d elevator_algorithm.d elevator_state.d optimal_hall_requests.d d-json/jsonx.d -w -g -ofhall_request_assigner
+
 WORKDIR /app
 COPY project ./project
 WORKDIR /app/project
 
 RUN go build .
+RUN cp /tmp/project-resources/cost_fns/hall_request_assigner/hall_request_assigner .
 
 RUN printf '#!/bin/sh\nwhile true; do\n sleep 1\n  ./project -server "$ELEVATOR_SERVER"\n  echo "Controller crashed, restarting..."\ndone\n' > run.sh && chmod +x run.sh
 

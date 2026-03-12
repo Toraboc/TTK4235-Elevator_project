@@ -48,3 +48,5 @@ To access on of the elevators run
 docker exec -it sanntid55-simulator-1-1 tmux attach
 ```
 or replace the second last `1` to `2` or `3`.
+
+Use `ctrl-b` then `d` to detach from the tmux session.
