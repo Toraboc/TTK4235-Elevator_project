@@ -1,0 +1,48 @@
+services:
+  simulator-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    stdin_open: true
+    tty: true
+
+  simulator-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    stdin_open: true
+    tty: true
+
+  simulator-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    stdin_open: true
+    tty: true
+
+  controller-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.controller
+    environment:
+      ELEVATOR_SERVER: simulator-1:15657
+    depends_on:
+      - simulator-1
+
+  controller-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.controller
+    environment:
+      ELEVATOR_SERVER: simulator-2:15657
+    depends_on:
+      - simulator-2
+
+  controller-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.controller
+    environment:
+      ELEVATOR_SERVER: simulator-3:15657
+    depends_on:
+      - simulator-3

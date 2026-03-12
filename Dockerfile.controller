@@ -1,0 +1,9 @@
+FROM golang:bookworm
+
+WORKDIR /app
+COPY project ./project
+RUN cd project && go build -o ../controller .
+
+RUN printf '#!/bin/sh\nwhile true; do\n  ./controller -server "$ELEVATOR_SERVER"\n  echo "Controller crashed, restarting..."\n  sleep 1\ndone\n' > run.sh && chmod +x run.sh
+
+CMD ./run.sh
