@@ -2,33 +2,32 @@ package elevator
 
 import (
 	"fmt"
-	. "project/orderHandler"
 	. "project/shared"
 	"time"
 
 	"github.com/angrycompany16/driver-go/elevio"
 )
 
-func checkForButtonPress(orderHandler *OrderHandler, floor int, buttonType elevio.ButtonType, orderType OrderType, floorButtonState *[NumberOfFloors][3]bool) {
+func checkForButtonPress(orderNewCh chan<- OrderNew, floor int, buttonType elevio.ButtonType, orderType OrderType, floorButtonState *[NumberOfFloors][3]bool) {
 	newValue := elevio.GetButton(buttonType, floor)
 	oldValue := floorButtonState[floor][orderType]
 
 	if newValue && !oldValue {
 		fmt.Printf("Button pressed floor = %d, type = %v\n", floor, orderType)
-		orderHandler.UpdateNewOrder(floor, orderType)
+		orderNewCh <- OrderNew{Floor: floor, Type: orderType}
 	}
 
 	floorButtonState[floor][orderType] = newValue
 }
 
-func handleButtonPresses(orderHandler *OrderHandler) {
+func handleButtonPresses(orderNewCh chan<- OrderNew) {
 	var floorButtonState [NumberOfFloors][3]bool
 	for {
 		time.Sleep(40 * time.Millisecond)
 		for i := range NumberOfFloors {
-			checkForButtonPress(orderHandler, i, elevio.BT_HallUp, HALLUP, &floorButtonState)
-			checkForButtonPress(orderHandler, i, elevio.BT_HallDown, HALLDOWN, &floorButtonState)
-			checkForButtonPress(orderHandler, i, elevio.BT_Cab, CAB, &floorButtonState)
+			checkForButtonPress(orderNewCh, i, elevio.BT_HallUp, HALLUP, &floorButtonState)
+			checkForButtonPress(orderNewCh, i, elevio.BT_HallDown, HALLDOWN, &floorButtonState)
+			checkForButtonPress(orderNewCh, i, elevio.BT_Cab, CAB, &floorButtonState)
 		}
 	}
 }
