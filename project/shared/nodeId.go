@@ -97,6 +97,13 @@ func getIpAddress() NodeId {
 	return 0
 }
 
+func SetMyId(id NodeId) {
+	if myId != 0 {
+		panic("Cannot set the nodeId more than one time.")
+	}
+	myId = id
+}
+
 // GetMyId returns the NodeId of this node.
 func GetMyId() NodeId {
 	if myId == 0 {

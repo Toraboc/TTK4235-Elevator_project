@@ -10,7 +10,7 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan<- NodeIdSet, worldViewMergeChannel chan<- SyncView) {
+func NetworkProcess(port int, orderHandler *OrderHandler, connectedNodesUpdateChannel chan<- NodeIdSet, worldViewMergeChannel chan<- SyncView) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
@@ -18,15 +18,15 @@ func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan
 
 	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
 	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
-	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
-	udpBroadcast(orderHandler, knownNodes)
+	go udpListen(port, knownNodes, nodesAwareOfMe, worldViewMergeChannel)
+	udpBroadcast(port, orderHandler, knownNodes)
 }
 
-func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
+func udpBroadcast(port int, orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	var conn *net.UDPConn
 	for {
 		var err error
-		conn, err = net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
+		conn, err = net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: port})
 		if err == nil {
 			break
 		}
@@ -53,8 +53,8 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
-	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
+func udpListen(port int, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
+	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
 	}

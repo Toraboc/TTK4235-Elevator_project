@@ -8,6 +8,9 @@ Dette er kode til TTK4145 prosjekt.
 - [ ] Exercise 4
 - [ ] Exercise 5
 
+## Program flagg
+Det finnes ulike typer flagg som kan brukes til programmet. Bruk `-h` flagget for å få hjelp. Legg også merke til at simulatoren også kan lytte på ulike porter med flagget `--port 5432`
+
 ## Start koden på andre maskiner
 
 Bruk scriptet til å starte heiskoden på flere maskiner. Gjør dette ved å spesifisere det siste tallet i ip-adressen til maskinene man skal deployere til.
