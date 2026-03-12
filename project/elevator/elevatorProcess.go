@@ -10,7 +10,7 @@ func ElevatorProcess(channels OrderChannels) {
 	elevio.Init(elevatorServer, NumberOfFloors)
 	elevio.SetStopLamp(false)
 
-	go handleButtonPresses(channels)
+	go handleButtonPresses(channels.NewOrderCh)
 	go handleLights(channels.ConfirmedOrdersReqCh)
 
 	startElevatorController(channels.ElevatorStateCh, channels.OrderCompletedCh, channels.TargetFloorCh)
