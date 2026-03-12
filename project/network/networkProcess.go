@@ -10,20 +10,21 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
+func NetworkProcess(channels OrderChannels) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
-	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
-	go nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
-	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
-	go udpListen(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh, worldViewMergeCh)
-	udpBroadcast(orderHandler, knownNodes)
+	// go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
+	go nodeUpdate(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
+	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
+	go udpListen(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh, channels.WorldViewMergeCh)
+	udpBroadcast(knownNodes, channels.WorldViewReqCh)
+
 }
 
-func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
+func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh WorldViewRequestCh) {
 	var conn *net.UDPConn
 	for {
 		var err error
@@ -40,7 +41,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync(orderHandler, KnownNodes)
+		syncMsg := createOutgoingSync(worldViewReqCh, knownNodes)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
