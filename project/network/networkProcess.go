@@ -10,22 +10,28 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(orderHandler *OrderHandler, ConnectedNodesUpdateChannel chan NodeIdSet, WorldViewMergeChannel chan SyncView) {
+func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan NodeIdSet, worldViewMergeChannel chan SyncView) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
 	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
-	go pruneNodes(knownNodes, nodesAwareOfMe, ConnectedNodesUpdateChannel)
-	go udpListen(knownNodes, nodesAwareOfMe, WorldViewMergeChannel)
+	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
+	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
 	udpBroadcast(orderHandler, knownNodes)
 }
 
 func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
-	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
-	if err != nil {
-		panic("Failed to dial UDP: " + err.Error())
+	var conn *net.UDPConn
+	for {
+		var err error
+		conn, err = net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
+		if err == nil {
+			break
+		}
+		fmt.Println("Failed to dial UDP, retrying in 1 second:", err)
+		time.Sleep(1 * time.Second)
 	}
 	defer conn.Close()
 
@@ -47,7 +53,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, WorldViewMergeChannel chan SyncView) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -69,6 +75,6 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, WorldView
 
 		knownNodes.nodeSeen(syncMsg.Id)
 		nodesAwareOfMe.update(syncMsg)
-		WorldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+		worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}
 }

@@ -22,13 +22,13 @@ func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 	return set
 }
 
-func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, ConnectedNodesUpdateChannel chan NodeIdSet) {
+func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateChannel chan NodeIdSet) {
 	ticker := time.NewTicker(time.Second / PruneHz)
 	defer ticker.Stop()
 	for range ticker.C {
 		knownNodes.pruneStale()
 		nodesAwareOfMe.pruneStale()
-		ConnectedNodesUpdateChannel <- getConnectedNodes(knownNodes, nodesAwareOfMe)
+		connectedNodesUpdateChannel <- getConnectedNodes(knownNodes, nodesAwareOfMe)
 	}
 }
 

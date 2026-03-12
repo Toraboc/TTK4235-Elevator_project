@@ -16,10 +16,10 @@ type SyncMessage struct {
 }
 
 func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
+	worldview := orderHandler.GetWorldView()
+
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
-
-	worldview := orderHandler.GetWorldView()
 
 	syncMsg := SyncMessage{}
 

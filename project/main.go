@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	. "project/elevator"
+	//. "project/elevator"
 	. "project/network"
 	. "project/orderHandler"
 	. "project/shared"
@@ -17,12 +17,21 @@ func main() {
 
 	orderHandler := NewOrderHandler()
 
-	WorldViewMergeChannel := make(chan SyncView)
-	ConnectedNodesUpdateChannel := make(chan NodeIdSet)
+	worldViewMergeChannel := make(chan SyncView)
+	connectedNodesUpdateChannel := make(chan NodeIdSet)
 
-	go NetworkProcess(orderHandler, ConnectedNodesUpdateChannel, WorldViewMergeChannel)
+	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
+	// write two temp goroutines to read from channels and do nothing to prevent blocking
+	go func() {
+		for range worldViewMergeChannel {
+		}
+	}()
+	go func() {
+		for range connectedNodesUpdateChannel {
+		}
+	}()
 
-	go ElevatorProcess(orderHandler)
+	//go ElevatorProcess(orderHandler)
 
 	for {
 		time.Sleep(1 * time.Second)
