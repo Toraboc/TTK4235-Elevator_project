@@ -169,13 +169,16 @@ func (controller *ElevatorController) preparePassengerTransfer() {
 	if !controller.state.isAtFloor {
 		panic("Cannot prepare Passenger transfer, with not at a floor.")
 	}
-	if controller.state.behaviour != IDLE {
-		panic("Cannot prepare Passenger transfer, if the state is not IDLE.")
+	if controller.state.behaviour != IDLE && controller.state.behaviour != PASSENGER_TRANSFER {
+		panic("Cannot prepare Passenger transfer, if the state is not IDLE or PASSENGER_TRANSFER.")
 	}
 
 	controller.state.behaviour = PASSENGER_TRANSFER
 	controller.door.Open()
 	controller.orderCompletedCh <- OrderCompleted{Floor: controller.state.lastFloor, Direction: controller.state.direction}
+	if (controller.state.lastFloor == controller.state.targetFloor) {
+		controller.state.targetFloor = -1
+	}
 }
 
 // Warning: This function does not check if the elevator is in a faulty state
@@ -205,14 +208,6 @@ func (controller *ElevatorController) driveToTarget() {
 }
 
 func (controller *ElevatorController) handleEnterFloor(floor int) {
-	controller.state.lastFloor = floor
-	controller.state.floorBelow = floor
-	controller.state.isAtFloor = true
-	controller.floorMovementTimeout.Stop()
-
-	// TODO: Maybe this should be moved to a own function, since this is a side effect.
-	elevio.SetFloorIndicator(floor)
-
 	switch controller.state.behaviour {
 	case IDLE:
 		fallthrough
@@ -224,6 +219,23 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		controller.state.behaviour = MOVING
 		fallthrough
 	case MOVING:
+		expectedFloorDelta := -1
+		if (controller.state.direction == UP) {
+			expectedFloorDelta = 1
+		}
+		expectedFloor := controller.state.lastFloor + expectedFloorDelta
+		if expectedFloor != floor {
+			panic(fmt.Sprintf("The elevator reached the floor %d, but expected to reach floor %d. Something is terrably wrong.", floor, expectedFloor))
+		}
+
+		controller.state.lastFloor = floor
+		controller.state.floorBelow = floor
+		controller.state.isAtFloor = true
+		controller.floorMovementTimeout.Stop()
+
+		// TODO: Maybe this should be moved to a own function, since this is a side effect.
+		elevio.SetFloorIndicator(floor)
+
 		if controller.state.targetFloor == -1 {
 			controller.stop()
 			controller.state.behaviour = IDLE
@@ -279,11 +291,11 @@ func (controller *ElevatorController) handleTargetFloor(targetFloor int) {
 	case MOVING:
 		controller.driveToTarget()
 	case FAULTY_MOTOR:
-		fallthrough
+		// Do nothing
 	case DOOR_OBSTRUCTED:
 		fallthrough
 	case PASSENGER_TRANSFER:
-		// Do nothing
+		controller.preparePassengerTransfer()
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
 	}

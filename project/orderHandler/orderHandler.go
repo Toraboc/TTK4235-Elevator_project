@@ -10,7 +10,7 @@ type OrderHandler struct {
 	mu            sync.Mutex
 }
 
-func NewOrderHandler(targetFloorCh chan<- int, elevatorStateCh <-chan ElevatorState, orderCompletedCh <-chan OrderCompleted) *OrderHandler {
+func NewOrderHandler(targetFloorCh chan<- int, elevatorStateCh <-chan ElevatorState, orderCompletedCh <-chan OrderCompleted, newOrderCh <-chan OrderNew) *OrderHandler {
 	var orderHandler OrderHandler
 
 	orderHandler.worldView = newWorldView(targetFloorCh)
@@ -23,6 +23,8 @@ func NewOrderHandler(targetFloorCh chan<- int, elevatorStateCh <-chan ElevatorSt
 				orderHandler.ChangeElevatorState(newElevatorState)
 			case orderCompleted := <-orderCompletedCh:
 				orderHandler.UpdateFinishedOrder(orderCompleted.Floor, orderCompleted.Direction)
+			case newOrder := <-newOrderCh:
+				orderHandler.UpdateNewOrder(newOrder.Floor, newOrder.Type)
 			}
 		}
 	}()
