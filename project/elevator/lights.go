@@ -46,6 +46,7 @@ func (lightStatus *LightStatus) Init() {
 	}
 }
 
+// TODO: This needs to be implemented with channels
 func handleLights(orderHandler *OrderHandler) {
 	lightStatus.Init()
 	for {

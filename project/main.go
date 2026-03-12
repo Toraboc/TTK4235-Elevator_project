@@ -16,12 +16,12 @@ func main() {
 
 	GetMyId() // Initialize
 
-	targetFloorCh := make(chan int)
-	elevatorStateCh := make(chan ElevatorState)
-	orderCompletedCh := make(chan OrderCompleted)
-	orderNewCh := make(chan OrderNew)
-	worldViewMergeChannel := make(chan SyncView)
-	connectedNodesUpdateChannel := make(chan NodeIdSet)
+	targetFloorCh := make(chan int, 1)
+	elevatorStateCh := make(chan ElevatorState, 1)
+	orderCompletedCh := make(chan OrderCompleted, 10)
+	orderNewCh := make(chan OrderNew, 10)
+	worldViewMergeChannel := make(chan SyncView, 1)
+	connectedNodesUpdateChannel := make(chan NodeIdSet, 1)
 
 	// write two temp goroutines to read from channels and do nothing to prevent blocking
 	go func() {
