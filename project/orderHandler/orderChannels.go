@@ -28,8 +28,8 @@ func NewOrderChannels() OrderChannels {
 		ElevatorStateCh:        make(chan ElevatorState, 1),
 		OrderCompletedCh:       make(chan OrderCompleted, 10),
 		NewOrderCh:             make(chan NewOrderEvent, 10),
-		WorldViewReqCh:         make(WorldViewRequestCh),
-		ConfirmedOrdersReqCh:   make(ConfirmedOrdersRequestCh),
+		WorldViewReqCh:         make(WorldViewRequestCh, 1),
+		ConfirmedOrdersReqCh:   make(ConfirmedOrdersRequestCh, 1),
 		TargetFloorCh:          make(chan int, 1),
 	}
 }
