@@ -3,6 +3,8 @@ package network
 import "time"
 
 const (
+	// UDP port used for both listening and broadcasting.
+	Port = 44042
 	// IPv4 broadcast address and port used for discovery.
 	BroadcastAddress = "255.255.255.255"
 	// broadcast frequency in Hz.
