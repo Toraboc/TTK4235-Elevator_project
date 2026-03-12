@@ -10,7 +10,7 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan NodeIdSet, worldViewMergeChannel chan SyncView) {
+func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan<- NodeIdSet, worldViewMergeChannel chan<- SyncView) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
@@ -53,7 +53,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan SyncView) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
