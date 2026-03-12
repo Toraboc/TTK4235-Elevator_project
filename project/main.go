@@ -5,40 +5,36 @@ import (
 	"time"
 
 	. "project/elevator"
-	// . "project/network"
-	. "project/shared"
+	. "project/network"
 	. "project/orderHandler"
+	. "project/shared"
 )
-
-// func targetFloors(trgFChr chan<- int) {
-// 	time.Sleep(1 * time.Second)
-//
-// 	fmt.Println("New target: 1")
-// 	trgFChr <- 1
-//
-// 	time.Sleep(10 * time.Second)
-//
-// 	fmt.Println("New target: 3")
-// 	trgFChr <- 3
-//
-// 	time.Sleep(10 * time.Second)
-//
-// 	fmt.Println("New target: 0")
-// 	trgFChr <- 0
-// }
 
 func main() {
 
 	fmt.Println("Starting elevator")
+
 	GetMyId() // Initialize 
 
 	targetFloorCh := make(chan int)
 	elevatorStateCh := make(chan ElevatorState)
 	orderCompletedCh := make(chan OrderCompleted)
+	worldViewMergeChannel := make(chan SyncView)
+	connectedNodesUpdateChannel := make(chan NodeIdSet)
+
+	// write two temp goroutines to read from channels and do nothing to prevent blocking
+	go func() {
+		for range worldViewMergeChannel {
+		}
+	}()
+	go func() {
+		for range connectedNodesUpdateChannel {
+		}
+	}()
 	
 	orderHandler := NewOrderHandler(targetFloorCh, elevatorStateCh, orderCompletedCh)
 
-	// go NetworkProcess(orderHandler)
+	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
 
 	go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
 

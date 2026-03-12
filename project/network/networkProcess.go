@@ -10,24 +10,28 @@ import (
 	. "project/shared"
 )
 
-// NetworkProcess starts the UDP listener and broadcaster for network communication.
-func NetworkProcess(orderHandler *OrderHandler) {
+func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan<- NodeIdSet, worldViewMergeChannel chan<- SyncView) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
 	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
-	go pruneNodes(orderHandler, knownNodes, nodesAwareOfMe)
-	go udpListen(orderHandler, knownNodes, nodesAwareOfMe)
+	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
+	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
 	udpBroadcast(orderHandler, knownNodes)
 }
 
-// udpBroadcast continuously broadcasts the SyncMessage over UDP at the configured sendHz.
 func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
-	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
-	if err != nil {
-		panic("Failed to dial UDP: " + err.Error())
+	var conn *net.UDPConn
+	for {
+		var err error
+		conn, err = net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP(BroadcastAddress), Port: Port})
+		if err == nil {
+			break
+		}
+		fmt.Println("Failed to dial UDP, retrying in 1 second:", err)
+		time.Sleep(1 * time.Second)
 	}
 	defer conn.Close()
 
@@ -49,8 +53,7 @@ func udpBroadcast(orderHandler *OrderHandler, KnownNodes *KnownNodes) {
 	}
 }
 
-// udpListen listens for incoming SyncMessages over UDP, updates the nodeSet, and calls mergeWorldview on each received message.
-func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -76,6 +79,6 @@ func udpListen(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfM
 
 		knownNodes.nodeSeen(syncMsg.Id)
 		nodesAwareOfMe.update(syncMsg)
-		orderHandler.MergeWorldView(syncMsg.Id, syncMsg.MyState, syncMsg.Orders)
+		worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}
 }

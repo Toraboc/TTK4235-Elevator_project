@@ -15,16 +15,17 @@ type SyncMessage struct {
 	SendTime   time.Time // TODO: Is this needed ?
 }
 
-// createOutgoingSync constructs a SyncMessage representing the current worldview.
 func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
 	worldview := orderHandler.GetWorldView()
 
+	knownNodes.mu.Lock()
+	defer knownNodes.mu.Unlock()
+
 	syncMsg := SyncMessage{}
+
 	syncMsg.Id = GetMyId()
 	syncMsg.Orders = *worldview.Orders[syncMsg.Id].Clone()
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
-	knownNodes.mu.Lock()
-	defer knownNodes.mu.Unlock()
 	syncMsg.KnownNodes = make([]NodeId, 0, len(knownNodes.LastSeen))
 	for id := range knownNodes.LastSeen {
 		syncMsg.KnownNodes = append(syncMsg.KnownNodes, id)

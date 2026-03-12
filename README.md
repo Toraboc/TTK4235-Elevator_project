@@ -37,5 +37,5 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
 ```bash
 podman build --platform linux/x86_64 -t sanntid55 .
 podman run --platform linux/x86_64 --rm -it -p 15657:15657 -v ./project:/app/project --name sanntid55 sanntid55 /bin/bash
-podman exec -it 
+podman exec -it sanntid55 /bin/bash
 ```

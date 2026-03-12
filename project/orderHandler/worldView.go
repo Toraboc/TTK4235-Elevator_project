@@ -15,6 +15,12 @@ type WorldView struct {
 	targetFloorCh          chan<- int
 }
 
+type SyncView struct {
+	NodeId        NodeId
+	ElevatorState ElevatorState
+	Orders        Orders
+}
+
 //TODO: Lage no orderhandler og greier med mutex
 
 func newWorldView(targetFloorCh chan<- int) WorldView {
