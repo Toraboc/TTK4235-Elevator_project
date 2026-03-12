@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	. "project/orderHandler"
 	. "project/shared"
 )
 
-// GetConnectedNodes returns a NodeIdSet of the nodes that have 2-way communication
 func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
 	set := make(NodeIdSet)
 	knownNodes.mu.Lock()
+	defer knownNodes.mu.Unlock()
 	nodesAwareOfMe.mu.Lock()
 	defer nodesAwareOfMe.mu.Unlock()
-	defer knownNodes.mu.Unlock()
 
 	for id := range knownNodes.LastSeen {
 		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
@@ -24,14 +22,16 @@ func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 	return set
 }
 
-// pruneNodes periodically prunes stale nodes from knownNodes and nodesAwareOfMe, and updates the connected nodes.
-func pruneNodes(orderHandler *OrderHandler, knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	ticker := time.NewTicker(time.Second / PruneHz) // last number controls how often inactive peers are pruned (Hz)
+func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateChannel chan<- NodeIdSet) {
+	ticker := time.NewTicker(time.Second / PruneHz)
 	defer ticker.Stop()
 	for range ticker.C {
-		knownNodes.pruneStale()
-		nodesAwareOfMe.pruneStale()
-		orderHandler.UpdateConnectedNodes(getConnectedNodes(knownNodes, nodesAwareOfMe))
+		changedKnown := knownNodes.pruneStale()
+		changedAware := nodesAwareOfMe.pruneStale()
+
+		if changedKnown || changedAware {
+			connectedNodesUpdateChannel <- getConnectedNodes(knownNodes, nodesAwareOfMe)
+		}
 	}
 }
 

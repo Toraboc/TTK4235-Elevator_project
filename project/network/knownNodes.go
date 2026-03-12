@@ -13,31 +13,30 @@ type KnownNodes struct {
 	LastSeen map[NodeId]time.Time
 }
 
-// newKnownNodes creates an initialized KnownNodes.
 func newKnownNodes() *KnownNodes {
 	return &KnownNodes{LastSeen: make(map[NodeId]time.Time)}
 }
 
-// nodeSeen records that the given IP was observed now.
 func (knownNodes *KnownNodes) nodeSeen(id NodeId) {
 	knownNodes.mu.Lock()
 	knownNodes.LastSeen[id] = time.Now()
 	knownNodes.mu.Unlock()
 }
 
-// pruneStale removes nodes that haven't been seen for a while.
-func (knownNodes *KnownNodes) pruneStale() {
+func (knownNodes *KnownNodes) pruneStale() bool {
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
+	changed := false
 
 	for id, seenAt := range knownNodes.LastSeen {
 		if time.Since(seenAt) > StaleThreshold {
 			delete(knownNodes.LastSeen, id)
+			changed = true
 		}
 	}
+	return changed
 }
 
-// Print displays the known nodes and their last seen times.
 func (knownNodes *KnownNodes) print() {
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
