@@ -20,12 +20,12 @@ func NetworkProcess(channels OrderChannels) {
 	go nodeUpdate(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go udpListen(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh, channels.WorldViewMergeCh)
-	udpBroadcast(channels.WorldViewReqCh, knownNodes)
+	udpBroadcast(knownNodes, channels.WorldViewReqCh)
 	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
 
 }
 
-func udpBroadcast(worldViewReqCh WorldViewRequestCh, KnownNodes *KnownNodes) {
+func udpBroadcast(KnownNodes *KnownNodes, worldViewReqCh WorldViewRequestCh) {
 	var conn *net.UDPConn
 	for {
 		var err error
