@@ -16,7 +16,7 @@ func NetworkProcess(orderHandler *OrderHandler, connectedNodesUpdateChannel chan
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
-	// go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
+	go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
 	go pruneNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateChannel)
 	go udpListen(knownNodes, nodesAwareOfMe, worldViewMergeChannel)
 	udpBroadcast(orderHandler, knownNodes)
@@ -73,12 +73,11 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldView
 			continue
 		}
 
-		if (syncMsg.Id == GetMyId()) {
-			continue
-		}
-
 		knownNodes.nodeSeen(syncMsg.Id)
 		nodesAwareOfMe.update(syncMsg)
-		worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+
+		if syncMsg.Id != GetMyId() {
+			worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+		}
 	}
 }

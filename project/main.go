@@ -14,7 +14,7 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	GetMyId() // Initialize 
+	GetMyId() // Initialize
 
 	targetFloorCh := make(chan int)
 	elevatorStateCh := make(chan ElevatorState)
@@ -31,7 +31,7 @@ func main() {
 		for range connectedNodesUpdateChannel {
 		}
 	}()
-	
+
 	orderHandler := NewOrderHandler(targetFloorCh, elevatorStateCh, orderCompletedCh)
 
 	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
