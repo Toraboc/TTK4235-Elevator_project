@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	//. "project/elevator"
+	. "project/elevator"
 	. "project/network"
 	. "project/orderHandler"
 	. "project/shared"
@@ -31,7 +31,7 @@ func main() {
 		}
 	}()
 
-	//go ElevatorProcess(orderHandler)
+	go ElevatorProcess(orderHandler)
 
 	for {
 		time.Sleep(1 * time.Second)
