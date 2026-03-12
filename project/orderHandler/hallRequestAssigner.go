@@ -25,7 +25,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 	confirmedOrders := worldView.getConfirmedOrders()
 
 	//Caborders cannot be assigned between elevators
-	worldView.AssignedCabOrders = confirmedOrders.Cab
+	worldView.AssignedCabOrders = confirmedOrders.myCab
 
 	//exits if no orders are confirmed
 	if noOrdersConfirmed(confirmedOrders) {
