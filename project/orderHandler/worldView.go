@@ -22,8 +22,6 @@ type SyncView struct {
 	Orders        Orders
 }
 
-//TODO: Lage no orderhandler og greier med mutex
-
 func newWorldView() WorldView {
 	var worldView WorldView
 

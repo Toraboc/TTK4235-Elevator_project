@@ -10,12 +10,6 @@ type ConfirmedOrders struct {
 	Cab      [NumberOfFloors]bool
 }
 
-func RequestConfirmedOrders(requestCh ConfirmedOrdersRequestCh) ConfirmedOrders {
-	responseCh := make(chan ConfirmedOrders)
-	requestCh <- responseCh
-	return <-responseCh
-}
-
 func findConfirmedOrdersInArray(orders *OrderList) [NumberOfFloors]bool {
 	var confirmed [NumberOfFloors]bool
 

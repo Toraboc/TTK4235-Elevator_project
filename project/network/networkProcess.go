@@ -19,10 +19,10 @@ func NetworkProcess(channels OrderChannels) {
 	// go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
 	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go udpListen(knownNodes, nodesAwareOfMe, channels.WorldViewMergeCh)
-	udpBroadcast(channels, knownNodes)
+	udpBroadcast(channels.WorldViewReqCh, knownNodes)
 }
 
-func udpBroadcast(channels OrderChannels, KnownNodes *KnownNodes) {
+func udpBroadcast(worldViewReqCh WorldViewRequestCh, KnownNodes *KnownNodes) {
 	var conn *net.UDPConn
 	for {
 		var err error
@@ -39,7 +39,7 @@ func udpBroadcast(channels OrderChannels, KnownNodes *KnownNodes) {
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync(channels, KnownNodes)
+		syncMsg := createOutgoingSync(worldViewReqCh, KnownNodes)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
