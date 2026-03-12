@@ -7,6 +7,7 @@ import (
 
 func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) (int, bool, error) {
 	targetFloor, changed, err := worldView.handleStateChange()
+	channels.ConfirmedOrdersCh <- worldView.getConfirmedOrders()
 	if err == nil && changed {
 		channels.TargetFloorCh <- targetFloor
 	}
@@ -77,9 +78,6 @@ func OrderProcess(channels OrderChannels) {
 
 		case responseCh := <-channels.WorldViewReqCh:
 			responseCh <- worldView.clone()
-
-		case responseCh := <-channels.ConfirmedOrdersReqCh:
-			responseCh <- worldView.getConfirmedOrders()
 		}
 	}
 }

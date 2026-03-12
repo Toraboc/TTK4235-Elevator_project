@@ -5,7 +5,6 @@ import (
 	//"project/network"
 	. "project/orderHandler"
 	. "project/shared"
-	"time"
 )
 
 type LightType [NumberOfFloors]bool
@@ -46,12 +45,10 @@ func (lightStatus *LightStatus) Init() {
 	}
 }
 
-func handleLights(confirmedOrdersReqCh ConfirmedOrdersRequestCh) {
+func handleLights(confirmedOrdersCh <-chan ConfirmedOrders) {
 	lightStatus.Init()
 	for {
-		time.Sleep(40 * time.Millisecond)
-
-		confirmedOrders := RequestConfirmedOrders(confirmedOrdersReqCh)
+		confirmedOrders := <-confirmedOrdersCh
 		lightStatus.updateLights(confirmedOrders)
 	}
 }
