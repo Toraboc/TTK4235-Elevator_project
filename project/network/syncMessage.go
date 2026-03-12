@@ -12,7 +12,7 @@ type SyncMessage struct {
 	Orders     Orders
 	MyState    ElevatorState
 	KnownNodes []NodeId
-	SendTime   time.Time
+	SendTime   time.Time // TODO: Is this needed ?
 }
 
 func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {

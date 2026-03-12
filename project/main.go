@@ -13,14 +13,15 @@ import (
 func main() {
 
 	fmt.Println("Starting elevator")
-	GetMyId() // Initialize
 
-	orderHandler := NewOrderHandler()
+	GetMyId() // Initialize 
 
+	targetFloorCh := make(chan int)
+	elevatorStateCh := make(chan ElevatorState)
+	orderCompletedCh := make(chan OrderCompleted)
 	worldViewMergeChannel := make(chan SyncView)
 	connectedNodesUpdateChannel := make(chan NodeIdSet)
 
-	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
 	// write two temp goroutines to read from channels and do nothing to prevent blocking
 	go func() {
 		for range worldViewMergeChannel {
@@ -30,8 +31,12 @@ func main() {
 		for range connectedNodesUpdateChannel {
 		}
 	}()
+	
+	orderHandler := NewOrderHandler(targetFloorCh, elevatorStateCh, orderCompletedCh)
 
-	go ElevatorProcess(orderHandler)
+	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
+
+	go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
 
 	for {
 		time.Sleep(1 * time.Second)
