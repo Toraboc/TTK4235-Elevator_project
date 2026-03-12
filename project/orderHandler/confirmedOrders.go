@@ -7,7 +7,7 @@ import (
 type ConfirmedOrders struct {
 	HallUp   [NumberOfFloors]bool
 	HallDown [NumberOfFloors]bool
-	myCab      [NumberOfFloors]bool
+	Cab      [NumberOfFloors]bool
 }
 
 func findConfirmedOrdersInArray(orders *OrderList) [NumberOfFloors]bool {
@@ -31,7 +31,7 @@ func (worldView *WorldView) getConfirmedOrders() ConfirmedOrders {
 	confirmedOrders.HallUp = findConfirmedOrdersInArray(orders.HallUpOrders)
 	confirmedOrders.HallDown = findConfirmedOrdersInArray(orders.HallDownOrders)
 	if cabOrders, exists := orders.CabOrders[myId]; exists {
-		confirmedOrders.myCab = findConfirmedOrdersInArray(cabOrders)
+		confirmedOrders.Cab = findConfirmedOrdersInArray(cabOrders)
 	}
 
 	return confirmedOrders
@@ -39,7 +39,7 @@ func (worldView *WorldView) getConfirmedOrders() ConfirmedOrders {
 
 func noOrdersConfirmed(confirmedOrders ConfirmedOrders) bool {
 	for i := range NumberOfFloors {
-		if confirmedOrders.myCab[i] || confirmedOrders.HallUp[i] || confirmedOrders.HallDown[i] {
+		if confirmedOrders.Cab[i] || confirmedOrders.HallUp[i] || confirmedOrders.HallDown[i] {
 			return false
 		}
 	}

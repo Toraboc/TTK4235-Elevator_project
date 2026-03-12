@@ -3,7 +3,7 @@ package elevator
 import (
 	"github.com/angrycompany16/driver-go/elevio"
 	//"project/network"
-	."project/orderHandler"
+	. "project/orderHandler"
 	. "project/shared"
 	"time"
 )
