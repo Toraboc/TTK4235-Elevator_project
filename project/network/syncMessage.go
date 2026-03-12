@@ -15,8 +15,8 @@ type SyncMessage struct {
 	SendTime   time.Time // TODO: Is this needed ?
 }
 
-func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
-	worldview := orderHandler.GetWorldView()
+func createOutgoingSync(channels OrderChannels, knownNodes *KnownNodes) SyncMessage {
+	worldview := channels.RequestWorldView()
 
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()

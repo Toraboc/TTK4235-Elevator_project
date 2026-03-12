@@ -46,12 +46,12 @@ func (lightStatus *LightStatus) Init() {
 	}
 }
 
-func handleLights(orderHandler *OrderHandler) {
+func handleLights(channels OrderChannels) {
 	lightStatus.Init()
 	for {
 		time.Sleep(40 * time.Millisecond)
 
-		confirmedOrders := orderHandler.GetConfirmedOrders()
+		confirmedOrders := channels.RequestConfirmedOrders()
 		lightStatus.updateLights(confirmedOrders)
 	}
 }
