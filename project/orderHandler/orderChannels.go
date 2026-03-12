@@ -7,6 +7,8 @@ type NewOrderEvent struct {
 	OrderType OrderType
 }
 
+type ConfirmedOrdersRequestCh chan chan ConfirmedOrders
+
 type OrderChannels struct {
 	ConnectedNodesUpdateCh chan NodeIdSet
 	WorldViewMergeCh       chan SyncView
@@ -14,7 +16,7 @@ type OrderChannels struct {
 	OrderCompletedCh       chan OrderCompleted
 	NewOrderCh             chan NewOrderEvent
 	WorldViewReqCh         chan chan WorldView
-	ConfirmedOrdersReqCh   chan chan ConfirmedOrders
+	ConfirmedOrdersReqCh   ConfirmedOrdersRequestCh
 	TargetFloorCh          chan int
 }
 
@@ -26,7 +28,7 @@ func NewOrderChannels() OrderChannels {
 		OrderCompletedCh:       make(chan OrderCompleted),
 		NewOrderCh:             make(chan NewOrderEvent),
 		WorldViewReqCh:         make(chan chan WorldView),
-		ConfirmedOrdersReqCh:   make(chan chan ConfirmedOrders),
+		ConfirmedOrdersReqCh:   make(ConfirmedOrdersRequestCh),
 		TargetFloorCh:          make(chan int),
 	}
 }
@@ -34,11 +36,5 @@ func NewOrderChannels() OrderChannels {
 func (channels OrderChannels) RequestWorldView() WorldView {
 	responseCh := make(chan WorldView)
 	channels.WorldViewReqCh <- responseCh
-	return <-responseCh
-}
-
-func (channels OrderChannels) RequestConfirmedOrders() ConfirmedOrders {
-	responseCh := make(chan ConfirmedOrders)
-	channels.ConfirmedOrdersReqCh <- responseCh
 	return <-responseCh
 }
