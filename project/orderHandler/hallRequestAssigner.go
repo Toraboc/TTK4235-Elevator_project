@@ -22,6 +22,10 @@ type hallRequestAssignerInput struct {
 // run the script and update assigned requests
 func (worldView *WorldView) hallRequestAssigner() {
 
+	worldView.AssignedHallUpOrders = [NumberOfFloors]bool{}
+	worldView.AssignedHallDownOrders = [NumberOfFloors]bool{}
+	worldView.AssignedCabOrders = [NumberOfFloors]bool{}
+
 	confirmedOrders := worldView.getConfirmedOrders()
 
 	//Caborders cannot be assigned between elevators

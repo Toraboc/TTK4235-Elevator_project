@@ -33,6 +33,19 @@ const(
 	CAB
 )
 
+func (orderType OrderType) String() string {
+	switch orderType {
+	case HALLUP:
+		return "HALLUP"
+	case HALLDOWN:
+		return "HALLDOWN"
+	case CAB:
+		return "CAB"
+	default:
+		panic("Invalid orderType, could not convert to string")
+	}
+}
+
 
 type Orders struct {
 	HallUpOrders   *OrderList
@@ -119,7 +132,7 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 		}
 	}
 	//Denne er vel strengt talt ikke nødvendig, men grei for ryddighetens skyld
-	if elevatorState.Direction == DOWN{
+	if elevatorState.Direction == DOWN {
 		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
 			if cabOrders[floor] || hallDownOrders[floor] {
 				return floor, nil
