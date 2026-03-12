@@ -51,7 +51,7 @@ func (nodesAwareOfMe *NodesAwareOfMe) pruneStale(knownNodes *KnownNodes, connect
 	changed := false
 	for id, entry := range nodesAwareOfMe.knowsAboutMe {
 		if time.Since(entry.LastReceived) > StaleThreshold {
-			if entry.Node == true {
+			if entry.Node {
 				changed = true
 			}
 			entry.Node = false
