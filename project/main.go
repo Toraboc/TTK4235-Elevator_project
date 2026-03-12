@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	//. "project/elevator"
+	. "project/elevator"
 	. "project/network"
 	. "project/orderHandler"
 	. "project/shared"
@@ -36,7 +36,7 @@ func main() {
 
 	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
 
-	//go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
+	go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
 
 	for {
 		time.Sleep(1 * time.Second)
