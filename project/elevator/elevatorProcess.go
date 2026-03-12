@@ -9,7 +9,7 @@ import (
 func ElevatorProcess(channels OrderChannels) {
 	elevio.Init(elevatorServer, NumberOfFloors)
 	elevio.SetStopLamp(false)
-
+	
 	go handleButtonPresses(channels.NewOrderCh)
 	go handleLights(channels.ConfirmedOrdersReqCh)
 
