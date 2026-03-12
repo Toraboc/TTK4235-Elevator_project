@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	. "project/elevator"
+	//. "project/elevator"
 	. "project/network"
 	. "project/orderHandler"
 	. "project/shared"
@@ -14,7 +14,7 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	GetMyId() // Initialize 
+	GetMyId() // Initialize
 
 	targetFloorCh := make(chan int)
 	elevatorStateCh := make(chan ElevatorState)
@@ -31,12 +31,12 @@ func main() {
 		for range connectedNodesUpdateChannel {
 		}
 	}()
-	
+
 	orderHandler := NewOrderHandler(targetFloorCh, elevatorStateCh, orderCompletedCh)
 
 	go NetworkProcess(orderHandler, connectedNodesUpdateChannel, worldViewMergeChannel)
 
-	go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
+	//go ElevatorProcess(orderHandler, elevatorStateCh, orderCompletedCh, targetFloorCh)
 
 	for {
 		time.Sleep(1 * time.Second)
