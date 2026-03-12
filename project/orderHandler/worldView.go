@@ -13,7 +13,6 @@ type WorldView struct {
 	AssignedHallUpOrders   [NumberOfFloors]bool
 	AssignedHallDownOrders [NumberOfFloors]bool
 	AssignedCabOrders      [NumberOfFloors]bool
-	targetFloorCh          chan<- int
 	lastTargetFloor        int
 }
 
@@ -23,9 +22,7 @@ type SyncView struct {
 	Orders        Orders
 }
 
-//TODO: Lage no orderhandler og greier med mutex
-
-func newWorldView(targetFloorCh chan<- int) WorldView {
+func newWorldView() WorldView {
 	var worldView WorldView
 
 	worldView.ConnectedNodes = make(NodeIdSet)
@@ -36,7 +33,6 @@ func newWorldView(targetFloorCh chan<- int) WorldView {
 	worldView.Orders = make(map[NodeId]*Orders)
 	worldView.Orders[myId] = newOrders(myId)
 
-	worldView.targetFloorCh = targetFloorCh
 	worldView.lastTargetFloor = -1
 
 	return worldView
@@ -72,24 +68,24 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	// Sync merged orders for source node.
 	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
-
-	worldView.handleStateChange()
 }
 
-func (worldView *WorldView) handleStateChange() {
+func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	worldView.updateCyclicCounter()
 
 	worldView.hallRequestAssigner()
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
-		// panic(err.Error())
 		fmt.Println(err.Error())
+		return worldView.lastTargetFloor, false, err
 	}
 
 	if targetFloor != worldView.lastTargetFloor {
-		worldView.targetFloorCh <- targetFloor
 		worldView.lastTargetFloor = targetFloor
+		return targetFloor, true, nil
 	}
+
+	return targetFloor, false, nil
 }
 
 func (worldView *WorldView) updateCyclicCounter() {

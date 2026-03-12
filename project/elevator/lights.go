@@ -3,7 +3,7 @@ package elevator
 import (
 	"github.com/angrycompany16/driver-go/elevio"
 	//"project/network"
-	."project/orderHandler"
+	. "project/orderHandler"
 	. "project/shared"
 	"time"
 )
@@ -46,13 +46,12 @@ func (lightStatus *LightStatus) Init() {
 	}
 }
 
-// TODO: This needs to be implemented with channels
-func handleLights(orderHandler *OrderHandler) {
+func handleLights(confirmedOrdersReqCh ConfirmedOrdersRequestCh) {
 	lightStatus.Init()
 	for {
 		time.Sleep(40 * time.Millisecond)
 
-		confirmedOrders := orderHandler.GetConfirmedOrders()
+		confirmedOrders := RequestConfirmedOrders(confirmedOrdersReqCh)
 		lightStatus.updateLights(confirmedOrders)
 	}
 }

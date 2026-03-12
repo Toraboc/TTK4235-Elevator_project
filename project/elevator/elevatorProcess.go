@@ -6,14 +6,14 @@ import (
 	. "project/shared"
 )
 
-func ElevatorProcess(orderHandler *OrderHandler, elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompleted, targetFloorCh <-chan int, orderNewCh chan<- OrderNew) {
+func ElevatorProcess(channels OrderChannels) {
 	elevio.Init(elevatorServer, NumberOfFloors)
 	elevio.SetStopLamp(false)
+	
+	go handleButtonPresses(channels.NewOrderCh)
+	go handleLights(channels.ConfirmedOrdersReqCh)
 
-	go handleButtonPresses(orderNewCh)
-	go handleLights(orderHandler)
-
-	startElevatorController(elevatorStateCh, orderCompletedCh, targetFloorCh)
+	startElevatorController(channels.ElevatorStateCh, channels.OrderCompletedCh, channels.TargetFloorCh)
 }
 
 func GetElevatorState() ElevatorState {

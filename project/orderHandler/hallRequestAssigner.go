@@ -15,43 +15,11 @@ type hallRequestAssignerInputState struct {
 }
 
 type hallRequestAssignerInput struct {
-	HallRequests [][2]bool                        `json:"hallRequests"`
+	HallRequests [][2]bool                                `json:"hallRequests"`
 	States       map[string]hallRequestAssignerInputState `json:"states"`
 }
 
-func getBehaviourString(elevatorState ElevatorState) string {
-	switch elevatorState.Behaviour {
-	case MOVING:
-		return "moving"
-	case IDLE:
-		return "idle"
-	case PASSENGER_TRANSFER:
-		return "doorOpen"
-	default:
-		panic("Cannot determine behaviour for an elevator that is not either MOVING, IDLE or PASSENGER_TRANSFER")
-	}
-}
-
-func getDirectionString(elevatorState ElevatorState) string {
-	if !elevatorState.Behaviour.CanBeAssignedOrders() {
-		panic("Cannot determine direction for an elevator that is not working properly.")
-	}
-	if elevatorState.Behaviour == MOVING {
-		switch elevatorState.Direction {
-		case UP:
-			return "up"
-		case DOWN:
-			return "down"
-		default:
-			panic("Invalid elevator direction.")
-		}
-	}
-
-	return "stop"
-}
-
-
-//run the script and update assigned requests
+// run the script and update assigned requests
 func (worldView *WorldView) hallRequestAssigner() {
 
 	worldView.AssignedHallUpOrders = [NumberOfFloors]bool{}
@@ -60,12 +28,15 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	confirmedOrders := worldView.getConfirmedOrders()
 
+	//Caborders cannot be assigned between elevators
+	worldView.AssignedCabOrders = confirmedOrders.Cab
+
+	//exits if no orders are confirmed
 	if noOrdersConfirmed(confirmedOrders) {
-		// TODO: Set it to be no assigned orders
+		worldView.AssignedHallUpOrders = confirmedOrders.HallUp
+		worldView.AssignedHallDownOrders = confirmedOrders.HallDown
 		return
 	}
-
-	worldView.AssignedCabOrders = confirmedOrders.Cab
 
 	hallRequests := make([][2]bool, NumberOfFloors)
 	for floor := range NumberOfFloors {
@@ -78,7 +49,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 		elevatorState := worldView.ElevatorStates[nodeId]
 
 		// Skip elevators that cannot be assigned Orders
-		if (!elevatorState.Behaviour.CanBeAssignedOrders()) {
+		if !elevatorState.Behaviour.CanBeAssignedOrders() {
 			continue
 		}
 
@@ -137,7 +108,37 @@ func (worldView *WorldView) hallRequestAssigner() {
 	for floor := range NumberOfFloors {
 		worldView.AssignedHallUpOrders[floor] = assignedHallRequests[floor][0]
 		worldView.AssignedHallDownOrders[floor] = assignedHallRequests[floor][1]
-	
+
 	}
 }
 
+func getBehaviourString(elevatorState ElevatorState) string {
+	switch elevatorState.Behaviour {
+	case MOVING:
+		return "moving"
+	case IDLE:
+		return "idle"
+	case PASSENGER_TRANSFER:
+		return "doorOpen"
+	default:
+		panic("Cannot determine behaviour for an elevator that is not either MOVING, IDLE or PASSENGER_TRANSFER")
+	}
+}
+
+func getDirectionString(elevatorState ElevatorState) string {
+	if !elevatorState.Behaviour.CanBeAssignedOrders() {
+		panic("Cannot determine direction for an elevator that is not working properly.")
+	}
+	if elevatorState.Behaviour == MOVING {
+		switch elevatorState.Direction {
+		case UP:
+			return "up"
+		case DOWN:
+			return "down"
+		default:
+			panic("Invalid elevator direction.")
+		}
+	}
+
+	return "stop"
+}

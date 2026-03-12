@@ -12,8 +12,8 @@ type SyncMessage struct {
 	KnownNodes []NodeId
 }
 
-func createOutgoingSync(orderHandler *OrderHandler, knownNodes *KnownNodes) SyncMessage {
-	worldview := orderHandler.GetWorldView()
+func createOutgoingSync(worldViewReqCh WorldViewRequestCh, knownNodes *KnownNodes) SyncMessage {
+	worldview := RequestWorldView(worldViewReqCh)
 
 	knownNodes.mu.Lock()
 	defer knownNodes.mu.Unlock()
