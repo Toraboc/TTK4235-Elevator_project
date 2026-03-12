@@ -18,7 +18,7 @@ func main() {
 	orderHandler := NewOrderHandler()
 
 	go NetworkProcess(orderHandler)
-
+	go OrderProcess(orderHandler)
 	go ElevatorProcess(orderHandler)
 
 	for {
