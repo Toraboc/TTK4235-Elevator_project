@@ -1,8 +1,6 @@
 package network
 
 import (
-	"time"
-
 	. "project/orderHandler"
 	. "project/shared"
 )
@@ -12,7 +10,6 @@ type SyncMessage struct {
 	Orders     Orders
 	MyState    ElevatorState
 	KnownNodes []NodeId
-	SendTime   time.Time // TODO: Is this needed ?
 }
 
 func createOutgoingSync(worldViewReqCh WorldViewRequestCh, knownNodes *KnownNodes) SyncMessage {
@@ -30,6 +27,5 @@ func createOutgoingSync(worldViewReqCh WorldViewRequestCh, knownNodes *KnownNode
 	for id := range knownNodes.LastSeen {
 		syncMsg.KnownNodes = append(syncMsg.KnownNodes, id)
 	}
-	syncMsg.SendTime = time.Now()
 	return syncMsg
 }

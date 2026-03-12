@@ -32,4 +32,3 @@ func handleButtonPresses(newOrderCh chan<- NewOrderEvent) {
 		}
 	}
 }
-

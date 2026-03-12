@@ -17,9 +17,12 @@ func NetworkProcess(channels OrderChannels) {
 	nodesAwareOfMe := newNodesAwareOfMe()
 
 	// go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
+	go nodeUpdate(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
-	go udpListen(knownNodes, nodesAwareOfMe, channels.WorldViewMergeCh)
+	go udpListen(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh, channels.WorldViewMergeCh)
 	udpBroadcast(channels.WorldViewReqCh, knownNodes)
+	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
+
 }
 
 func udpBroadcast(worldViewReqCh WorldViewRequestCh, KnownNodes *KnownNodes) {
@@ -53,7 +56,7 @@ func udpBroadcast(worldViewReqCh WorldViewRequestCh, KnownNodes *KnownNodes) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldViewMergeChannel chan<- SyncView) {
+func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -73,12 +76,11 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, worldView
 			continue
 		}
 
-		if (syncMsg.Id == GetMyId()) {
-			continue
-		}
+		knownNodes.nodeSeen(syncMsg.Id, nodesAwareOfMe, connectedNodesUpdateCh)
+		nodesAwareOfMe.update(syncMsg, knownNodes, connectedNodesUpdateCh)
 
-		knownNodes.nodeSeen(syncMsg.Id)
-		nodesAwareOfMe.update(syncMsg)
-		worldViewMergeChannel <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+		if syncMsg.Id != GetMyId() {
+			worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+		}
 	}
 }
