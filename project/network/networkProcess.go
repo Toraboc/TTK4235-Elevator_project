@@ -20,12 +20,11 @@ func NetworkProcess(channels OrderChannels) {
 	go nodeUpdate(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go udpListen(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh, channels.WorldViewMergeCh)
-	udpBroadcast(channels.WorldViewReqCh, knownNodes)
-	//go printConnectedNodes(knownNodes, nodesAwareOfMe) // Debug
+	udpBroadcast(knownNodes, channels.WorldViewReqCh)
 
 }
 
-func udpBroadcast(worldViewReqCh WorldViewRequestCh, KnownNodes *KnownNodes) {
+func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh WorldViewRequestCh) {
 	var conn *net.UDPConn
 	for {
 		var err error
@@ -42,7 +41,7 @@ func udpBroadcast(worldViewReqCh WorldViewRequestCh, KnownNodes *KnownNodes) {
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync(worldViewReqCh, KnownNodes)
+		syncMsg := createOutgoingSync(worldViewReqCh, knownNodes)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
