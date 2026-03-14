@@ -42,8 +42,8 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
     - [ ] Se over variabel navn
     - [ ] Se over side effects, `getMyId()` og `elevio` greier
 - [ ] Teste alt sammen
-    - [ ] Pakketap
-- [ ] Supervisor
+    - [X] Pakketap
+- [X] Supervisor
 
 ## Docker
 

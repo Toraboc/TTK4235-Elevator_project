@@ -194,14 +194,12 @@ func (controller *ElevatorController) driveToTarget() {
 		return
 	}
 
+	controller.state.behaviour = MOVING
+	controller.floorMovementTimeout.Reset(timeBetweenFloors)
 	if controller.state.targetFloor > controller.state.floorBelow {
 		controller.drive(UP)
-		controller.state.behaviour = MOVING
-	}
-
-	if controller.state.targetFloor <= controller.state.floorBelow {
+	} else {
 		controller.drive(DOWN)
-		controller.state.behaviour = MOVING
 	}
 }
 
