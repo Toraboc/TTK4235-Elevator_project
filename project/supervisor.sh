@@ -4,14 +4,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ELEVATORSERVER="$SCRIPT_DIR/elevatorserver"
-BINARY="$SCRIPT_DIR/project/project"
+BINARY="$SCRIPT_DIR/project"
 
 # Build
-cd "$SCRIPT_DIR/project" && go build -o "$BINARY" .
+cd "$SCRIPT_DIR" && go build -o "$BINARY" .
 
 killJobs() {
-    pkill -f "$ELEVATORSERVER" 2>/dev/null || true
-    pkill -f "$BINARY" 2>/dev/null || true
+    pkill -f "elevatorserver" 2>/dev/null || true
 }
 
 cleanup() {
