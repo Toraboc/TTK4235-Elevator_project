@@ -19,6 +19,9 @@ func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) N
 			set.Add(id)
 		}
 	}
+
+	set.Add(GetMyId())
+
 	return set
 }
 

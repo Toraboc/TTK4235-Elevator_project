@@ -75,11 +75,13 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connected
 			continue
 		}
 
+		if syncMsg.Id == GetMyId() {
+			continue
+		}
+
 		knownNodes.nodeSeen(syncMsg.Id, nodesAwareOfMe, connectedNodesUpdateCh)
 		nodesAwareOfMe.update(syncMsg, knownNodes, connectedNodesUpdateCh)
 
-		if syncMsg.Id != GetMyId() {
-			worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
-		}
+		worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}
 }
