@@ -12,8 +12,6 @@ type NodeId uint32
 
 type NodeIdSet map[NodeId]struct{}
 
-var myId NodeId
-
 func (set NodeIdSet) Contains(nodeId NodeId) bool {
 	_, exists := set[nodeId]
 	return exists
@@ -59,27 +57,10 @@ func (set NodeIdSet) String() string {
 	return builder.String()
 }
 
-func NewNodeIdSet(nodeIds []NodeId) NodeIdSet {
-	set := make(NodeIdSet)
-	for _, node := range nodeIds {
-		set[node] = struct{}{}
-	}
-	return set
-}
-
 func (id NodeId) String() string {
 	return fmt.Sprintf("%d.%d.%d.%d", byte(id>>24), byte(id>>16), byte(id>>8), byte(id))
 }
 
-func NodeIdListToStrings(ids []NodeId) []string {
-	result := make([]string, len(ids))
-	for i, id := range ids {
-		result[i] = id.String()
-	}
-	return result
-}
-
-// getIpAddress returns the IPv4 address of the computer as a NodeId. Heavy process, should only be called once at startup. If no valid IP is found, returns 0.
 func getIpAddress() NodeId {
 	var id NodeId
 	addrs, err := net.InterfaceAddrs()
@@ -101,10 +82,18 @@ func getIpAddress() NodeId {
 	return 0
 }
 
-// GetMyId returns the NodeId of this node.
+var myId NodeId
+
+func InitMyId() {
+	if myId != 0 {
+		panic("Cannot init my id multiple times")
+	}
+	myId = getIpAddress()
+}
+
 func GetMyId() NodeId {
 	if myId == 0 {
-		myId = getIpAddress()
+		panic("My id has not been initialized")
 	}
 	return myId
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"time"
-	"flag"
 
 	. "project/elevator"
 	. "project/network"
@@ -18,7 +18,7 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	GetMyId() // Setup the nodeId
+	InitMyId()
 
 	orderChannels := NewOrderChannels()
 

@@ -103,9 +103,6 @@ func pollPositionUpdates(enterFloor, leaveFloor chan<- int) {
 }
 
 func (controller *ElevatorController) drive(direction Direction) {
-	// if pos.behaviour == IDLE && pos.isAtFloor {
-	// 	pos.lastSuccessState = time.Now()
-	// }
 	if controller.door.IsOpen() {
 		panic("Cannot start to move the elevator while the door is open.")
 	}
@@ -120,7 +117,6 @@ func (controller *ElevatorController) drive(direction Direction) {
 }
 
 func (controller *ElevatorController) stop() {
-	// pos.behaviour = IDLE
 	elevio.SetMotorDirection(elevio.MD_Stop)
 }
 
@@ -178,7 +174,7 @@ func (controller *ElevatorController) preparePassengerTransfer() {
 	controller.state.behaviour = PASSENGER_TRANSFER
 	controller.door.Open()
 	controller.orderCompletedCh <- OrderCompleted{Floor: controller.state.lastFloor, Direction: controller.state.direction}
-	if (controller.state.lastFloor == controller.state.targetFloor) {
+	if controller.state.lastFloor == controller.state.targetFloor {
 		controller.state.targetFloor = -1
 	}
 }
@@ -256,13 +252,13 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		controller.enterFloorWhileMoving(floor)
 	case MOVING:
 		expectedFloor := controller.state.floorBelow
-		if (controller.state.direction == UP) {
+		if controller.state.direction == UP {
 			expectedFloor = controller.state.floorBelow + 1
 		}
 		if expectedFloor != floor {
 			panic(fmt.Sprintf("The elevator reached the floor %d, but expected to reach floor %d. Something is terrably wrong.", floor, expectedFloor))
 		}
-		
+
 		controller.enterFloorWhileMoving(floor)
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")

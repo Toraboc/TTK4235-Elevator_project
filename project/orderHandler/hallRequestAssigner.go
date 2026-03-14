@@ -18,7 +18,6 @@ type hallRequestAssignerInput struct {
 	States       map[string]hallRequestAssignerInputState `json:"states"`
 }
 
-// run the script and update assigned requests
 func (worldView *WorldView) hallRequestAssigner() {
 
 	worldView.AssignedHallUpOrders = [NumberOfFloors]bool{}
@@ -27,10 +26,8 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	confirmedOrders := worldView.getConfirmedOrders()
 
-	//Caborders cannot be assigned between elevators
 	worldView.AssignedCabOrders = confirmedOrders.Cab
 
-	//exits if no orders are confirmed
 	if noOrdersConfirmed(confirmedOrders) {
 		worldView.AssignedHallUpOrders = confirmedOrders.HallUp
 		worldView.AssignedHallDownOrders = confirmedOrders.HallDown
@@ -47,7 +44,6 @@ func (worldView *WorldView) hallRequestAssigner() {
 	for nodeId := range worldView.ConnectedNodes {
 		elevatorState := worldView.ElevatorStates[nodeId]
 
-		// Skip elevators that cannot be assigned Orders
 		if !elevatorState.Behaviour.CanBeAssignedOrders() {
 			continue
 		}

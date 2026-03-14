@@ -1,7 +1,6 @@
 package network
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -63,15 +62,4 @@ func (nodesAwareOfMe *NodesAwareOfMe) pruneStale(knownNodes *KnownNodes, connect
 	if changed {
 		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
-}
-
-func (nodesAwareOfMe *NodesAwareOfMe) Print() {
-	nodesAwareOfMe.mu.Lock()
-	defer nodesAwareOfMe.mu.Unlock()
-
-	fmt.Printf("Knows about me: ")
-	for id, entry := range nodesAwareOfMe.knowsAboutMe {
-		fmt.Printf("%v: %t, ", id, entry.Node)
-	}
-	fmt.Println()
 }

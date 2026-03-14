@@ -61,12 +61,9 @@ func (worldView *WorldView) clone() WorldView {
 	return clone
 }
 
-// This will only sync the orders and elevatorStates
 func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorState, sourceOrders Orders) {
-	//Oppdaterer staten til heisen m. syncmelding
 	worldView.ElevatorStates[sourceNodeId] = sourceNodeState
 
-	// Sync merged orders for source node.
 	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
 
 	cabOrdersIThinkYouHave := worldView.Orders[GetMyId()].CabOrders
@@ -122,8 +119,6 @@ func (worldView *WorldView) updateCyclicCounter() {
 		return orders.CabOrders[myId]
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
-
-	// fmt.Println(worldView)
 }
 
 func (worldView *WorldView) String() string {

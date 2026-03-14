@@ -44,7 +44,6 @@ func OrderProcess(channels OrderChannels) {
 			}
 			newTargetFloor, changed, _ := pushTargetFloorIfChanged(channels, &worldView)
 
-			// This means that we need to finish the order in the other direction as well
 			if !changed && newTargetFloor == orderCompleted.Floor {
 				switch orderCompleted.Direction {
 				case UP:

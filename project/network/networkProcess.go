@@ -16,7 +16,6 @@ func NetworkProcess(channels OrderChannels) {
 	knownNodes := newKnownNodes()
 	nodesAwareOfMe := newNodesAwareOfMe()
 
-	// go printConnectedNodes(knownNodes, nodesAwareOfMe) // For Debugging
 	go nodeUpdate(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
 	go udpListen(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh, channels.WorldViewMergeCh)

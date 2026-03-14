@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-
 type OrderList [NumberOfFloors]OrderStatus
 
 func (orderList OrderList) String() string {
@@ -63,9 +62,7 @@ func (orders *OrderList) clone() *OrderList {
 	return &copy
 }
 
-
-func (worldView *WorldView) getNextTargetFloor() (int, error) {          
-	//Feilsøkingsgreier som kan fjernes etterhvert
+func (worldView *WorldView) getNextTargetFloor() (int, error) {
 	if worldView == nil {
 		return -1, fmt.Errorf("worldView is nil")
 	}
@@ -109,7 +106,6 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 			}
 		}
 	}
-	//Denne er vel strengt talt ikke nødvendig, men grei for ryddighetens skyld
 	if elevatorState.Direction == DOWN {
 		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
 			if cabOrders[floor] || hallDownOrders[floor] {
