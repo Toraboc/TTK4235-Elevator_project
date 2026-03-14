@@ -25,25 +25,19 @@ For eksempel slik
 ./deploy_and_run.sh 35 36 37
 ```
 
-Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
-
-```bash
-./deploy_and_run.sh -f 35 36 37
-```
-
 ## TODO
 
 - [X] Fikse de siste bugsene
 - [ ] Refactore koden litt
     - [ ] Fjerne TODO
     - [X] Se over alle mutex
-    - [ ] Endre hvordan kanalene settes opp
+    - [X] Endre hvordan kanalene settes opp
     - [X] Fjerne ubrukte funksjoner
     - [ ] Se over variabel navn
     - [ ] Se over side effects, `getMyId()` og `elevio` greier
 - [ ] Teste alt sammen
-    - [ ] Pakketap
-- [ ] Supervisor
+    - [X] Pakketap
+- [X] Supervisor
 
 ## Docker
 

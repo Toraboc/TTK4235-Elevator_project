@@ -2,11 +2,10 @@ package elevator
 
 import (
 	"github.com/angrycompany16/driver-go/elevio"
-	. "project/orderHandler"
 	. "project/shared"
 )
 
-func ElevatorProcess(channels OrderChannels, elevatorServerHost string) {
+func ElevatorProcess(channels ElevatorInterface, elevatorServerHost string) {
 	elevio.Init(elevatorServerHost, NumberOfFloors)
 	elevio.SetStopLamp(false)
 

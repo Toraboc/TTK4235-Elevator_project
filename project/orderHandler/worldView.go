@@ -31,7 +31,7 @@ func newWorldView() WorldView {
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 	worldView.Orders = make(map[NodeId]*Orders)
-	worldView.Orders[myId] = newOrders(myId)
+	worldView.Orders[myId] = NewOrders(myId)
 
 	worldView.lastTargetFloor = -1
 
@@ -70,7 +70,7 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 	cabOrdersYouHave := sourceOrders.CabOrders
 	for nodeId, cabOrders := range cabOrdersYouHave {
 		if _, exists := cabOrdersIThinkYouHave[nodeId]; !exists {
-			cabOrdersIThinkYouHave[nodeId] = cabOrders.clone()
+			cabOrdersIThinkYouHave[nodeId] = cabOrders.Clone()
 		}
 	}
 }
@@ -119,6 +119,76 @@ func (worldView *WorldView) updateCyclicCounter() {
 		return orders.CabOrders[myId]
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
+}
+
+func (worldView *WorldView) getNextTargetFloor() (int, error) {
+	if worldView == nil {
+		return -1, fmt.Errorf("worldView is nil")
+	}
+
+	myId := GetMyId()
+
+	elevatorState, exists := worldView.ElevatorStates[myId]
+	if !exists {
+		return -1, fmt.Errorf("missing elevator elevatorState for own node")
+	}
+
+	floor := elevatorState.Floor
+	if floor < 0 || floor >= NumberOfFloors {
+		return -1, fmt.Errorf("invalid current floor: %d", floor)
+	}
+
+	hallUpOrders := worldView.AssignedHallUpOrders
+	hallDownOrders := worldView.AssignedHallDownOrders
+	cabOrders := worldView.AssignedCabOrders
+
+	if elevatorState.Direction == UP {
+		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
+			if cabOrders[floor] || hallUpOrders[floor] {
+				return floor, nil
+			}
+		}
+
+		for i := floor + 1; i < NumberOfFloors; i++ {
+			if cabOrders[i] || hallUpOrders[i] {
+				return i, nil
+			}
+		}
+		for i := NumberOfFloors - 1; i >= 0; i-- {
+			if cabOrders[i] || hallDownOrders[i] {
+				return i, nil
+			}
+		}
+		for i := 0; i <= floor; i++ {
+			if cabOrders[i] || hallUpOrders[i] {
+				return i, nil
+			}
+		}
+	}
+	if elevatorState.Direction == DOWN {
+		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
+			if cabOrders[floor] || hallDownOrders[floor] {
+				return floor, nil
+			}
+		}
+
+		for i := floor - 1; i >= 0; i-- {
+			if cabOrders[i] || hallDownOrders[i] {
+				return i, nil
+			}
+		}
+		for i := range NumberOfFloors {
+			if cabOrders[i] || hallUpOrders[i] {
+				return i, nil
+			}
+		}
+		for i := NumberOfFloors - 1; i >= floor; i-- {
+			if cabOrders[i] || hallDownOrders[i] {
+				return i, nil
+			}
+		}
+	}
+	return -1, nil
 }
 
 func (worldView *WorldView) String() string {

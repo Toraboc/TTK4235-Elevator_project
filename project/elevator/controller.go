@@ -3,6 +3,7 @@ package elevator
 import (
 	"fmt"
 	. "project/shared"
+	. "project/orderHandler"
 	"strings"
 	"time"
 
@@ -22,12 +23,12 @@ type ElevatorController struct {
 	state                ElevatorDetailedState
 	door                 Door
 	elevatorStateCh      chan<- ElevatorState
-	orderCompletedCh     chan<- OrderCompleted
+	orderCompletedCh     chan<- OrderCompletedEvent
 	floorMovementTimeout *time.Timer
 	lastElevatorState    ElevatorState
 }
 
-func startElevatorController(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompleted, targetFloorCh <-chan int) {
+func startElevatorController(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompletedEvent, targetFloorCh <-chan int) {
 	var door Door
 	err := door.Close()
 	if err != nil {
@@ -173,7 +174,7 @@ func (controller *ElevatorController) preparePassengerTransfer() {
 
 	controller.state.behaviour = PASSENGER_TRANSFER
 	controller.door.Open()
-	controller.orderCompletedCh <- OrderCompleted{Floor: controller.state.lastFloor, Direction: controller.state.direction}
+	controller.orderCompletedCh <- OrderCompletedEvent{Floor: controller.state.lastFloor, Direction: controller.state.direction}
 	if controller.state.lastFloor == controller.state.targetFloor {
 		controller.state.targetFloor = -1
 	}
@@ -194,14 +195,12 @@ func (controller *ElevatorController) driveToTarget() {
 		return
 	}
 
+	controller.state.behaviour = MOVING
+	controller.floorMovementTimeout.Reset(timeBetweenFloors)
 	if controller.state.targetFloor > controller.state.floorBelow {
 		controller.drive(UP)
-		controller.state.behaviour = MOVING
-	}
-
-	if controller.state.targetFloor <= controller.state.floorBelow {
+	} else {
 		controller.drive(DOWN)
-		controller.state.behaviour = MOVING
 	}
 }
 
@@ -210,9 +209,6 @@ func (controller *ElevatorController) enterFloorWhileMoving(floor int) {
 	controller.state.floorBelow = floor
 	controller.state.isAtFloor = true
 	controller.floorMovementTimeout.Stop()
-
-	// TODO: Maybe this should be moved to a own function, since this is a side effect.
-	elevio.SetFloorIndicator(floor)
 
 	if controller.state.targetFloor == -1 {
 		controller.stop()
@@ -224,6 +220,8 @@ func (controller *ElevatorController) enterFloorWhileMoving(floor int) {
 		controller.state.behaviour = IDLE
 		controller.preparePassengerTransfer()
 	}
+
+	elevio.SetFloorIndicator(floor)
 
 	switch floor {
 	case 0:

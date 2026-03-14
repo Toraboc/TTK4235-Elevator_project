@@ -20,11 +20,43 @@ func main() {
 
 	InitMyId()
 
-	orderChannels := NewOrderChannels()
+	ConnectedNodesUpdateCh := make(chan NodeIdSet, 1)
+	WorldViewMergeCh := make(chan SyncView, 1)
+	ElevatorStateCh := make(chan ElevatorState, 1)
+	OrderCompletedCh := make(chan OrderCompletedEvent, 10)
+	NewOrderCh := make(chan NewOrderEvent, 10)
+	WorldViewReqCh := make(chan chan WorldView)
+	ConfirmedOrdersCh := make(chan ConfirmedOrders, 1)
+	TargetFloorCh := make(chan int, 1)
 
-	go NetworkProcess(orderChannels)
-	go ElevatorProcess(orderChannels, *elevatorServerHost)
-	go OrderProcess(orderChannels)
+	orderHandlerChannels := OrderHandlerInterface{
+		ConnectedNodesUpdateCh: ConnectedNodesUpdateCh,
+		WorldViewMergeCh:       WorldViewMergeCh,
+		ElevatorStateCh:        ElevatorStateCh,
+		OrderCompletedCh:       OrderCompletedCh,
+		NewOrderCh:             NewOrderCh,
+		WorldViewReqCh:         WorldViewReqCh,
+		ConfirmedOrdersCh:      ConfirmedOrdersCh,
+		TargetFloorCh:          TargetFloorCh,
+	}
+
+	elevatorChannels := ElevatorInterface{
+		ElevatorStateCh:   ElevatorStateCh,
+		OrderCompletedCh:  OrderCompletedCh,
+		NewOrderCh:        NewOrderCh,
+		ConfirmedOrdersCh: ConfirmedOrdersCh,
+		TargetFloorCh:     TargetFloorCh,
+	}
+
+	networkChannels := NetworkInterface{
+		ConnectedNodesUpdateCh: ConnectedNodesUpdateCh,
+		WorldViewMergeCh:       WorldViewMergeCh,
+		WorldViewReqCh:         WorldViewReqCh,
+	}
+
+	go NetworkProcess(networkChannels)
+	go ElevatorProcess(elevatorChannels, *elevatorServerHost)
+	go OrderProcess(orderHandlerChannels)
 
 	for {
 		time.Sleep(1 * time.Second)
