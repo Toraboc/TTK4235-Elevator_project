@@ -14,6 +14,11 @@ const (
 	FINISHED
 )
 
+type OrderStatusCombined struct {
+	myStatus      OrderStatus
+	otherStatuses []OrderStatus
+}
+
 func (orderStatus OrderStatus) String() string {
 	switch orderStatus {
 	case NO_ORDER:
@@ -65,11 +70,6 @@ func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderS
 	}
 
 	return myStatus
-}
-
-type OrderStatusCombined struct {
-	myStatus      OrderStatus
-	otherStatuses []OrderStatus
 }
 
 func getOrderStatuses(

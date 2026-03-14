@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"time"
-	"flag"
 
 	. "project/elevator"
 	. "project/network"
@@ -18,12 +18,12 @@ func main() {
 
 	fmt.Println("Starting elevator")
 
-	GetMyId() // Setup the nodeId
+	InitMyId()
 
 	orderChannels := NewOrderChannels()
 
 	go NetworkProcess(orderChannels)
-	go ElevatorProcess(*elevatorServerHost, orderChannels)
+	go ElevatorProcess(orderChannels, *elevatorServerHost)
 	go OrderProcess(orderChannels)
 
 	for {

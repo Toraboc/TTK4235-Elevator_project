@@ -18,6 +18,7 @@ func OrderProcess(channels OrderChannels) {
 	fmt.Println("Starting order process")
 	worldView := newWorldView()
 
+	//TODO: Rydde opp i select cases, kanskje lage egne funksjoner for hver case
 	for {
 		select {
 		case connectedNodes := <-channels.ConnectedNodesUpdateCh:
@@ -44,7 +45,6 @@ func OrderProcess(channels OrderChannels) {
 			}
 			newTargetFloor, changed, _ := pushTargetFloorIfChanged(channels, &worldView)
 
-			// This means that we need to finish the order in the other direction as well
 			if !changed && newTargetFloor == orderCompleted.Floor {
 				switch orderCompleted.Direction {
 				case UP:
