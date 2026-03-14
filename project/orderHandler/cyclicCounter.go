@@ -19,7 +19,7 @@ func AllEquals[T comparable](slice []T, values []T) bool {
 	return true
 }
 
-func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
+func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
 	switch myStatus {
 	case NO_ORDER:
 		if slices.Contains(connectedNodes, CONFIRMED) {
@@ -59,7 +59,7 @@ func getOrderStatuses(
 	for floor := range NumberOfFloors {
 		otherStatuses := make([]OrderStatus, 0)
 
-		for nodeId, _ := range connectedNodes {
+		for nodeId := range connectedNodes {
 			nodeOrders, exists := orders[nodeId]
 			if !exists {
 				continue
@@ -90,7 +90,7 @@ func updateCyclicCounter(
 ) {
 	currentStatus := getOrderStatuses(orders, myId, connectedNodes, fieldSelector)
 	for floor := range NumberOfFloors {
-		nextStatus := getNextValueFromCyclicCounter(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
+		nextStatus := cyclicCounterNextValue(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
 		if nextStatus != currentStatus[floor].myStatus {
 			orderList := fieldSelector(orders[myId])
 			orderList[floor] = nextStatus

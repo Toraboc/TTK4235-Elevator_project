@@ -40,7 +40,7 @@ func (nodesAwareOfMe *NodesAwareOfMe) update(syncMsg SyncMessage, knownNodes *Kn
 	nodesAwareOfMe.mu.Unlock()
 
 	if changed {
-		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+		updateConnectedNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
 }
 
@@ -60,6 +60,6 @@ func (nodesAwareOfMe *NodesAwareOfMe) pruneStale(knownNodes *KnownNodes, connect
 	nodesAwareOfMe.mu.Unlock()
 
 	if changed {
-		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+		updateConnectedNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
 }

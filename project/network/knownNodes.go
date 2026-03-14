@@ -23,7 +23,7 @@ func (knownNodes *KnownNodes) nodeSeen(id NodeId, nodesAwareOfMe *NodesAwareOfMe
 	knownNodes.mu.Unlock()
 
 	if !exists {
-		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+		updateConnectedNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
 }
 
@@ -40,6 +40,6 @@ func (knownNodes *KnownNodes) pruneStale(nodesAwareOfMe *NodesAwareOfMe, connect
 	knownNodes.mu.Unlock()
 
 	if changed {
-		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
+		updateConnectedNodes(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
 }

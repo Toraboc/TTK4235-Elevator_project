@@ -162,14 +162,14 @@ func (controller *ElevatorController) GetElevatorState() ElevatorState {
 	return elevatorState
 }
 
-func (controller *ElevatorController) preparePassengerTransfer() {
+func (controller *ElevatorController) transferPassengers() {
 	if !controller.state.isAtFloor {
 		fmt.Println(controller)
-		panic("Cannot prepare Passenger transfer, with not at a floor.")
+		panic("Cannot transfer passengers, when not at a floor.")
 	}
 	if controller.state.behaviour.Moving() {
 		fmt.Println(controller)
-		panic("Cannot prepare Passenger transfer when the elevator is moving.")
+		panic("Cannot transfer passengers when the elevator is moving.")
 	}
 
 	controller.state.behaviour = PASSENGER_TRANSFER
@@ -180,14 +180,16 @@ func (controller *ElevatorController) preparePassengerTransfer() {
 	}
 }
 
-// Warning: This function does not check if the elevator is in a faulty state
 func (controller *ElevatorController) driveToTarget() {
+	if !controller.state.behaviour.CanBeAssignedOrders() {
+		panic("Cannot drive to target, when the elevator is in the state " + controller.state.behaviour.String())
+	}
 	if controller.state.isAtFloor && controller.state.targetFloor == controller.state.lastFloor {
 		if controller.state.behaviour == MOVING {
 			controller.stop()
 			controller.state.behaviour = IDLE
 		}
-		controller.preparePassengerTransfer()
+		controller.transferPassengers()
 		return
 	}
 
@@ -218,7 +220,7 @@ func (controller *ElevatorController) enterFloorWhileMoving(floor int) {
 	if controller.state.targetFloor == floor {
 		controller.stop()
 		controller.state.behaviour = IDLE
-		controller.preparePassengerTransfer()
+		controller.transferPassengers()
 	}
 
 	elevio.SetFloorIndicator(floor)
@@ -254,7 +256,7 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 			expectedFloor = controller.state.floorBelow + 1
 		}
 		if expectedFloor != floor {
-			panic(fmt.Sprintf("The elevator reached the floor %d, but expected to reach floor %d. Something is terrably wrong.", floor, expectedFloor))
+			panic(fmt.Sprintf("The elevator reached floor %d, but expected to reach floor %d. Something is terribly wrong.", floor, expectedFloor))
 		}
 
 		controller.enterFloorWhileMoving(floor)
@@ -283,12 +285,12 @@ func (controller *ElevatorController) handleLeaveFloor(_ int) {
 	case PASSENGER_TRANSFER:
 		fallthrough
 	case DOOR_OBSTRUCTED:
-		panic("The elevator left the floor, and the door is open, it's a bit unclear what should happen.")
+		panic("The elevator left the floor, and the door is open")
 	case FAULTY_MOTOR:
 		controller.state.behaviour = MOVING
 		fallthrough
 	case MOVING:
-		// This is normal
+		// Do nothing
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
 	}
@@ -332,7 +334,7 @@ func (controller *ElevatorController) handleCloseDoorTrigger() {
 			controller.state.behaviour = IDLE
 
 			if controller.state.targetFloor == controller.state.lastFloor {
-				controller.preparePassengerTransfer()
+				controller.transferPassengers()
 			}
 
 			if controller.state.targetFloor != -1 {

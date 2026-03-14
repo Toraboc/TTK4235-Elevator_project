@@ -34,7 +34,7 @@ func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connecte
 	}
 }
 
-func nodeUpdate(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet) {
+func updateConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet) {
 	connectedNodes := getConnectedNodes(knownNodes, nodesAwareOfMe)
 	connectedNodesUpdateCh <- connectedNodes
 	fmt.Printf("Connected nodes: %v\n", connectedNodes)
