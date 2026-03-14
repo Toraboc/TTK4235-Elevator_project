@@ -93,6 +93,7 @@ run_remote() {
     ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR$CODE_DIR"
     rsync -a --delete ".$CODE_DIR/" "$REMOTE_USER@$host:$REMOTE_BASE_DIR$CODE_DIR/"
     rsync -a elevatorserver "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
+    rsync -a supervisor.sh "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
 
     # Start elevatorserver and go code
     ssh "$REMOTE_USER@$host" "
