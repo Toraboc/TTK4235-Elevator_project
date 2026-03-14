@@ -23,7 +23,7 @@ func main() {
 	orderChannels := NewOrderChannels()
 
 	go NetworkProcess(orderChannels)
-	go ElevatorProcess(*elevatorServerHost, orderChannels)
+	go ElevatorProcess(orderChannels, *elevatorServerHost)
 	go OrderProcess(orderChannels)
 
 	for {

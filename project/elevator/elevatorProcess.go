@@ -6,7 +6,7 @@ import (
 	. "project/shared"
 )
 
-func ElevatorProcess(elevatorServerHost string, channels OrderChannels) {
+func ElevatorProcess(channels OrderChannels, elevatorServerHost string) {
 	elevio.Init(elevatorServerHost, NumberOfFloors)
 	elevio.SetStopLamp(false)
 
