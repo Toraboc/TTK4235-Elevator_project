@@ -48,7 +48,7 @@ func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh WorldViewRequestCh) {
 		}
 		_, err = conn.Write(data)
 		if err != nil {
-			fmt.Println("Error writing to UDP:", err)
+			// fmt.Println("Error writing to UDP:", err)
 			continue
 		}
 	}
