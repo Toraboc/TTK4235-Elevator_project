@@ -5,11 +5,13 @@ import (
 	. "project/shared"
 )
 
-func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) {
+func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) (int, bool, error) {
 	targetFloor, changed, err := worldView.handleStateChange()
+	channels.ConfirmedOrdersCh <- worldView.getConfirmedOrders()
 	if err == nil && changed {
 		channels.TargetFloorCh <- targetFloor
 	}
+	return targetFloor, changed, err
 }
 
 func OrderProcess(channels OrderChannels) {
@@ -40,9 +42,18 @@ func OrderProcess(channels OrderChannels) {
 			case DOWN:
 				myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
 			}
-			worldView.Orders[myId] = myOrders
-			pushTargetFloorIfChanged(channels, &worldView)
+			newTargetFloor, changed, _ := pushTargetFloorIfChanged(channels, &worldView)
 
+			// This means that we need to finish the order in the other direction as well
+			if !changed && newTargetFloor == orderCompleted.Floor {
+				switch orderCompleted.Direction {
+				case UP:
+					myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
+				case DOWN:
+					myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
+				}
+				pushTargetFloorIfChanged(channels, &worldView)
+			}
 		case newOrder := <-channels.NewOrderCh:
 			myId := GetMyId()
 			myOrders := worldView.Orders[myId]
@@ -67,9 +78,6 @@ func OrderProcess(channels OrderChannels) {
 
 		case responseCh := <-channels.WorldViewReqCh:
 			responseCh <- worldView.clone()
-
-		case responseCh := <-channels.ConfirmedOrdersReqCh:
-			responseCh <- worldView.getConfirmedOrders()
 		}
 	}
 }

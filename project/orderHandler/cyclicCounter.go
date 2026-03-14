@@ -79,11 +79,15 @@ func getOrderStatuses(
 		otherStatuses := make([]OrderStatus, 0)
 
 		for nodeId, _ := range connectedNodes {
-			orderList := fieldSelector(orders[nodeId])
-			// TODO: This is fixing the symptom, not the cause
-			if orderList != nil {
-				otherStatuses = append(otherStatuses, orderList[floor])
+			nodeOrders, exists := orders[nodeId]
+			if !exists {
+				continue
 			}
+			orderList := fieldSelector(nodeOrders)
+			if orderList == nil {
+				continue
+			}
+			otherStatuses = append(otherStatuses, orderList[floor])
 		}
 
 		result[floor].otherStatuses = otherStatuses

@@ -219,11 +219,10 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		controller.state.behaviour = MOVING
 		fallthrough
 	case MOVING:
-		expectedFloorDelta := -1
+		expectedFloor := controller.state.floorBelow
 		if (controller.state.direction == UP) {
-			expectedFloorDelta = 1
+			expectedFloor = controller.state.floorBelow + 1
 		}
-		expectedFloor := controller.state.lastFloor + expectedFloorDelta
 		if expectedFloor != floor {
 			panic(fmt.Sprintf("The elevator reached the floor %d, but expected to reach floor %d. Something is terrably wrong.", floor, expectedFloor))
 		}
