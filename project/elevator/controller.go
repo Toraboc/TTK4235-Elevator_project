@@ -176,7 +176,7 @@ func (controller *ElevatorController) preparePassengerTransfer() {
 	controller.state.behaviour = PASSENGER_TRANSFER
 	controller.door.Open()
 	controller.orderCompletedCh <- OrderCompleted{Floor: controller.state.lastFloor, Direction: controller.state.direction}
-	if (controller.state.lastFloor == controller.state.targetFloor) {
+	if controller.state.lastFloor == controller.state.targetFloor {
 		controller.state.targetFloor = -1
 	}
 }
@@ -220,7 +220,7 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		fallthrough
 	case MOVING:
 		expectedFloor := controller.state.floorBelow
-		if (controller.state.direction == UP) {
+		if controller.state.direction == UP {
 			expectedFloor = controller.state.floorBelow + 1
 		}
 		if expectedFloor != floor {
