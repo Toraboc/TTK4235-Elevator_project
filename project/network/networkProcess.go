@@ -10,7 +10,7 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(channels OrderChannels) {
+func NetworkProcess(channels NetworkInterface) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()

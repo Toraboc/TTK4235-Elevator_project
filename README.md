@@ -37,7 +37,7 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
 - [ ] Refactore koden litt
     - [ ] Fjerne TODO
     - [X] Se over alle mutex
-    - [ ] Endre hvordan kanalene settes opp
+    - [X] Endre hvordan kanalene settes opp
     - [X] Fjerne ubrukte funksjoner
     - [ ] Se over variabel navn
     - [ ] Se over side effects, `getMyId()` og `elevio` greier

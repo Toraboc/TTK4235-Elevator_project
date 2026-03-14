@@ -5,7 +5,7 @@ import (
 	. "project/shared"
 )
 
-func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) (int, bool, error) {
+func pushTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool, error) {
 	targetFloor, changed, err := worldView.handleStateChange()
 	channels.ConfirmedOrdersCh <- worldView.getConfirmedOrders()
 	if err == nil && changed {
@@ -14,7 +14,7 @@ func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) (int
 	return targetFloor, changed, err
 }
 
-func handleOrderCompleted(channels OrderChannels, worldView *WorldView, orderCompleted OrderCompletedEvent) {
+func handleOrderCompleted(channels OrderHandlerInterface, worldView *WorldView, orderCompleted OrderCompletedEvent) {
 	myId := GetMyId()
 	myOrders := worldView.Orders[myId]
 
@@ -64,7 +64,7 @@ func handleOrderCompleted(channels OrderChannels, worldView *WorldView, orderCom
 	}
 }
 
-func OrderProcess(channels OrderChannels) {
+func OrderProcess(channels OrderHandlerInterface) {
 	fmt.Println("Starting order process")
 	worldView := newWorldView()
 
