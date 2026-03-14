@@ -68,6 +68,7 @@ func OrderProcess(channels OrderChannels) {
 	fmt.Println("Starting order process")
 	worldView := newWorldView()
 
+	//TODO: Rydde opp i select cases, kanskje lage egne funksjoner for hver case
 	for {
 		select {
 		case connectedNodes := <-channels.ConnectedNodesUpdateCh:

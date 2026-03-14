@@ -39,16 +39,3 @@ func nodeUpdate(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connecte
 	connectedNodesUpdateCh <- connectedNodes
 	fmt.Printf("Connected nodes: %v\n", connectedNodes)
 }
-
-func printConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) {
-	connectedNodes := getConnectedNodes(knownNodes, nodesAwareOfMe)
-	for {
-		time.Sleep(1 * time.Second / PrintHz)
-		connectedNodes = getConnectedNodes(knownNodes, nodesAwareOfMe)
-		fmt.Printf("Connected nodes: ")
-		for id := range connectedNodes {
-			fmt.Printf("%v, ", id)
-		}
-		fmt.Println()
-	}
-}

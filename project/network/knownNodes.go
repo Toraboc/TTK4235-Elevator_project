@@ -1,7 +1,6 @@
 package network
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -43,15 +42,4 @@ func (knownNodes *KnownNodes) pruneStale(nodesAwareOfMe *NodesAwareOfMe, connect
 	if changed {
 		nodeUpdate(knownNodes, nodesAwareOfMe, connectedNodesUpdateCh)
 	}
-}
-
-func (knownNodes *KnownNodes) print() {
-	knownNodes.mu.Lock()
-	defer knownNodes.mu.Unlock()
-
-	fmt.Printf("Known nodes: ")
-	for id, seenAt := range knownNodes.LastSeen {
-		fmt.Printf("%v (last seen: %s), ", id, seenAt.Format(time.RFC3339))
-	}
-	fmt.Println()
 }

@@ -5,12 +5,6 @@ import (
 	"strings"
 )
 
-type ElevatorState struct {
-	Behaviour ElevatorBehaviour
-	Floor  int
-	Direction Direction
-}
-
 type Direction int
 
 const (
@@ -40,7 +34,6 @@ const (
 	DISCONNECTED
 )
 
-
 func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
 	return behaviour == IDLE || behaviour == MOVING || behaviour == PASSENGER_TRANSFER
 }
@@ -66,6 +59,12 @@ func (behaviour ElevatorBehaviour) String() string {
 	default:
 		panic("Undefined EleavtorBehaviour")
 	}
+}
+
+type ElevatorState struct {
+	Behaviour ElevatorBehaviour
+	Floor     int
+	Direction Direction
 }
 
 func (elevatorState ElevatorState) String() string {
