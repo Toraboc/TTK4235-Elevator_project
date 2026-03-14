@@ -92,19 +92,16 @@ run_remote() {
     # Sync code (only changed files, delete removed files)
     ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR$CODE_DIR"
     rsync -a --delete ".$CODE_DIR/" "$REMOTE_USER@$host:$REMOTE_BASE_DIR$CODE_DIR/"
-    rsync -a elevatorserver "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
-    rsync -a supervisor.sh "$REMOTE_USER@$host:$REMOTE_BASE_DIR/"
 
     # Start elevatorserver and go code
     ssh "$REMOTE_USER@$host" "
         set -e
 
-        cd $REMOTE_BASE_DIR
+        cd $REMOTE_BASE_DIR$CODE_DIR
         echo 'Starting elevatorserver'
         ./elevatorserver > elevatorserver.log 2>&1 &
         sleep 1
 
-        cd $REMOTE_BASE_DIR$CODE_DIR
         go run . 2>&1
     " | sed "s/^/[$host] /" &
     JOB_PIDS+=("$!")
