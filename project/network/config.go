@@ -8,7 +8,7 @@ const (
 	// IPv4 broadcast address and port used for discovery.
 	BroadcastAddress = "255.255.255.255"
 	// broadcast frequency in Hz.
-	SendHz = 100
+	SendHz = 250
 	// frequency for pruning stale peers.
 	PruneHz = 10
 	// duration after which a peer is considered stale.
