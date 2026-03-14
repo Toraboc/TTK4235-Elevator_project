@@ -76,8 +76,6 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 			cabOrdersIThinkYouHave[nodeId] = cabOrders.clone()
 		}
 	}
-
-	worldView.handleStateChange()
 }
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
@@ -125,7 +123,7 @@ func (worldView *WorldView) updateCyclicCounter() {
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
 
-	fmt.Println(worldView)
+	// fmt.Println(worldView)
 }
 
 func (worldView *WorldView) String() string {

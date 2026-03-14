@@ -39,7 +39,6 @@ func AllEquals[T comparable](slice []T, values []T) bool {
 }
 
 func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
-	// TODO: This will not allow the state to be updated two steps, this probably needs to be fixed
 	switch myStatus {
 	case NO_ORDER:
 		if slices.Contains(connectedNodes, CONFIRMED) {
@@ -57,6 +56,9 @@ func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderS
 			return FINISHED
 		}
 	case FINISHED:
+		if slices.Contains(connectedNodes, UNCONFIRMED) {
+			return UNCONFIRMED
+		}
 		if AllEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
 			return NO_ORDER
 		}
