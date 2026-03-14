@@ -42,11 +42,14 @@ func getNextValueFromCyclicCounter(myStatus OrderStatus, connectedNodes []OrderS
 	// TODO: This will not allow the state to be updated two steps, this probably needs to be fixed
 	switch myStatus {
 	case NO_ORDER:
+		if slices.Contains(connectedNodes, CONFIRMED) {
+			return CONFIRMED
+		}
 		if slices.Contains(connectedNodes, UNCONFIRMED) {
 			return UNCONFIRMED
 		}
 	case UNCONFIRMED:
-		if AllEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) {
+		if AllEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
 			return CONFIRMED
 		}
 	case CONFIRMED:
