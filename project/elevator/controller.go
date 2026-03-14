@@ -78,7 +78,17 @@ func (controller *ElevatorController) sendElevatorStateUpdate() {
 		newElevatorState.Direction != controller.lastElevatorState.Direction ||
 		newElevatorState.Floor != controller.lastElevatorState.Floor {
 		controller.lastElevatorState = newElevatorState
+		controller.correctDirection()
 		controller.elevatorStateCh <- newElevatorState
+	}
+}
+
+func (controller *ElevatorController) correctDirection() {
+	switch controller.state.lastFloor {
+	case 3:
+		controller.state.direction = DOWN
+	case 0:
+		controller.state.direction = UP
 	}
 }
 
