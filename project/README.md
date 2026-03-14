@@ -27,4 +27,4 @@ Three concurrent processes communicate via channels, each owning their state exc
 
 - **Elevator** — hardware interface, motor/door control state machine
 - **Order Handler** — maintains world view across all nodes, assigns orders via `hall_request_assigner`
-- **Network** — UDP broadcast at 100 Hz for peer discovery and state sync
+- **Network** — UDP broadcast for peer discovery and state sync
