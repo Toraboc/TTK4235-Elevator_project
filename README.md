@@ -40,6 +40,7 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
     - [ ] Endre hvordan kanalene settes opp
     - [ ] Fjerne ubrukte funksjoner
     - [ ] Se over variabel navn
+    - [ ] Se over side effects, `getMyId()` og `elevio` greier
 - [ ] Teste alt sammen
     - [ ] Pakketap
 - [ ] Supervisor

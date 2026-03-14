@@ -14,6 +14,56 @@ func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) (int
 	return targetFloor, changed, err
 }
 
+func handleOrderCompleted(channels OrderChannels, worldView *WorldView, orderCompleted OrderCompleted) {
+	myId := GetMyId()
+	myOrders := worldView.Orders[myId]
+
+	myOrders.CabOrders[myId][orderCompleted.Floor] = FINISHED
+
+	var hadHallOrder bool
+	switch orderCompleted.Direction {
+	case UP:
+		hadHallOrder = myOrders.HallUpOrders[orderCompleted.Floor] == CONFIRMED
+		if hadHallOrder {
+			myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
+		}
+	case DOWN:
+		hadHallOrder = myOrders.HallDownOrders[orderCompleted.Floor] == CONFIRMED
+		if hadHallOrder {
+			myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
+		}
+	}
+
+	if !hadHallOrder {
+		worldView.hallRequestAssigner()
+		targetFloor, err := worldView.getNextTargetFloor()
+		if err != nil {
+			panic(err.Error())
+		}
+
+		if targetFloor == orderCompleted.Floor {
+			switch orderCompleted.Direction {
+			case UP:
+				myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
+			case DOWN:
+				myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
+			}
+
+		}
+	}
+
+	newTargetFloor, changed, err := pushTargetFloorIfChanged(channels, worldView)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// This means that we still have an order in the opposite direction at this floor.
+	// Then we also need to take this order afterwards.
+	if !changed && newTargetFloor == orderCompleted.Floor {
+		channels.TargetFloorCh <- newTargetFloor
+	}
+}
+
 func OrderProcess(channels OrderChannels) {
 	fmt.Println("Starting order process")
 	worldView := newWorldView()
@@ -33,27 +83,7 @@ func OrderProcess(channels OrderChannels) {
 			pushTargetFloorIfChanged(channels, &worldView)
 
 		case orderCompleted := <-channels.OrderCompletedCh:
-			myId := GetMyId()
-			myOrders := worldView.Orders[myId]
-			myOrders.CabOrders[myId][orderCompleted.Floor] = FINISHED
-			switch orderCompleted.Direction {
-			case UP:
-				myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
-			case DOWN:
-				myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
-			}
-			newTargetFloor, changed, _ := pushTargetFloorIfChanged(channels, &worldView)
-
-			// This means that we need to finish the order in the other direction as well
-			if !changed && newTargetFloor == orderCompleted.Floor {
-				switch orderCompleted.Direction {
-				case UP:
-					myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
-				case DOWN:
-					myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
-				}
-				pushTargetFloorIfChanged(channels, &worldView)
-			}
+			handleOrderCompleted(channels, &worldView, orderCompleted)
 		case newOrder := <-channels.NewOrderCh:
 			myId := GetMyId()
 			myOrders := worldView.Orders[myId]

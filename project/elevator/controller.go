@@ -309,11 +309,11 @@ func (controller *ElevatorController) handleTargetFloor(targetFloor int) {
 	case MOVING:
 		controller.driveToTarget()
 	case FAULTY_MOTOR:
-		// Do nothing
+		fallthrough
 	case DOOR_OBSTRUCTED:
 		fallthrough
 	case PASSENGER_TRANSFER:
-		controller.preparePassengerTransfer()
+		// Do nothing
 	case DISCONNECTED:
 		panic("Our elevator can never become DISCONNECTED")
 	}
@@ -336,6 +336,10 @@ func (controller *ElevatorController) handleCloseDoorTrigger() {
 			controller.door.Open()
 		} else {
 			controller.state.behaviour = IDLE
+
+			if controller.state.targetFloor == controller.state.lastFloor {
+				controller.preparePassengerTransfer()
+			}
 
 			if controller.state.targetFloor != -1 {
 				controller.driveToTarget()
