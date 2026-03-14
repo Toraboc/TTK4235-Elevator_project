@@ -33,12 +33,12 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
 
 ## TODO
 
-- [ ] Fikse de siste bugsene
+- [X] Fikse de siste bugsene
 - [ ] Refactore koden litt
     - [ ] Fjerne TODO
-    - [ ] Se over alle mutex
+    - [X] Se over alle mutex
     - [ ] Endre hvordan kanalene settes opp
-    - [ ] Fjerne ubrukte funksjoner
+    - [X] Fjerne ubrukte funksjoner
     - [ ] Se over variabel navn
     - [ ] Se over side effects, `getMyId()` og `elevio` greier
 - [ ] Teste alt sammen
