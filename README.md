@@ -33,7 +33,16 @@ Kan også brukes med en fast mode. Da vil kun koden kopieres og kjøres.
 
 ## TODO
 
-- Hvilke prosesser skal vi ha, nettverk, en heismodulen
+- [ ] Fikse de siste bugsene
+- [ ] Refactore koden litt
+    - [ ] Fjerne TODO
+    - [ ] Se over alle mutex
+    - [ ] Endre hvordan kanalene settes opp
+    - [ ] Fjerne ubrukte funksjoner
+    - [ ] Se over variabel navn
+- [ ] Teste alt sammen
+    - [ ] Pakketap
+- [ ] Supervisor
 
 ## Docker
 
