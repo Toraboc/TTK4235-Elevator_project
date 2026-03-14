@@ -74,7 +74,6 @@ func getOrderStatuses(
 		result[floor].otherStatuses = otherStatuses
 
 		orderList := fieldSelector(orders[myId])
-		// TODO: This is fixing the symptom, not the cause
 		if orderList != nil {
 			result[floor].myStatus = orderList[floor]
 		}

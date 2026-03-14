@@ -210,9 +210,6 @@ func (controller *ElevatorController) enterFloorWhileMoving(floor int) {
 	controller.state.isAtFloor = true
 	controller.floorMovementTimeout.Stop()
 
-	// TODO: Maybe this should be moved to a own function, since this is a side effect.
-	elevio.SetFloorIndicator(floor)
-
 	if controller.state.targetFloor == -1 {
 		controller.stop()
 		controller.state.behaviour = IDLE
@@ -223,6 +220,8 @@ func (controller *ElevatorController) enterFloorWhileMoving(floor int) {
 		controller.state.behaviour = IDLE
 		controller.preparePassengerTransfer()
 	}
+
+	elevio.SetFloorIndicator(floor)
 
 	switch floor {
 	case 0:
