@@ -3,6 +3,7 @@ package elevator
 import (
 	"fmt"
 	. "project/shared"
+	. "project/orderHandler"
 	"strings"
 	"time"
 
@@ -22,12 +23,12 @@ type ElevatorController struct {
 	state                ElevatorDetailedState
 	door                 Door
 	elevatorStateCh      chan<- ElevatorState
-	orderCompletedCh     chan<- OrderCompleted
+	orderCompletedCh     chan<- OrderCompletedEvent
 	floorMovementTimeout *time.Timer
 	lastElevatorState    ElevatorState
 }
 
-func startElevatorController(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompleted, targetFloorCh <-chan int) {
+func startElevatorController(elevatorStateCh chan<- ElevatorState, orderCompletedCh chan<- OrderCompletedEvent, targetFloorCh <-chan int) {
 	var door Door
 	err := door.Close()
 	if err != nil {
@@ -173,7 +174,7 @@ func (controller *ElevatorController) preparePassengerTransfer() {
 
 	controller.state.behaviour = PASSENGER_TRANSFER
 	controller.door.Open()
-	controller.orderCompletedCh <- OrderCompleted{Floor: controller.state.lastFloor, Direction: controller.state.direction}
+	controller.orderCompletedCh <- OrderCompletedEvent{Floor: controller.state.lastFloor, Direction: controller.state.direction}
 	if controller.state.lastFloor == controller.state.targetFloor {
 		controller.state.targetFloor = -1
 	}

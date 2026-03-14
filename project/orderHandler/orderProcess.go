@@ -14,7 +14,7 @@ func pushTargetFloorIfChanged(channels OrderChannels, worldView *WorldView) (int
 	return targetFloor, changed, err
 }
 
-func handleOrderCompleted(channels OrderChannels, worldView *WorldView, orderCompleted OrderCompleted) {
+func handleOrderCompleted(channels OrderChannels, worldView *WorldView, orderCompleted OrderCompletedEvent) {
 	myId := GetMyId()
 	myOrders := worldView.Orders[myId]
 

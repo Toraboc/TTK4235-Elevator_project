@@ -5,33 +5,9 @@ import (
 	"slices"
 )
 
-type OrderStatus int
-
-const (
-	NO_ORDER OrderStatus = iota
-	UNCONFIRMED
-	CONFIRMED
-	FINISHED
-)
-
 type OrderStatusCombined struct {
 	myStatus      OrderStatus
 	otherStatuses []OrderStatus
-}
-
-func (orderStatus OrderStatus) String() string {
-	switch orderStatus {
-	case NO_ORDER:
-		return "NO ORDER"
-	case UNCONFIRMED:
-		return "UNCONFIRMED"
-	case CONFIRMED:
-		return "CONFIRMED"
-	case FINISHED:
-		return "FINISHED"
-	default:
-		panic("Invalid orderStatus, could not convert to string")
-	}
 }
 
 func AllEquals[T comparable](slice []T, values []T) bool {

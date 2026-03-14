@@ -23,7 +23,7 @@ func NetworkProcess(channels OrderChannels) {
 
 }
 
-func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh WorldViewRequestCh) {
+func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh chan chan WorldView) {
 	var conn *net.UDPConn
 	for {
 		var err error
