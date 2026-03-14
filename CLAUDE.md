@@ -35,7 +35,7 @@ Elevator Process  ←→  Order Handler Process  ←→  Network Process
 
 **Order Handler** (`orderHandler/`) — distributed coordination. Maintains `WorldView`: all elevators' states + orders across the network. On each event, recomputes which orders to assign using an external D-language binary (`hall_request_assigner`) and publishes new target floors.
 
-**Network** (`network/`) — UDP broadcast at 100 Hz to `255.255.255.255:44043`. Each message carries sender ID, elevator state, orders, and known peers. Nodes are pruned after 200 ms of silence. Only counts a node as connected if both sides know each other.
+**Network** (`network/`) — UDP broadcast at 250 Hz to `255.255.255.255:44043`. Each message carries sender ID, elevator state, orders, and known peers. Nodes are pruned after 200 ms of silence. Only counts a node as connected if both sides know each other.
 
 ## Key Data Structures
 
