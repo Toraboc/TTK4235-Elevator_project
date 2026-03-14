@@ -1,14 +1,4 @@
-package shared
-
-type OrderCompleted struct {
-	Floor int
-	Direction Direction
-}
-
-type OrderNew struct {
-	Floor int
-	Type OrderType
-}
+package orderHandler
 
 type OrderType int
 

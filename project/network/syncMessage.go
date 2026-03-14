@@ -12,7 +12,7 @@ type SyncMessage struct {
 	KnownNodes []NodeId
 }
 
-func createOutgoingSync(worldViewReqCh WorldViewRequestCh, knownNodes *KnownNodes) SyncMessage {
+func createOutgoingSync(worldViewReqCh chan chan WorldView, knownNodes *KnownNodes) SyncMessage {
 	worldview := RequestWorldView(worldViewReqCh)
 
 	knownNodes.mu.Lock()

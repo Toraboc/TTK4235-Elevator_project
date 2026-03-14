@@ -10,7 +10,7 @@ import (
 	. "project/shared"
 )
 
-func NetworkProcess(channels OrderChannels) {
+func NetworkProcess(channels NetworkInterface) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 	knownNodes := newKnownNodes()
@@ -22,7 +22,7 @@ func NetworkProcess(channels OrderChannels) {
 	udpBroadcast(knownNodes, channels.WorldViewReqCh)
 }
 
-func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh WorldViewRequestCh) {
+func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh chan chan WorldView) {
 	var conn *net.UDPConn
 	for {
 		var err error
