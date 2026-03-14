@@ -45,9 +45,7 @@ func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
 	return behaviour == IDLE || behaviour == MOVING || behaviour == PASSENGER_TRANSFER
 }
 
-// Deprecated: I don't think this will be used anymore
-// - Theodor
-func (behaviour ElevatorBehaviour) CanMove() bool {
+func (behaviour ElevatorBehaviour) Moving() bool {
 	return behaviour == MOVING || behaviour == FAULTY_MOTOR
 }
 

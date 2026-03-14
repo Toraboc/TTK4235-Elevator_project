@@ -2,7 +2,9 @@ package shared
 
 import (
 	"fmt"
+	"maps"
 	"net"
+	"slices"
 	"strings"
 )
 
@@ -46,9 +48,11 @@ func (set NodeIdSet) String() string {
 
 	builder.WriteString("[")
 
-	for nodeId := range set {
+	for i, nodeId := range slices.Sorted(maps.Keys(set)) {
+		if i > 0 {
+			builder.WriteString(", ")
+		}
 		builder.WriteString(nodeId.String())
-		builder.WriteString(", ")
 	}
 
 	builder.WriteString("]")

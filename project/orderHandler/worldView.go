@@ -68,6 +68,14 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	// Sync merged orders for source node.
 	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
+
+	cabOrdersIThinkYouHave := worldView.Orders[GetMyId()].CabOrders
+	cabOrdersYouHave := sourceOrders.CabOrders
+	for nodeId, cabOrders := range cabOrdersYouHave {
+		if _, exists := cabOrdersIThinkYouHave[nodeId]; !exists {
+			cabOrdersIThinkYouHave[nodeId] = cabOrders.clone()
+		}
+	}
 }
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
@@ -114,6 +122,8 @@ func (worldView *WorldView) updateCyclicCounter() {
 		return orders.CabOrders[myId]
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
+
+	// fmt.Println(worldView)
 }
 
 func (worldView *WorldView) String() string {
@@ -125,7 +135,7 @@ func (worldView *WorldView) String() string {
 	builder.WriteString(",\n")
 
 	builder.WriteString("\tElevatorStates: {\n")
-	for nodeId, elevatorState := range worldView.ElevatorStates {
+	for nodeId, elevatorState := range SortedMap(worldView.ElevatorStates) {
 		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		stateString := strings.ReplaceAll(elevatorState.String(), "\n", "\n\t\t")
 		builder.WriteString(stateString)
@@ -134,7 +144,7 @@ func (worldView *WorldView) String() string {
 	builder.WriteString("\t}\n")
 
 	builder.WriteString("\tOrders: {\n")
-	for nodeId, orders := range worldView.Orders {
+	for nodeId, orders := range SortedMap(worldView.Orders) {
 		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		ordersString := strings.ReplaceAll(orders.String(), "\n", "\n\t\t")
 		builder.WriteString(ordersString)

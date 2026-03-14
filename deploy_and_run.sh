@@ -69,7 +69,8 @@ cleanup() {
     for last_octet in "${HOSTS[@]}"; do
         host="${IP_PREFIX}${last_octet}"
         echo "Stopping remote processes on $host"
-        ssh "$REMOTE_USER@$host" "pkill -f 'go run .' ; pkill -f './elevatorserver'" || true
+        ssh "$REMOTE_USER@$host" "pkill -f 'go run .'" || true
+        ssh "$REMOTE_USER@$host" "pkill -f 'project'" || true
     done
 
     exit 1
