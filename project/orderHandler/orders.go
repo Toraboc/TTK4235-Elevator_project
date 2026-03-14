@@ -149,7 +149,7 @@ func (orders Orders) String() string {
 	builder.WriteString(",\n")
 
 	builder.WriteString("\tCabOrders: {\n")
-	for nodeId, orderList := range orders.CabOrders {
+	for nodeId, orderList := range SortedMap(orders.CabOrders) {
 		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		orderListString := strings.ReplaceAll(orderList.String(), "\n", "\n\t\t")
 		builder.WriteString(orderListString)
