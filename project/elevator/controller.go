@@ -244,7 +244,7 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		panic("Cannot enter a floor in the state " + controller.state.behaviour.String() + ".")
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		controller.state.behaviour = MOVING
 		controller.enterFloorWhileMoving(floor)
 	case MOVING:
@@ -271,7 +271,7 @@ func (controller *ElevatorController) handleLeaveFloor(_ int) {
 
 	switch controller.state.behaviour {
 	case IDLE:
-		controller.state.behaviour = FAULTY_MOTOR
+		controller.state.behaviour = MOTOR_FAILURE
 		if controller.state.lastFloor < 2 {
 			controller.drive(UP)
 		} else {
@@ -281,7 +281,7 @@ func (controller *ElevatorController) handleLeaveFloor(_ int) {
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		panic("The elevator left the floor, and the door is open")
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		controller.state.behaviour = MOVING
 		fallthrough
 	case MOVING:
@@ -297,7 +297,7 @@ func (controller *ElevatorController) handleTargetFloor(targetFloor int) {
 		fallthrough
 	case MOVING:
 		controller.driveToTarget()
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		fallthrough
@@ -310,7 +310,7 @@ func (controller *ElevatorController) handleCloseDoorTrigger() {
 	switch controller.state.behaviour {
 	case IDLE:
 		fallthrough
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		fallthrough
 	case MOVING:
 		panic("The elevator got a CLOSE DOOR TRIGGER, but in the wrong state. The current state is " + controller.state.behaviour.String())
@@ -341,12 +341,12 @@ func (controller *ElevatorController) handleFloorMovementTimeout() {
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		fallthrough
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		fallthrough
 	case PASSENGER_TRANSFER:
 		panic("The floor movement timeout triggered, when we are not in the MOVING state, this should never happen.")
 	case MOVING:
-		controller.state.behaviour = FAULTY_MOTOR
+		controller.state.behaviour = MOTOR_FAILURE
 	}
 }
 

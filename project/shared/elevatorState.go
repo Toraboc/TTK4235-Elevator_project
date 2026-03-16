@@ -30,7 +30,7 @@ const (
 	MOVING
 	PASSENGER_TRANSFER
 	DOOR_OBSTRUCTED
-	FAULTY_MOTOR
+	MOTOR_FAILURE
 )
 
 func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
@@ -38,7 +38,7 @@ func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
 }
 
 func (behaviour ElevatorBehaviour) Moving() bool {
-	return behaviour == MOVING || behaviour == FAULTY_MOTOR
+	return behaviour == MOVING || behaviour == MOTOR_FAILURE
 }
 
 func (behaviour ElevatorBehaviour) String() string {
@@ -49,8 +49,8 @@ func (behaviour ElevatorBehaviour) String() string {
 		return "MOVING"
 	case PASSENGER_TRANSFER:
 		return "PASSENGER_TRANSFER"
-	case FAULTY_MOTOR:
-		return "FAULTY_MOTOR"
+	case MOTOR_FAILURE:
+		return "MOTOR_FAILURE"
 	case DOOR_OBSTRUCTED:
 		return "DOOR_OBSTRUCTED"
 	default:
