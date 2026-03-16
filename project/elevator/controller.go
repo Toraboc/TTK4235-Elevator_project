@@ -75,9 +75,7 @@ func startElevatorController(elevatorStateCh chan<- ElevatorState, orderComplete
 func (controller *ElevatorController) sendElevatorStateUpdate() {
 	newElevatorState := controller.GetElevatorState()
 
-	if newElevatorState.Behaviour != controller.lastElevatorState.Behaviour ||
-		newElevatorState.Direction != controller.lastElevatorState.Direction ||
-		newElevatorState.Floor != controller.lastElevatorState.Floor {
+	if controller.lastElevatorState != newElevatorState {
 		controller.lastElevatorState = newElevatorState
 		controller.elevatorStateCh <- newElevatorState
 	}
@@ -259,8 +257,6 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		}
 
 		controller.enterFloorWhileMoving(floor)
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 
 }
@@ -290,8 +286,6 @@ func (controller *ElevatorController) handleLeaveFloor(_ int) {
 		fallthrough
 	case MOVING:
 		// Do nothing
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
@@ -309,8 +303,6 @@ func (controller *ElevatorController) handleTargetFloor(targetFloor int) {
 		fallthrough
 	case PASSENGER_TRANSFER:
 		// Do nothing
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
@@ -340,8 +332,6 @@ func (controller *ElevatorController) handleCloseDoorTrigger() {
 				controller.driveToTarget()
 			}
 		}
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
@@ -357,14 +347,11 @@ func (controller *ElevatorController) handleFloorMovementTimeout() {
 		panic("The floor movement timeout triggered, when we are not in the MOVING state, this should never happen.")
 	case MOVING:
 		controller.state.behaviour = FAULTY_MOTOR
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
 func (controller *ElevatorController) handleDriving(targetFloorCh, enterFloorCh, leaveFloorCh <-chan int) {
 	for {
-		fmt.Println("Listening for events...")
 		select {
 		case floor := <-enterFloorCh:
 			fmt.Printf("ENTER FLOOR %d\n", floor)

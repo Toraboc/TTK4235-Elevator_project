@@ -31,7 +31,6 @@ const (
 	PASSENGER_TRANSFER
 	DOOR_OBSTRUCTED
 	FAULTY_MOTOR
-	DISCONNECTED
 )
 
 func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
@@ -54,8 +53,6 @@ func (behaviour ElevatorBehaviour) String() string {
 		return "FAULTY_MOTOR"
 	case DOOR_OBSTRUCTED:
 		return "DOOR_OBSTRUCTED"
-	case DISCONNECTED:
-		return "DISCONNECTED"
 	default:
 		panic("Undefined ElevatorBehaviour")
 	}
