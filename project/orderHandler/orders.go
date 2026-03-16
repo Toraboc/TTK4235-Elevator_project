@@ -12,7 +12,7 @@ type Orders struct {
 	CabOrders      map[NodeId]*OrderList
 }
 
-func NewOrders(nodeId NodeId) *Orders {
+func createOrders(nodeId NodeId) *Orders {
 	var orders Orders
 
 	orders.HallUpOrders = &OrderList{}
@@ -26,17 +26,17 @@ func NewOrders(nodeId NodeId) *Orders {
 func (orders *Orders) Clone() *Orders {
 	var clone Orders
 
-	clone.HallUpOrders = orders.HallUpOrders.Clone()
-	clone.HallDownOrders = orders.HallDownOrders.Clone()
+	clone.HallUpOrders = orders.HallUpOrders.clone()
+	clone.HallDownOrders = orders.HallDownOrders.clone()
 	clone.CabOrders = make(map[NodeId]*OrderList)
 	for nodeId := range orders.CabOrders {
-		clone.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
+		clone.CabOrders[nodeId] = orders.CabOrders[nodeId].clone()
 	}
 
 	return &clone
 }
 
-func (orders *OrderList) Clone() *OrderList {
+func (orders *OrderList) clone() *OrderList {
 	var clone OrderList
 	for i := range NumberOfFloors {
 		clone[i] = orders[i]

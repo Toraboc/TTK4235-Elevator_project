@@ -31,7 +31,7 @@ func newWorldView() WorldView {
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 	worldView.Orders = make(map[NodeId]*Orders)
-	worldView.Orders[myId] = NewOrders(myId)
+	worldView.Orders[myId] = createOrders(myId)
 
 	worldView.lastTargetFloor = -1
 
@@ -66,19 +66,20 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
 
-	cabOrdersIThinkYouHave := worldView.Orders[GetMyId()].CabOrders
-	cabOrdersYouHave := sourceOrders.CabOrders
-	for nodeId, cabOrders := range cabOrdersYouHave {
-		if _, exists := cabOrdersIThinkYouHave[nodeId]; !exists {
-			cabOrdersIThinkYouHave[nodeId] = cabOrders.Clone()
+	existingCabOrders := worldView.Orders[GetMyId()].CabOrders
+	incomingCabOrders := sourceOrders.CabOrders
+	for nodeId, cabOrders := range incomingCabOrders {
+		if _, exists := existingCabOrders[nodeId]; !exists {
+			existingCabOrders[nodeId] = cabOrders.clone()
 		}
 	}
 }
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
-	worldView.updateCyclicCounter()
-
+	worldView.updateAllOrderStatuses()
 	worldView.hallRequestAssigner()
+	worldView.updateAllOrderStatuses()
+
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -93,7 +94,7 @@ func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	return targetFloor, false, nil
 }
 
-func (worldView *WorldView) updateCyclicCounter() {
+func (worldView *WorldView) updateAllOrderStatuses() {
 	myId := GetMyId()
 	connectedNodes := worldView.ConnectedNodes.Clone()
 	connectedNodes.Remove(myId)
@@ -190,7 +191,6 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 	}
 	return -1, nil
 }
-
 
 func (worldView *WorldView) String() string {
 	var builder strings.Builder
