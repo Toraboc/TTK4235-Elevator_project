@@ -30,8 +30,7 @@ const (
 	MOVING
 	PASSENGER_TRANSFER
 	DOOR_OBSTRUCTED
-	FAULTY_MOTOR
-	DISCONNECTED
+	MOTOR_FAILURE
 )
 
 func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
@@ -39,7 +38,7 @@ func (behaviour ElevatorBehaviour) CanBeAssignedOrders() bool {
 }
 
 func (behaviour ElevatorBehaviour) Moving() bool {
-	return behaviour == MOVING || behaviour == FAULTY_MOTOR
+	return behaviour == MOVING || behaviour == MOTOR_FAILURE
 }
 
 func (behaviour ElevatorBehaviour) String() string {
@@ -50,14 +49,12 @@ func (behaviour ElevatorBehaviour) String() string {
 		return "MOVING"
 	case PASSENGER_TRANSFER:
 		return "PASSENGER_TRANSFER"
-	case FAULTY_MOTOR:
-		return "FAULTY_MOTOR"
+	case MOTOR_FAILURE:
+		return "MOTOR_FAILURE"
 	case DOOR_OBSTRUCTED:
 		return "DOOR_OBSTRUCTED"
-	case DISCONNECTED:
-		return "DISCONNECTED"
 	default:
-		panic("Undefined EleavtorBehaviour")
+		panic("Undefined ElevatorBehaviour")
 	}
 }
 
@@ -69,16 +66,10 @@ type ElevatorState struct {
 
 func (elevatorState ElevatorState) String() string {
 	var builder strings.Builder
-
 	builder.WriteString("ElevatorState{")
-	builder.WriteString("\n\tBehaviour ")
-	builder.WriteString(elevatorState.Behaviour.String())
-	builder.WriteString("\n\tFloor ")
-	fmt.Fprintf(&builder, "%d", elevatorState.Floor)
-	builder.WriteString("\n\tDirection ")
-	builder.WriteString(elevatorState.Direction.String())
-
+	fmt.Fprintf(&builder, "\n\tBehaviour %v", elevatorState.Behaviour)
+	fmt.Fprintf(&builder, "\n\tFloor %d", elevatorState.Floor)
+	fmt.Fprintf(&builder, "\n\tDirection %v", elevatorState.Direction)
 	builder.WriteString("\n}")
-
 	return builder.String()
 }

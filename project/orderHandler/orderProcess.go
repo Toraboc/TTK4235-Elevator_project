@@ -5,7 +5,7 @@ import (
 	. "project/shared"
 )
 
-func pushTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool, error) {
+func updateTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool, error) {
 	targetFloor, changed, err := worldView.handleStateChange()
 	channels.ConfirmedOrdersCh <- worldView.getConfirmedOrders()
 	if err == nil && changed {
@@ -52,7 +52,7 @@ func handleOrderCompleted(channels OrderHandlerInterface, worldView *WorldView, 
 		}
 	}
 
-	newTargetFloor, changed, err := pushTargetFloorIfChanged(channels, worldView)
+	newTargetFloor, changed, err := updateTargetFloorIfChanged(channels, worldView)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -94,20 +94,21 @@ func OrderProcess(channels OrderHandlerInterface) {
 		select {
 		case connectedNodes := <-channels.ConnectedNodesUpdateCh:
 			worldView.ConnectedNodes = connectedNodes.Clone()
-			pushTargetFloorIfChanged(channels, &worldView)
+			updateTargetFloorIfChanged(channels, &worldView)
 
 		case syncView := <-channels.WorldViewMergeCh:
 			worldView.merge(syncView.NodeId, syncView.ElevatorState, syncView.Orders)
-			pushTargetFloorIfChanged(channels, &worldView)
+			updateTargetFloorIfChanged(channels, &worldView)
 
+			// fmt.Println(worldView.String())
 		case elevatorState := <-channels.ElevatorStateCh:
 			worldView.ElevatorStates[GetMyId()] = elevatorState
-			pushTargetFloorIfChanged(channels, &worldView)
+			updateTargetFloorIfChanged(channels, &worldView)
 		case orderCompleted := <-channels.OrderCompletedCh:
 			handleOrderCompleted(channels, &worldView, orderCompleted)
 		case newOrder := <-channels.NewOrderCh:
 			handleNewOrder(&worldView, newOrder)
-			pushTargetFloorIfChanged(channels, &worldView)
+			updateTargetFloorIfChanged(channels, &worldView)
 		case responseCh := <-channels.WorldViewReqCh:
 			responseCh <- worldView.clone()
 		}

@@ -2,8 +2,8 @@ package elevator
 
 import (
 	"fmt"
-	. "project/shared"
 	. "project/orderHandler"
+	. "project/shared"
 	"strings"
 	"time"
 
@@ -75,9 +75,7 @@ func startElevatorController(elevatorStateCh chan<- ElevatorState, orderComplete
 func (controller *ElevatorController) sendElevatorStateUpdate() {
 	newElevatorState := controller.GetElevatorState()
 
-	if newElevatorState.Behaviour != controller.lastElevatorState.Behaviour ||
-		newElevatorState.Direction != controller.lastElevatorState.Direction ||
-		newElevatorState.Floor != controller.lastElevatorState.Floor {
+	if controller.lastElevatorState != newElevatorState {
 		controller.lastElevatorState = newElevatorState
 		controller.elevatorStateCh <- newElevatorState
 	}
@@ -108,7 +106,6 @@ func (controller *ElevatorController) drive(direction Direction) {
 		panic("Cannot start to move the elevator while the door is open.")
 	}
 
-	// pos.behaviour = MOVING
 	controller.state.direction = direction
 	if direction == UP {
 		elevio.SetMotorDirection(elevio.MD_Up)
@@ -247,7 +244,7 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		panic("Cannot enter a floor in the state " + controller.state.behaviour.String() + ".")
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		controller.state.behaviour = MOVING
 		controller.enterFloorWhileMoving(floor)
 	case MOVING:
@@ -260,8 +257,6 @@ func (controller *ElevatorController) handleEnterFloor(floor int) {
 		}
 
 		controller.enterFloorWhileMoving(floor)
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 
 }
@@ -276,7 +271,7 @@ func (controller *ElevatorController) handleLeaveFloor(_ int) {
 
 	switch controller.state.behaviour {
 	case IDLE:
-		controller.state.behaviour = FAULTY_MOTOR
+		controller.state.behaviour = MOTOR_FAILURE
 		if controller.state.lastFloor < 2 {
 			controller.drive(UP)
 		} else {
@@ -286,13 +281,11 @@ func (controller *ElevatorController) handleLeaveFloor(_ int) {
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		panic("The elevator left the floor, and the door is open")
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		controller.state.behaviour = MOVING
 		fallthrough
 	case MOVING:
 		// Do nothing
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
@@ -304,14 +297,12 @@ func (controller *ElevatorController) handleTargetFloor(targetFloor int) {
 		fallthrough
 	case MOVING:
 		controller.driveToTarget()
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		fallthrough
 	case PASSENGER_TRANSFER:
 		// Do nothing
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
@@ -319,7 +310,7 @@ func (controller *ElevatorController) handleCloseDoorTrigger() {
 	switch controller.state.behaviour {
 	case IDLE:
 		fallthrough
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		fallthrough
 	case MOVING:
 		panic("The elevator got a CLOSE DOOR TRIGGER, but in the wrong state. The current state is " + controller.state.behaviour.String())
@@ -341,8 +332,6 @@ func (controller *ElevatorController) handleCloseDoorTrigger() {
 				controller.driveToTarget()
 			}
 		}
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
 	}
 }
 
@@ -352,20 +341,17 @@ func (controller *ElevatorController) handleFloorMovementTimeout() {
 		fallthrough
 	case DOOR_OBSTRUCTED:
 		fallthrough
-	case FAULTY_MOTOR:
+	case MOTOR_FAILURE:
 		fallthrough
 	case PASSENGER_TRANSFER:
 		panic("The floor movement timeout triggered, when we are not in the MOVING state, this should never happen.")
 	case MOVING:
-		controller.state.behaviour = FAULTY_MOTOR
-	case DISCONNECTED:
-		panic("Our elevator can never become DISCONNECTED")
+		controller.state.behaviour = MOTOR_FAILURE
 	}
 }
 
 func (controller *ElevatorController) handleDriving(targetFloorCh, enterFloorCh, leaveFloorCh <-chan int) {
 	for {
-		fmt.Println("Listening for events...")
 		select {
 		case floor := <-enterFloorCh:
 			fmt.Printf("ENTER FLOOR %d\n", floor)

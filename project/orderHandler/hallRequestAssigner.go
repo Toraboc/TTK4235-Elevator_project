@@ -28,7 +28,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	worldView.AssignedCabOrders = confirmedOrders.Cab
 
-	if noOrdersConfirmed(confirmedOrders) {
+	if !anyOrdersConfirmed(confirmedOrders) {
 		worldView.AssignedHallUpOrders = confirmedOrders.HallUp
 		worldView.AssignedHallDownOrders = confirmedOrders.HallDown
 		return

@@ -32,7 +32,7 @@ func (lightStatus *LightStatus) updateLights(confirmedOrders ConfirmedOrders) {
 	lightStatus.cab.update(elevio.BT_Cab, confirmedOrders.Cab)
 }
 
-func (lightStatus *LightStatus) Init() {
+func (lightStatus *LightStatus) init() {
 	for floor := range NumberOfFloors {
 		elevio.SetButtonLamp(elevio.BT_HallUp, floor, false)
 		elevio.SetButtonLamp(elevio.BT_HallDown, floor, false)
@@ -45,7 +45,7 @@ func (lightStatus *LightStatus) Init() {
 }
 
 func handleLights(confirmedOrdersCh <-chan ConfirmedOrders) {
-	lightStatus.Init()
+	lightStatus.init()
 	for {
 		confirmedOrders := <-confirmedOrdersCh
 		lightStatus.updateLights(confirmedOrders)

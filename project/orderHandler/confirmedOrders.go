@@ -37,11 +37,11 @@ func (worldView *WorldView) getConfirmedOrders() ConfirmedOrders {
 	return confirmedOrders
 }
 
-func noOrdersConfirmed(confirmedOrders ConfirmedOrders) bool {
+func anyOrdersConfirmed(confirmedOrders ConfirmedOrders) bool {
 	for i := range NumberOfFloors {
 		if confirmedOrders.Cab[i] || confirmedOrders.HallUp[i] || confirmedOrders.HallDown[i] {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }

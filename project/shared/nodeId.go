@@ -30,7 +30,7 @@ func (set NodeIdSet) Concat(other NodeIdSet) {
 func (set NodeIdSet) Clone() NodeIdSet {
 	newSet := make(NodeIdSet)
 
-	for key, _ := range set {
+	for key := range set {
 		newSet[key] = struct{}{}
 	}
 

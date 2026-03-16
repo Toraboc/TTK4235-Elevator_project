@@ -1,8 +1,9 @@
 package orderHandler
 
 import (
-	"strings"
+	"fmt"
 	. "project/shared"
+	"strings"
 )
 
 type Orders struct {
@@ -23,45 +24,37 @@ func NewOrders(nodeId NodeId) *Orders {
 }
 
 func (orders *Orders) Clone() *Orders {
-	var copy Orders
+	var clone Orders
 
-	copy.HallUpOrders = orders.HallUpOrders.Clone()
-	copy.HallDownOrders = orders.HallDownOrders.Clone()
-	copy.CabOrders = make(map[NodeId]*OrderList)
+	clone.HallUpOrders = orders.HallUpOrders.Clone()
+	clone.HallDownOrders = orders.HallDownOrders.Clone()
+	clone.CabOrders = make(map[NodeId]*OrderList)
 	for nodeId := range orders.CabOrders {
-		copy.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
+		clone.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
 	}
 
-	return &copy
+	return &clone
 }
 
 func (orders *OrderList) Clone() *OrderList {
-	var copy OrderList
+	var clone OrderList
 	for i := range NumberOfFloors {
-		copy[i] = orders[i]
+		clone[i] = orders[i]
 	}
-	return &copy
+	return &clone
 }
-
 
 func (orders Orders) String() string {
 	var builder strings.Builder
-
 	builder.WriteString("Orders{\n")
-	builder.WriteString("\tHallUpOrders: ")
-	builder.WriteString(orders.HallUpOrders.String())
-	builder.WriteString(",\n")
 
-	builder.WriteString("\tHallDownOrders: ")
-	builder.WriteString(orders.HallDownOrders.String())
-	builder.WriteString(",\n")
+	fmt.Fprintf(&builder, "\tHallUpOrders: %v,\n", orders.HallUpOrders)
+	fmt.Fprintf(&builder, "\tHallDownOrders: %v,\n", orders.HallDownOrders)
 
 	builder.WriteString("\tCabOrders: {\n")
 	for nodeId, orderList := range SortedMap(orders.CabOrders) {
-		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		orderListString := strings.ReplaceAll(orderList.String(), "\n", "\n\t\t")
-		builder.WriteString(orderListString)
-		builder.WriteString("\n")
+		fmt.Fprintf(&builder, "\t\t[%v]: %s\n", nodeId, orderListString)
 	}
 	builder.WriteString("\t}\n")
 

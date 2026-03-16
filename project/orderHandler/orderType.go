@@ -2,8 +2,8 @@ package orderHandler
 
 type OrderType int
 
-const(
-	HALLUP 		OrderType = iota
+const (
+	HALLUP OrderType = iota
 	HALLDOWN
 	CAB
 )

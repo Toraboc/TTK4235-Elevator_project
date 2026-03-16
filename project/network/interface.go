@@ -1,8 +1,8 @@
 package network
 
 import (
-	. "project/shared"
 	. "project/orderHandler"
+	. "project/shared"
 )
 
 type NetworkInterface struct {
