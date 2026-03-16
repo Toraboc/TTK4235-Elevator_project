@@ -66,16 +66,10 @@ type ElevatorState struct {
 
 func (elevatorState ElevatorState) String() string {
 	var builder strings.Builder
-
 	builder.WriteString("ElevatorState{")
-	builder.WriteString("\n\tBehaviour ")
-	builder.WriteString(elevatorState.Behaviour.String())
-	builder.WriteString("\n\tFloor ")
-	fmt.Fprintf(&builder, "%d", elevatorState.Floor)
-	builder.WriteString("\n\tDirection ")
-	builder.WriteString(elevatorState.Direction.String())
-
+	fmt.Fprintf(&builder, "\n\tBehaviour %v", elevatorState.Behaviour)
+	fmt.Fprintf(&builder, "\n\tFloor %d", elevatorState.Floor)
+	fmt.Fprintf(&builder, "\n\tDirection %v", elevatorState.Direction)
 	builder.WriteString("\n}")
-
 	return builder.String()
 }

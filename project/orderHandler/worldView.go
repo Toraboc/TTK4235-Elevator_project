@@ -191,29 +191,23 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 	return -1, nil
 }
 
+
 func (worldView *WorldView) String() string {
 	var builder strings.Builder
-
 	builder.WriteString("WorldView{\n")
-	builder.WriteString("\tConnectedNodes: ")
-	builder.WriteString(worldView.ConnectedNodes.String())
-	builder.WriteString(",\n")
+	fmt.Fprintf(&builder, "\tConnectedNodes: %v,\n", worldView.ConnectedNodes)
 
 	builder.WriteString("\tElevatorStates: {\n")
 	for nodeId, elevatorState := range SortedMap(worldView.ElevatorStates) {
-		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		stateString := strings.ReplaceAll(elevatorState.String(), "\n", "\n\t\t")
-		builder.WriteString(stateString)
-		builder.WriteString("\n")
+		fmt.Fprintf(&builder, "\t\t[%v]: %s\n", nodeId, stateString)
 	}
 	builder.WriteString("\t}\n")
 
 	builder.WriteString("\tOrders: {\n")
 	for nodeId, orders := range SortedMap(worldView.Orders) {
-		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		ordersString := strings.ReplaceAll(orders.String(), "\n", "\n\t\t")
-		builder.WriteString(ordersString)
-		builder.WriteString("\n")
+		fmt.Fprintf(&builder, "\t\t[%v]: %s\n", nodeId, ordersString)
 	}
 	builder.WriteString("\t}\n")
 

@@ -100,6 +100,7 @@ func OrderProcess(channels OrderHandlerInterface) {
 			worldView.merge(syncView.NodeId, syncView.ElevatorState, syncView.Orders)
 			pushTargetFloorIfChanged(channels, &worldView)
 
+			fmt.Println(worldView.String())
 		case elevatorState := <-channels.ElevatorStateCh:
 			worldView.ElevatorStates[GetMyId()] = elevatorState
 			pushTargetFloorIfChanged(channels, &worldView)

@@ -1,6 +1,7 @@
 package orderHandler
 
 import (
+	"fmt"
 	. "project/shared"
 	"strings"
 )
@@ -45,22 +46,15 @@ func (orders *OrderList) Clone() *OrderList {
 
 func (orders Orders) String() string {
 	var builder strings.Builder
-
 	builder.WriteString("Orders{\n")
-	builder.WriteString("\tHallUpOrders: ")
-	builder.WriteString(orders.HallUpOrders.String())
-	builder.WriteString(",\n")
 
-	builder.WriteString("\tHallDownOrders: ")
-	builder.WriteString(orders.HallDownOrders.String())
-	builder.WriteString(",\n")
+	fmt.Fprintf(&builder, "\tHallUpOrders: %v,\n", orders.HallUpOrders)
+	fmt.Fprintf(&builder, "\tHallDownOrders: %v,\n", orders.HallDownOrders)
 
 	builder.WriteString("\tCabOrders: {\n")
 	for nodeId, orderList := range SortedMap(orders.CabOrders) {
-		builder.WriteString("\t[" + nodeId.String() + "]: ")
 		orderListString := strings.ReplaceAll(orderList.String(), "\n", "\n\t\t")
-		builder.WriteString(orderListString)
-		builder.WriteString("\n")
+		fmt.Fprintf(&builder, "\t\t[%v]: %s\n", nodeId, orderListString)
 	}
 	builder.WriteString("\t}\n")
 
