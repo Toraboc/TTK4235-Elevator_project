@@ -10,42 +10,21 @@ type OrderStatusCombined struct {
 	otherStatuses []OrderStatus
 }
 
-func allEquals[T comparable](slice []T, values []T) bool {
-	for _, item := range slice {
-		if !slices.Contains(values, item) {
-			return false
+//Synes kanskje denne bør ha et annet navn enn den i worlview
+func updateCyclicCounter(
+	orders map[NodeId]*Orders,
+	myId NodeId,
+	connectedNodes NodeIdSet,
+	fieldSelector func(*Orders) *OrderList,
+) {
+	currentStatus := getOrderStatuses(orders, myId, connectedNodes, fieldSelector)
+	for floor := range NumberOfFloors {
+		nextStatus := cyclicCounterNextValue(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
+		if nextStatus != currentStatus[floor].myStatus {
+			orderList := fieldSelector(orders[myId])
+			orderList[floor] = nextStatus
 		}
 	}
-	return true
-}
-
-func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
-	switch myStatus {
-	case NO_ORDER:
-		if slices.Contains(connectedNodes, CONFIRMED) {
-			return CONFIRMED
-		}
-		if slices.Contains(connectedNodes, UNCONFIRMED) {
-			return UNCONFIRMED
-		}
-	case UNCONFIRMED:
-		if allEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
-			return CONFIRMED
-		}
-	case CONFIRMED:
-		if slices.Contains(connectedNodes, FINISHED) {
-			return FINISHED
-		}
-	case FINISHED:
-		if slices.Contains(connectedNodes, UNCONFIRMED) {
-			return UNCONFIRMED
-		}
-		if allEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
-			return NO_ORDER
-		}
-	}
-
-	return myStatus
 }
 
 func getOrderStatuses(
@@ -82,18 +61,41 @@ func getOrderStatuses(
 	return result
 }
 
-func updateCyclicCounter(
-	orders map[NodeId]*Orders,
-	myId NodeId,
-	connectedNodes NodeIdSet,
-	fieldSelector func(*Orders) *OrderList,
-) {
-	currentStatus := getOrderStatuses(orders, myId, connectedNodes, fieldSelector)
-	for floor := range NumberOfFloors {
-		nextStatus := cyclicCounterNextValue(currentStatus[floor].myStatus, currentStatus[floor].otherStatuses)
-		if nextStatus != currentStatus[floor].myStatus {
-			orderList := fieldSelector(orders[myId])
-			orderList[floor] = nextStatus
+func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
+	switch myStatus {
+	case NO_ORDER:
+		if slices.Contains(connectedNodes, CONFIRMED) {
+			return CONFIRMED
+		}
+		if slices.Contains(connectedNodes, UNCONFIRMED) {
+			return UNCONFIRMED
+		}
+	case UNCONFIRMED:
+		if allEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
+			return CONFIRMED
+		}
+	case CONFIRMED:
+		if slices.Contains(connectedNodes, FINISHED) {
+			return FINISHED
+		}
+	case FINISHED:
+		if slices.Contains(connectedNodes, UNCONFIRMED) {
+			return UNCONFIRMED
+		}
+		if allEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
+			return NO_ORDER
 		}
 	}
+
+	return myStatus
 }
+
+func allEquals[T comparable](slice []T, values []T) bool {
+	for _, item := range slice {
+		if !slices.Contains(values, item) {
+			return false
+		}
+	}
+	return true
+}
+
