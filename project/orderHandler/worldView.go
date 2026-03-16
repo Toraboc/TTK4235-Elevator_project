@@ -76,9 +76,9 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 }
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
-	worldView.updateCyclicCounter()
+	worldView.updateAllOrderStatuses() 
 	worldView.hallRequestAssigner()
-	worldView.updateCyclicCounter()
+	worldView.updateAllOrderStatuses() 
 
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
@@ -94,7 +94,7 @@ func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	return targetFloor, false, nil
 }
 
-func (worldView *WorldView) updateCyclicCounter() {
+func (worldView *WorldView) updateAllOrderStatuses() {
 	myId := GetMyId()
 	connectedNodes := worldView.ConnectedNodes.Clone()
 	connectedNodes.Remove(myId)
@@ -102,24 +102,24 @@ func (worldView *WorldView) updateCyclicCounter() {
 	getHallDown := func(orders *Orders) *OrderList {
 		return orders.HallDownOrders
 	}
-	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallDown)
+	updateOrderStatusForOrderType(worldView.Orders, myId, connectedNodes, getHallDown)
 
 	getHallUp := func(orders *Orders) *OrderList {
 		return orders.HallUpOrders
 	}
-	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallUp)
+	updateOrderStatusForOrderType(worldView.Orders, myId, connectedNodes, getHallUp)
 
 	for nodeId := range connectedNodes {
 		getCabOrder := func(orders *Orders) *OrderList {
 			return orders.CabOrders[nodeId]
 		}
-		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
+		updateOrderStatusForOrderType(worldView.Orders, myId, connectedNodes, getCabOrder)
 	}
 
 	getMyCab := func(orders *Orders) *OrderList {
 		return orders.CabOrders[myId]
 	}
-	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
+	updateOrderStatusForOrderType(worldView.Orders, myId, connectedNodes, getMyCab)
 }
 
 func (worldView *WorldView) getNextTargetFloor() (int, error) {

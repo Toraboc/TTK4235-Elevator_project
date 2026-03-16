@@ -11,7 +11,7 @@ type OrderStatusCombined struct {
 }
 
 //Synes kanskje denne bør ha et annet navn enn den i worlview
-func updateCyclicCounter(
+func updateOrderStatusForOrderType(
 	orders map[NodeId]*Orders,
 	myId NodeId,
 	connectedNodes NodeIdSet,
