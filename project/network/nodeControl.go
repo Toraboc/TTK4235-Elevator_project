@@ -1,7 +1,6 @@
 package network
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -22,8 +21,6 @@ func newNodeControl(connectedNodesUpdateCh chan<- NodeIdSet) *NodeControl {
 	var nodeControl NodeControl
 	nodeControl.nodes = make(map[NodeId]*NetworkNode)
 
-	go nodeControl.updateConnectedNodes(connectedNodesUpdateCh)
-
 	return &nodeControl
 }
 
@@ -42,24 +39,6 @@ func (nodeControl *NodeControl) getConnectedNodes() NodeIdSet {
 	}
 
 	return connectedNodes
-}
-
-func (nodeControl *NodeControl) updateConnectedNodes(connectedNodesUpdateCh chan<- NodeIdSet) {
-	lastConnectedNodes := nodeControl.getConnectedNodes()
-	connectedNodesUpdateCh <- lastConnectedNodes
-
-	ticker := time.NewTicker(time.Second / PruneHz)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		connectedNodes := nodeControl.getConnectedNodes()
-
-		if !lastConnectedNodes.Equals(connectedNodes) {
-			lastConnectedNodes = connectedNodes
-			connectedNodesUpdateCh <- connectedNodes.Clone()
-			fmt.Printf("Connected nodes: %v\n", connectedNodes)
-		}
-	}
 }
 
 // This function return all the nodes that we have received a sync message from within the time limit.

@@ -16,6 +16,7 @@ func NetworkProcess(channels NetworkInterface) {
 
 	nodeControl := newNodeControl(channels.ConnectedNodesUpdateCh)
 
+	go updateConnectedNodes(nodeControl, channels.ConnectedNodesUpdateCh)
 	go udpListen(nodeControl, channels.WorldViewMergeCh)
 	udpBroadcast(nodeControl, channels.WorldViewReqCh)
 }
@@ -50,16 +51,6 @@ func udpBroadcast(nodeControl *NodeControl, worldViewReqCh chan chan WorldView) 
 	}
 }
 
-func nodeIdListToSet(nodeIds []NodeId) NodeIdSet {
-	nodeIdSet := make(NodeIdSet)
-
-	for _, nodeId := range nodeIds {
-		nodeIdSet.Add(nodeId)
-	}
-
-	return nodeIdSet
-}
-
 func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
@@ -88,4 +79,32 @@ func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncView) {
 
 		worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}
+}
+
+func updateConnectedNodes(nodeControl *NodeControl, connectedNodesUpdateCh chan<- NodeIdSet) {
+	lastConnectedNodes := nodeControl.getConnectedNodes()
+	connectedNodesUpdateCh <- lastConnectedNodes
+
+	ticker := time.NewTicker(time.Second / PruneHz)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		connectedNodes := nodeControl.getConnectedNodes()
+
+		if !lastConnectedNodes.Equals(connectedNodes) {
+			lastConnectedNodes = connectedNodes
+			connectedNodesUpdateCh <- connectedNodes.Clone()
+			fmt.Printf("Connected nodes: %v\n", connectedNodes)
+		}
+	}
+}
+
+func nodeIdListToSet(nodeIds []NodeId) NodeIdSet {
+	nodeIdSet := make(NodeIdSet)
+
+	for _, nodeId := range nodeIds {
+		nodeIdSet.Add(nodeId)
+	}
+
+	return nodeIdSet
 }
