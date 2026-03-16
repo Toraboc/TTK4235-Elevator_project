@@ -26,17 +26,17 @@ func createOrders(nodeId NodeId) *Orders {
 func (orders *Orders) Clone() *Orders {
 	var clone Orders
 
-	clone.HallUpOrders = orders.HallUpOrders.clone()
-	clone.HallDownOrders = orders.HallDownOrders.clone()
+	clone.HallUpOrders = orders.HallUpOrders.Clone()
+	clone.HallDownOrders = orders.HallDownOrders.Clone()
 	clone.CabOrders = make(map[NodeId]*OrderList)
 	for nodeId := range orders.CabOrders {
-		clone.CabOrders[nodeId] = orders.CabOrders[nodeId].clone()
+		clone.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
 	}
 
 	return &clone
 }
 
-func (orders *OrderList) clone() *OrderList {
+func (orders *OrderList) Clone() *OrderList {
 	var clone OrderList
 	for i := range NumberOfFloors {
 		clone[i] = orders[i]
