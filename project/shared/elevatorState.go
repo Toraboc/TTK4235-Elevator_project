@@ -19,7 +19,7 @@ func (direction Direction) String() string {
 	case DOWN:
 		return "DOWN"
 	default:
-		panic("Invalid direction, cannot crete string")
+		panic("Invalid direction, cannot create string")
 	}
 }
 

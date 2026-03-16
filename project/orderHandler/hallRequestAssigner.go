@@ -26,9 +26,8 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	confirmedOrders := worldView.getConfirmedOrders()
 
-	worldView.AssignedCabOrders = confirmedOrders.Cab
-
 	if !anyOrdersConfirmed(confirmedOrders) {
+		worldView.AssignedCabOrders = confirmedOrders.Cab
 		worldView.AssignedHallUpOrders = confirmedOrders.HallUp
 		worldView.AssignedHallDownOrders = confirmedOrders.HallDown
 		return
@@ -103,6 +102,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 		worldView.AssignedHallDownOrders[floor] = assignedHallRequests[floor][1]
 
 	}
+	worldView.AssignedCabOrders = confirmedOrders.Cab
 }
 
 func getBehaviourString(elevatorState ElevatorState) string {

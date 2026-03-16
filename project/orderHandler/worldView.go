@@ -76,9 +76,11 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 }
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
+
+	worldView.updateCyclicCounter()
+	worldView.hallRequestAssigner()
 	worldView.updateCyclicCounter()
 
-	worldView.hallRequestAssigner()
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -190,7 +192,6 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 	}
 	return -1, nil
 }
-
 
 func (worldView *WorldView) String() string {
 	var builder strings.Builder
