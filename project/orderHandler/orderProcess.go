@@ -65,7 +65,6 @@ func handleOrderCompleted(channels OrderHandlerInterface, worldView *WorldView, 
 	}
 
 	if !hadHallOrder {
-		worldView.hallRequestAssigner()
 		targetFloor, err := worldView.getNextTargetFloor()
 		if err != nil {
 			panic(err.Error())

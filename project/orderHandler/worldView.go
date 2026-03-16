@@ -2,18 +2,16 @@ package orderHandler
 
 import (
 	"fmt"
+	"maps"
 	. "project/shared"
 	"strings"
 )
 
 type WorldView struct {
-	Orders                 map[NodeId]*Orders
-	ConnectedNodes         NodeIdSet
-	ElevatorStates         map[NodeId]ElevatorState
-	AssignedHallUpOrders   [NumberOfFloors]bool
-	AssignedHallDownOrders [NumberOfFloors]bool
-	AssignedCabOrders      [NumberOfFloors]bool
-	lastTargetFloor        int
+	Orders          map[NodeId]*Orders
+	ConnectedNodes  NodeIdSet
+	ElevatorStates  map[NodeId]ElevatorState
+	lastTargetFloor int
 }
 
 type SyncView struct {
@@ -44,19 +42,12 @@ func (worldView *WorldView) clone() WorldView {
 	clone.ConnectedNodes = make(NodeIdSet)
 	clone.ConnectedNodes.Concat(worldView.ConnectedNodes)
 
-	clone.ElevatorStates = make(map[NodeId]ElevatorState)
-	for nodeId, elevatorState := range worldView.ElevatorStates {
-		clone.ElevatorStates[nodeId] = elevatorState
-	}
+	clone.ElevatorStates = maps.Clone(worldView.ElevatorStates)
 
 	clone.Orders = make(map[NodeId]*Orders)
 	for nodeId, orders := range worldView.Orders {
 		clone.Orders[nodeId] = orders.Clone()
 	}
-
-	clone.AssignedHallUpOrders = worldView.AssignedHallUpOrders
-	clone.AssignedHallDownOrders = worldView.AssignedHallDownOrders
-	clone.AssignedCabOrders = worldView.AssignedCabOrders
 
 	return clone
 }
@@ -77,8 +68,6 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	worldView.updateAllOrderStatuses()
-	worldView.hallRequestAssigner()
-
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -122,10 +111,6 @@ func (worldView *WorldView) updateAllOrderStatuses() {
 }
 
 func (worldView *WorldView) getNextTargetFloor() (int, error) {
-	if worldView == nil {
-		return -1, fmt.Errorf("worldView is nil")
-	}
-
 	myId := GetMyId()
 
 	elevatorState, exists := worldView.ElevatorStates[myId]
@@ -138,52 +123,50 @@ func (worldView *WorldView) getNextTargetFloor() (int, error) {
 		return -1, fmt.Errorf("invalid current floor: %d", floor)
 	}
 
-	hallUpOrders := worldView.AssignedHallUpOrders
-	hallDownOrders := worldView.AssignedHallDownOrders
-	cabOrders := worldView.AssignedCabOrders
+	orders := hallRequestAssigner(worldView, myId)
 
 	if elevatorState.Direction == UP {
 		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
-			if cabOrders[floor] || hallUpOrders[floor] {
+			if orders.Cab[floor] || orders.HallUp[floor] {
 				return floor, nil
 			}
 		}
 
 		for i := floor + 1; i < NumberOfFloors; i++ {
-			if cabOrders[i] || hallUpOrders[i] {
+			if orders.Cab[i] || orders.HallUp[i] {
 				return i, nil
 			}
 		}
 		for i := NumberOfFloors - 1; i >= 0; i-- {
-			if cabOrders[i] || hallDownOrders[i] {
+			if orders.Cab[i] || orders.HallDown[i] {
 				return i, nil
 			}
 		}
 		for i := 0; i <= floor; i++ {
-			if cabOrders[i] || hallUpOrders[i] {
+			if orders.Cab[i] || orders.HallUp[i] {
 				return i, nil
 			}
 		}
 	}
 	if elevatorState.Direction == DOWN {
 		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
-			if cabOrders[floor] || hallDownOrders[floor] {
+			if orders.Cab[floor] || orders.HallDown[floor] {
 				return floor, nil
 			}
 		}
 
 		for i := floor - 1; i >= 0; i-- {
-			if cabOrders[i] || hallDownOrders[i] {
+			if orders.Cab[i] || orders.HallDown[i] {
 				return i, nil
 			}
 		}
 		for i := range NumberOfFloors {
-			if cabOrders[i] || hallUpOrders[i] {
+			if orders.Cab[i] || orders.HallUp[i] {
 				return i, nil
 			}
 		}
 		for i := NumberOfFloors - 1; i >= floor; i-- {
-			if cabOrders[i] || hallDownOrders[i] {
+			if orders.Cab[i] || orders.HallDown[i] {
 				return i, nil
 			}
 		}

@@ -19,20 +19,21 @@ type hallRequestAssignerInput struct {
 	States       map[string]hallRequestAssignerInputState `json:"states"`
 }
 
-func (worldView *WorldView) hallRequestAssigner() {
+type AssignedOrders struct {
+	HallUp   [NumberOfFloors]bool
+	HallDown [NumberOfFloors]bool
+	Cab      [NumberOfFloors]bool
+}
 
-	worldView.AssignedHallUpOrders = [NumberOfFloors]bool{}
-	worldView.AssignedHallDownOrders = [NumberOfFloors]bool{}
-	worldView.AssignedCabOrders = [NumberOfFloors]bool{}
+func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
+	var assignedOrders AssignedOrders
 
 	confirmedOrders := worldView.getConfirmedOrders()
 
-	worldView.AssignedCabOrders = confirmedOrders.Cab
+	assignedOrders.Cab = confirmedOrders.Cab
 
 	if !anyOrdersConfirmed(confirmedOrders) {
-		worldView.AssignedHallUpOrders = confirmedOrders.HallUp
-		worldView.AssignedHallDownOrders = confirmedOrders.HallDown
-		return
+		return assignedOrders
 	}
 
 	hallRequests := make([][2]bool, NumberOfFloors)
@@ -66,7 +67,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 	}
 
 	if len(states) == 0 {
-		return
+		return assignedOrders
 	}
 
 	input := hallRequestAssignerInput{
@@ -82,7 +83,7 @@ func (worldView *WorldView) hallRequestAssigner() {
 	command := exec.Command("./hall_request_assigner", "--input", string(inputJSON))
 	outputJSON, err := command.Output()
 	if err != nil {
-		panic("hallRequestAssigner: command failed: " + err.Error())
+		panic("hallRequestAssigner: command failed: " + err.Error() + "\ninputJSON = " + string(inputJSON))
 	}
 
 	var hallAssignmentsByElevator map[string][][]bool
@@ -90,17 +91,18 @@ func (worldView *WorldView) hallRequestAssigner() {
 		panic("hallRequestAssigner: failed to unmarshal output: " + err.Error())
 	}
 
-	myId := GetMyId()
-	assignedHallRequests, exists := hallAssignmentsByElevator[myId.String()]
+	assignedHallRequests, exists := hallAssignmentsByElevator[nodeId.String()]
 	if !exists {
-		return
+		return assignedOrders
 	}
 
 	for floor := range NumberOfFloors {
-		worldView.AssignedHallUpOrders[floor] = assignedHallRequests[floor][0]
-		worldView.AssignedHallDownOrders[floor] = assignedHallRequests[floor][1]
+		assignedOrders.HallUp[floor] = assignedHallRequests[floor][0]
+		assignedOrders.HallDown[floor] = assignedHallRequests[floor][1]
 
 	}
+
+	return assignedOrders
 }
 
 func getBehaviourString(elevatorState ElevatorState) string {

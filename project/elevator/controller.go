@@ -72,6 +72,30 @@ func startElevatorController(elevatorStateCh chan<- ElevatorState, orderComplete
 	controller.handleDriving(targetFloorCh, enterFloorCh, leaveFloorCh)
 }
 
+func (controller *ElevatorController) handleDriving(targetFloorCh, enterFloorCh, leaveFloorCh <-chan int) {
+	for {
+		select {
+		case floor := <-enterFloorCh:
+			fmt.Printf("ENTER FLOOR %d\n", floor)
+			controller.handleEnterFloor(floor)
+		case floor := <-leaveFloorCh:
+			fmt.Printf("LEAVE FLOOR %d\n", floor)
+			controller.handleLeaveFloor(floor)
+		case targetFloor := <-targetFloorCh:
+			fmt.Printf("TARGET FLOOR = %d\n", targetFloor)
+			controller.handleTargetFloor(targetFloor)
+		case <-controller.door.CloseTrigger():
+			fmt.Println("CLOSE DOOR")
+			controller.handleCloseDoorTrigger()
+		case <-controller.floorMovementTimeout.C:
+			fmt.Println("FLOOR MOVEMENT TIMEOUT")
+			controller.handleFloorMovementTimeout()
+		}
+		fmt.Printf("AFTER EVENT STATE:\n%v\n", controller)
+		controller.sendElevatorStateUpdate()
+	}
+}
+
 func (controller *ElevatorController) sendElevatorStateUpdate() {
 	newElevatorState := controller.GetElevatorState()
 
@@ -154,7 +178,10 @@ func (controller *ElevatorController) GetElevatorState() ElevatorState {
 
 	elevatorState.Behaviour = controller.state.behaviour
 	elevatorState.Direction = controller.state.direction
-	elevatorState.Floor = controller.state.lastFloor
+	elevatorState.Floor = controller.state.floorBelow
+	if controller.state.direction == DOWN && !controller.state.isAtFloor {
+		elevatorState.Floor = controller.state.floorBelow + 1
+	}
 
 	return elevatorState
 }
@@ -350,26 +377,3 @@ func (controller *ElevatorController) handleFloorMovementTimeout() {
 	}
 }
 
-func (controller *ElevatorController) handleDriving(targetFloorCh, enterFloorCh, leaveFloorCh <-chan int) {
-	for {
-		select {
-		case floor := <-enterFloorCh:
-			fmt.Printf("ENTER FLOOR %d\n", floor)
-			controller.handleEnterFloor(floor)
-		case floor := <-leaveFloorCh:
-			fmt.Printf("LEAVE FLOOR %d\n", floor)
-			controller.handleLeaveFloor(floor)
-		case targetFloor := <-targetFloorCh:
-			fmt.Printf("TARGET FLOOR = %d\n", targetFloor)
-			controller.handleTargetFloor(targetFloor)
-		case <-controller.door.CloseTrigger():
-			fmt.Println("CLOSE DOOR")
-			controller.handleCloseDoorTrigger()
-		case <-controller.floorMovementTimeout.C:
-			fmt.Println("FLOOR MOVEMENT TIMEOUT")
-			controller.handleFloorMovementTimeout()
-		}
-		fmt.Printf("AFTER EVENT STATE:\n%v\n", controller)
-		controller.sendElevatorStateUpdate()
-	}
-}

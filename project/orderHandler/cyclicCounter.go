@@ -63,7 +63,7 @@ func getOrderStatuses(
 func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
 	switch myStatus {
 	case NO_ORDER:
-		if slices.Contains(connectedNodes, CONFIRMED) {
+		if slices.Contains(connectedNodes, CONFIRMED) || (allEquals(connectedNodes, []OrderStatus{UNCONFIRMED}) && len(connectedNodes) > 0) {
 			return CONFIRMED
 		}
 		if slices.Contains(connectedNodes, UNCONFIRMED) {
@@ -77,6 +77,9 @@ func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) 
 			return FINISHED
 		}
 	case CONFIRMED:
+		if allEquals(connectedNodes, []OrderStatus{FINISHED}) && len(connectedNodes) > 0 {
+			return NO_ORDER
+		}
 		if slices.Contains(connectedNodes, FINISHED) {
 			return FINISHED
 		}
@@ -97,4 +100,3 @@ func allEquals[T comparable](slice []T, values []T) bool {
 	}
 	return true
 }
-
