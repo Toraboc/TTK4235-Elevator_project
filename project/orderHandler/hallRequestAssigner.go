@@ -26,10 +26,8 @@ func (worldView *WorldView) hallRequestAssigner() {
 
 	confirmedOrders := worldView.getConfirmedOrders()
 
-	//Cab orders are restricted to the given elevator
 	worldView.AssignedCabOrders = confirmedOrders.Cab
 
-	//prevents running the script in case of no existing orders
 	if !anyOrdersConfirmed(confirmedOrders) {
 		worldView.AssignedHallUpOrders = confirmedOrders.HallUp
 		worldView.AssignedHallDownOrders = confirmedOrders.HallDown
