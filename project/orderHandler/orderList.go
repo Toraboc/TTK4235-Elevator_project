@@ -1,8 +1,8 @@
 package orderHandler
 
 import (
-	"strings"
 	. "project/shared"
+	"strings"
 )
 
 type OrderList [NumberOfFloors]OrderStatus

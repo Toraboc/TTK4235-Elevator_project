@@ -1,8 +1,8 @@
 package orderHandler
 
 import (
-	"strings"
 	. "project/shared"
+	"strings"
 )
 
 type Orders struct {
@@ -23,26 +23,25 @@ func NewOrders(nodeId NodeId) *Orders {
 }
 
 func (orders *Orders) Clone() *Orders {
-	var copy Orders
+	var cloned Orders
 
-	copy.HallUpOrders = orders.HallUpOrders.Clone()
-	copy.HallDownOrders = orders.HallDownOrders.Clone()
-	copy.CabOrders = make(map[NodeId]*OrderList)
+	cloned.HallUpOrders = orders.HallUpOrders.Clone()
+	cloned.HallDownOrders = orders.HallDownOrders.Clone()
+	cloned.CabOrders = make(map[NodeId]*OrderList)
 	for nodeId := range orders.CabOrders {
-		copy.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
+		cloned.CabOrders[nodeId] = orders.CabOrders[nodeId].Clone()
 	}
 
-	return &copy
+	return &cloned
 }
 
 func (orders *OrderList) Clone() *OrderList {
-	var copy OrderList
+	var cloned OrderList
 	for i := range NumberOfFloors {
-		copy[i] = orders[i]
+		cloned[i] = orders[i]
 	}
-	return &copy
+	return &cloned
 }
-
 
 func (orders Orders) String() string {
 	var builder strings.Builder

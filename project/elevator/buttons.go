@@ -2,8 +2,8 @@ package elevator
 
 import (
 	"fmt"
-	. "project/shared"
 	. "project/orderHandler"
+	. "project/shared"
 	"time"
 
 	"github.com/angrycompany16/driver-go/elevio"

@@ -10,7 +10,7 @@ type OrderStatusCombined struct {
 	otherStatuses []OrderStatus
 }
 
-func AllEquals[T comparable](slice []T, values []T) bool {
+func allEquals[T comparable](slice []T, values []T) bool {
 	for _, item := range slice {
 		if !slices.Contains(values, item) {
 			return false
@@ -29,7 +29,7 @@ func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) 
 			return UNCONFIRMED
 		}
 	case UNCONFIRMED:
-		if AllEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
+		if allEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
 			return CONFIRMED
 		}
 	case CONFIRMED:
@@ -40,7 +40,7 @@ func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) 
 		if slices.Contains(connectedNodes, UNCONFIRMED) {
 			return UNCONFIRMED
 		}
-		if AllEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
+		if allEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
 			return NO_ORDER
 		}
 	}

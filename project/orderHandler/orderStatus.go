@@ -23,4 +23,3 @@ func (orderStatus OrderStatus) String() string {
 		panic("Invalid orderStatus, could not convert to string")
 	}
 }
-
