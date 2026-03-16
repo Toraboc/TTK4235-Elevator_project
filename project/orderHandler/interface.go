@@ -22,11 +22,11 @@ func RequestWorldView(requestCh chan chan WorldView) WorldView {
 }
 
 type OrderCompletedEvent struct {
-	Floor int
+	Floor     int
 	Direction Direction
 }
 
 type NewOrderEvent struct {
-	Floor int
+	Floor     int
 	OrderType OrderType
 }

@@ -57,7 +57,7 @@ func (behaviour ElevatorBehaviour) String() string {
 	case DISCONNECTED:
 		return "DISCONNECTED"
 	default:
-		panic("Undefined EleavtorBehaviour")
+		panic("Undefined ElevatorBehaviour")
 	}
 }
 

@@ -2,8 +2,8 @@ package elevator
 
 import (
 	"fmt"
-	. "project/shared"
 	. "project/orderHandler"
+	. "project/shared"
 	"strings"
 	"time"
 
@@ -108,7 +108,6 @@ func (controller *ElevatorController) drive(direction Direction) {
 		panic("Cannot start to move the elevator while the door is open.")
 	}
 
-	// pos.behaviour = MOVING
 	controller.state.direction = direction
 	if direction == UP {
 		elevio.SetMotorDirection(elevio.MD_Up)
