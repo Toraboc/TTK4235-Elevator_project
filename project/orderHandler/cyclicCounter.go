@@ -73,14 +73,14 @@ func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) 
 		if allEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
 			return CONFIRMED
 		}
+		if slices.Contains(connectedNodes, FINISHED) {
+			return FINISHED
+		}
 	case CONFIRMED:
 		if slices.Contains(connectedNodes, FINISHED) {
 			return FINISHED
 		}
 	case FINISHED:
-		if slices.Contains(connectedNodes, UNCONFIRMED) {
-			return UNCONFIRMED
-		}
 		if allEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
 			return NO_ORDER
 		}

@@ -78,7 +78,6 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	worldView.updateAllOrderStatuses()
 	worldView.hallRequestAssigner()
-	worldView.updateAllOrderStatuses()
 
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
