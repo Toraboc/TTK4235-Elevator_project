@@ -2,16 +2,16 @@ package orderHandler
 
 import (
 	"fmt"
+	"maps"
 	. "project/shared"
 	"strings"
-	"maps"
 )
 
 type WorldView struct {
-	Orders                 map[NodeId]*Orders
-	ConnectedNodes         NodeIdSet
-	ElevatorStates         map[NodeId]ElevatorState
-	lastTargetFloor        int
+	Orders          map[NodeId]*Orders
+	ConnectedNodes  NodeIdSet
+	ElevatorStates  map[NodeId]ElevatorState
+	lastTargetFloor int
 }
 
 type SyncView struct {
