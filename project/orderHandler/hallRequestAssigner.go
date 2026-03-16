@@ -82,7 +82,7 @@ func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 	command := exec.Command("./hall_request_assigner", "--input", string(inputJSON))
 	outputJSON, err := command.Output()
 	if err != nil {
-		panic("hallRequestAssigner: command failed: " + err.Error())
+		panic("hallRequestAssigner: command failed: " + err.Error() + "\ninputJSON = " + string(inputJSON))
 	}
 
 	var hallAssignmentsByElevator map[string][][]bool
