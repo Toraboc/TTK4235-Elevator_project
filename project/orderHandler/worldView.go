@@ -66,11 +66,11 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 
 	worldView.Orders[sourceNodeId] = sourceOrders.Clone()
 
-	cabOrdersIThinkYouHave := worldView.Orders[GetMyId()].CabOrders
-	cabOrdersYouHave := sourceOrders.CabOrders
-	for nodeId, cabOrders := range cabOrdersYouHave {
-		if _, exists := cabOrdersIThinkYouHave[nodeId]; !exists {
-			cabOrdersIThinkYouHave[nodeId] = cabOrders.clone()
+	existingCabOrders := worldView.Orders[GetMyId()].CabOrders
+	incomingCabOrders := sourceOrders.CabOrders
+	for nodeId, cabOrders := range incomingCabOrders {
+		if _, exists := existingCabOrders[nodeId]; !exists {
+			existingCabOrders[nodeId] = cabOrders.clone()
 		}
 	}
 }
@@ -79,7 +79,7 @@ func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	worldView.updateCyclicCounter()
 	worldView.hallRequestAssigner()
 	worldView.updateCyclicCounter()
-	
+
 	targetFloor, err := worldView.getNextTargetFloor()
 	if err != nil {
 		fmt.Println(err.Error())
