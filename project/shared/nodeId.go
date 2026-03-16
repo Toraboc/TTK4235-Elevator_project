@@ -57,6 +57,18 @@ func (set NodeIdSet) String() string {
 	return builder.String()
 }
 
+func (set NodeIdSet) Equals(other NodeIdSet) bool {
+	if len(set) != len(other) {
+        return false
+    }
+    for k := range set {
+        if _, ok := other[k]; !ok {
+            return false
+        }
+    }
+    return true
+}
+
 func (id NodeId) String() string {
 	return fmt.Sprintf("%d.%d.%d.%d", byte(id>>24), byte(id>>16), byte(id>>8), byte(id))
 }
@@ -79,7 +91,7 @@ func getIpAddress() NodeId {
 		id32 := (uint32(ip[0]) << 24) | (uint32(ip[1]) << 16) | (uint32(ip[2]) << 8) | uint32(ip[3])
 		return NodeId(id32)
 	}
-	panic("Failed to get IP address for NodeId")
+	panic("Failed to determine IP address.")
 }
 
 var myId NodeId
