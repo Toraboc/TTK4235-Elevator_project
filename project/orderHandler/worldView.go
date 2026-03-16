@@ -31,7 +31,7 @@ func newWorldView() WorldView {
 
 	worldView.ElevatorStates = make(map[NodeId]ElevatorState)
 	worldView.Orders = make(map[NodeId]*Orders)
-	worldView.Orders[myId] = NewOrders(myId)
+	worldView.Orders[myId] = createOrders(myId)
 
 	worldView.lastTargetFloor = -1
 
@@ -70,7 +70,7 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 	cabOrdersYouHave := sourceOrders.CabOrders
 	for nodeId, cabOrders := range cabOrdersYouHave {
 		if _, exists := cabOrdersIThinkYouHave[nodeId]; !exists {
-			cabOrdersIThinkYouHave[nodeId] = cabOrders.Clone()
+			cabOrdersIThinkYouHave[nodeId] = cabOrders.clone()
 		}
 	}
 }
