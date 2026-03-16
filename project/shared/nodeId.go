@@ -91,7 +91,7 @@ func getIpAddress() NodeId {
 		id32 := (uint32(ip[0]) << 24) | (uint32(ip[1]) << 16) | (uint32(ip[2]) << 8) | uint32(ip[3])
 		return NodeId(id32)
 	}
-	panic("Failed to determine ip adress.")
+	panic("Failed to determine IP address.")
 }
 
 var myId NodeId

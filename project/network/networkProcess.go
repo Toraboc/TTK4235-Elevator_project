@@ -34,7 +34,7 @@ func udpBroadcast(nodeControl *NodeControl, worldViewReqCh chan chan WorldView) 
 	}
 	defer conn.Close()
 
-	sendTimer := time.NewTicker(time.Second / SendHz)
+	sendTimer := time.NewTicker(time.Second / SendFrequency)
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
@@ -85,7 +85,7 @@ func updateConnectedNodes(nodeControl *NodeControl, connectedNodesUpdateCh chan<
 	lastConnectedNodes := nodeControl.getConnectedNodes()
 	connectedNodesUpdateCh <- lastConnectedNodes
 
-	ticker := time.NewTicker(time.Second / PruneHz)
+	ticker := time.NewTicker(time.Second / updateConnectedNodesFrequency)
 	defer ticker.Stop()
 
 	for range ticker.C {
