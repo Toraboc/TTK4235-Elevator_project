@@ -5,6 +5,36 @@ import (
 	. "project/shared"
 )
 
+func OrderProcess(channels OrderHandlerInterface) {
+	fmt.Println("Starting order process")
+	worldView := newWorldView()
+
+	for {
+		select {
+		case connectedNodes := <-channels.ConnectedNodesUpdateCh:
+			worldView.ConnectedNodes = connectedNodes.Clone()
+			updateTargetFloorIfChanged(channels, &worldView)
+
+		case syncView := <-channels.WorldViewMergeCh:
+			worldView.merge(syncView.NodeId, syncView.ElevatorState, syncView.Orders)
+			updateTargetFloorIfChanged(channels, &worldView)
+
+			// fmt.Println(worldView.String())
+		case elevatorState := <-channels.ElevatorStateCh:
+			worldView.ElevatorStates[GetMyId()] = elevatorState
+			updateTargetFloorIfChanged(channels, &worldView)
+		case orderCompleted := <-channels.OrderCompletedCh:
+			handleOrderCompleted(channels, &worldView, orderCompleted)
+		case newOrder := <-channels.NewOrderCh:
+			handleNewOrder(&worldView, newOrder)
+			updateTargetFloorIfChanged(channels, &worldView)
+		case responseCh := <-channels.WorldViewReqCh:
+			responseCh <- worldView.clone()
+		}
+	}
+}
+
+
 func updateTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool, error) {
 	targetFloor, changed, err := worldView.handleStateChange()
 	channels.ConfirmedOrdersCh <- worldView.getConfirmedOrders()
@@ -83,33 +113,4 @@ func handleNewOrder(worldView *WorldView, newOrder NewOrderEvent) {
 		myOrders.CabOrders[myId] = myCabOrders
 	}
 	worldView.Orders[myId] = myOrders
-}
-
-func OrderProcess(channels OrderHandlerInterface) {
-	fmt.Println("Starting order process")
-	worldView := newWorldView()
-
-	for {
-		select {
-		case connectedNodes := <-channels.ConnectedNodesUpdateCh:
-			worldView.ConnectedNodes = connectedNodes.Clone()
-			updateTargetFloorIfChanged(channels, &worldView)
-
-		case syncView := <-channels.WorldViewMergeCh:
-			worldView.merge(syncView.NodeId, syncView.ElevatorState, syncView.Orders)
-			updateTargetFloorIfChanged(channels, &worldView)
-
-			// fmt.Println(worldView.String())
-		case elevatorState := <-channels.ElevatorStateCh:
-			worldView.ElevatorStates[GetMyId()] = elevatorState
-			updateTargetFloorIfChanged(channels, &worldView)
-		case orderCompleted := <-channels.OrderCompletedCh:
-			handleOrderCompleted(channels, &worldView, orderCompleted)
-		case newOrder := <-channels.NewOrderCh:
-			handleNewOrder(&worldView, newOrder)
-			updateTargetFloorIfChanged(channels, &worldView)
-		case responseCh := <-channels.WorldViewReqCh:
-			responseCh <- worldView.clone()
-		}
-	}
 }
