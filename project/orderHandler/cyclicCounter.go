@@ -10,7 +10,7 @@ type OrderStatusCombined struct {
 	otherStatuses []OrderStatus
 }
 
-func updateOrderStatusForOrderType(
+func updateCyclicCounter(
 	orders map[NodeId]*Orders,
 	myId NodeId,
 	connectedNodes NodeIdSet,
