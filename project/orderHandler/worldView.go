@@ -4,6 +4,7 @@ import (
 	"fmt"
 	. "project/shared"
 	"strings"
+	"maps"
 )
 
 type WorldView struct {
@@ -41,10 +42,7 @@ func (worldView *WorldView) clone() WorldView {
 	clone.ConnectedNodes = make(NodeIdSet)
 	clone.ConnectedNodes.Concat(worldView.ConnectedNodes)
 
-	clone.ElevatorStates = make(map[NodeId]ElevatorState)
-	for nodeId, elevatorState := range worldView.ElevatorStates {
-		clone.ElevatorStates[nodeId] = elevatorState
-	}
+	clone.ElevatorStates = maps.Clone(worldView.ElevatorStates)
 
 	clone.Orders = make(map[NodeId]*Orders)
 	for nodeId, orders := range worldView.Orders {
@@ -69,10 +67,8 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 }
 
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
-	// TODO: I think we shoudl figure out why this is needed - Theodor
 	worldView.updateAllOrderStatuses()
 	targetFloor, err := worldView.getNextTargetFloor()
-	worldView.updateAllOrderStatuses()
 	if err != nil {
 		fmt.Println(err.Error())
 		return worldView.lastTargetFloor, false, err
