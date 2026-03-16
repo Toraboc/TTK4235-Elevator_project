@@ -2,7 +2,6 @@ package orderHandler
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	. "project/shared"
 )
@@ -74,7 +73,7 @@ func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 		HallRequests: hallRequests,
 		States:       states,
 	}
-	fmt.Println("INPUT",input)
+	
 	inputJSON, err := json.Marshal(input)
 	if err != nil {
 		panic("hallRequestAssigner: failed to marshal input: " + err.Error())
