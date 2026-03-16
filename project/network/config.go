@@ -9,7 +9,7 @@ const (
 	BroadcastAddress = "255.255.255.255"
 	// broadcast frequency in Hz.
 	SendFrequency = 250
-	// frequency for pruning stale peers.
+	// frequency to check if nodes are connected or disconnected.
 	updateConnectedNodesFrequency = 10
 	// duration after which a peer is considered stale.
 	StaleThreshold = 200 * time.Millisecond
