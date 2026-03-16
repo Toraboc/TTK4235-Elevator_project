@@ -10,7 +10,6 @@ type OrderStatusCombined struct {
 	otherStatuses []OrderStatus
 }
 
-//Synes kanskje denne bør ha et annet navn enn den i worlview
 func updateOrderStatusForOrderType(
 	orders map[NodeId]*Orders,
 	myId NodeId,
