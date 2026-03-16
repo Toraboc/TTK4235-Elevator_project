@@ -70,7 +70,7 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 	incomingCabOrders := sourceOrders.CabOrders
 	for nodeId, cabOrders := range incomingCabOrders {
 		if _, exists := existingCabOrders[nodeId]; !exists {
-			existingCabOrders[nodeId] = cabOrders.clone()
+			existingCabOrders[nodeId] = cabOrders.Clone()
 		}
 	}
 }
