@@ -13,16 +13,14 @@ import (
 func NetworkProcess(channels NetworkInterface) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
-	knownNodes := newKnownNodes()
-	nodesAwareOfMe := newNodesAwareOfMe()
 
-	updateConnectedNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
-	go pruneNodes(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh)
-	go udpListen(knownNodes, nodesAwareOfMe, channels.ConnectedNodesUpdateCh, channels.WorldViewMergeCh)
-	udpBroadcast(knownNodes, channels.WorldViewReqCh)
+	nodeControl := newNodeControl(channels.ConnectedNodesUpdateCh)
+
+	go udpListen(nodeControl, channels.WorldViewMergeCh)
+	udpBroadcast(nodeControl, channels.WorldViewReqCh)
 }
 
-func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh chan chan WorldView) {
+func udpBroadcast(nodeControl *NodeControl, worldViewReqCh chan chan WorldView) {
 	var conn *net.UDPConn
 	for {
 		var err error
@@ -39,7 +37,7 @@ func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh chan chan WorldView) {
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync(worldViewReqCh, knownNodes)
+		syncMsg := createOutgoingSync(worldViewReqCh, nodeControl)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
@@ -52,7 +50,17 @@ func udpBroadcast(knownNodes *KnownNodes, worldViewReqCh chan chan WorldView) {
 	}
 }
 
-func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet, worldViewMergeCh chan<- SyncView) {
+func nodeIdListToSet(nodeIds []NodeId) NodeIdSet {
+	nodeIdSet := make(NodeIdSet)
+
+	for _, nodeId := range nodeIds {
+		nodeIdSet.Add(nodeId)
+	}
+
+	return nodeIdSet
+}
+
+func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncView) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -76,8 +84,7 @@ func udpListen(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connected
 			continue
 		}
 
-		knownNodes.nodeSeen(syncMsg.Id, nodesAwareOfMe, connectedNodesUpdateCh)
-		nodesAwareOfMe.update(syncMsg, knownNodes, connectedNodesUpdateCh)
+		nodeControl.incommingSync(syncMsg.Id, nodeIdListToSet(syncMsg.KnownNodes))
 
 		worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}

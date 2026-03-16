@@ -2,40 +2,92 @@ package network
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	. "project/shared"
 )
 
-func getConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe) NodeIdSet {
-	set := make(NodeIdSet)
-	knownNodes.mu.Lock()
-	defer knownNodes.mu.Unlock()
-	nodesAwareOfMe.mu.Lock()
-	defer nodesAwareOfMe.mu.Unlock()
+type NetworkNode struct {
+	knowsMe  bool
+	lastSeen time.Time
+}
 
-	for id := range knownNodes.LastSeen {
-		if entry, exists := nodesAwareOfMe.knowsAboutMe[id]; exists && entry.Node {
-			set.Add(id)
+type NodeControl struct {
+	nodes                  map[NodeId]*NetworkNode
+	mu                     sync.Mutex
+}
+
+func newNodeControl(connectedNodesUpdateCh chan<- NodeIdSet) *NodeControl {
+	var nodeControl NodeControl
+	nodeControl.nodes = make(map[NodeId]*NetworkNode)
+
+	go nodeControl.updateConnectedNodes(connectedNodesUpdateCh)
+
+	return &nodeControl
+}
+
+// Nodes that we have receive a sync message from within the time limit, and that has received one of ours sync messages.
+func (nodeControl *NodeControl) getConnectedNodes() NodeIdSet {
+	connectedNodes := make(NodeIdSet)
+	connectedNodes.Add(GetMyId())
+
+	nodeControl.mu.Lock()
+	defer nodeControl.mu.Unlock()
+
+	for nodeId, networkNode := range nodeControl.nodes {
+		if networkNode.knowsMe && time.Since(networkNode.lastSeen) < StaleThreshold {
+			connectedNodes.Add(nodeId)
 		}
 	}
 
-	set.Add(GetMyId())
-
-	return set
+	return connectedNodes
 }
 
-func pruneNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet) {
+func (nodeControl *NodeControl) updateConnectedNodes(connectedNodesUpdateCh chan<- NodeIdSet) {
+	lastConnectedNodes := nodeControl.getConnectedNodes()
+	connectedNodesUpdateCh <- lastConnectedNodes
+
 	ticker := time.NewTicker(time.Second / PruneHz)
 	defer ticker.Stop()
+
 	for range ticker.C {
-		knownNodes.pruneStale(nodesAwareOfMe, connectedNodesUpdateCh)
-		nodesAwareOfMe.pruneStale(knownNodes, connectedNodesUpdateCh)
+		connectedNodes := nodeControl.getConnectedNodes()
+
+		if !lastConnectedNodes.Equals(connectedNodes) {
+			lastConnectedNodes = connectedNodes
+			connectedNodesUpdateCh <- connectedNodes.Clone()
+			fmt.Printf("Connected nodes: %v\n", connectedNodes)
+		}
 	}
 }
 
-func updateConnectedNodes(knownNodes *KnownNodes, nodesAwareOfMe *NodesAwareOfMe, connectedNodesUpdateCh chan<- NodeIdSet) {
-	connectedNodes := getConnectedNodes(knownNodes, nodesAwareOfMe)
-	connectedNodesUpdateCh <- connectedNodes
-	fmt.Printf("Connected nodes: %v\n", connectedNodes)
+// This function return all the nodes that we have received a sync message from within the time limit.
+func (nodeControl *NodeControl) getKnownNodes() NodeIdSet {
+	knownNodes := make(NodeIdSet)
+	nodeControl.mu.Lock()
+	defer nodeControl.mu.Unlock()
+
+	for nodeId, netNetworkNode := range nodeControl.nodes {
+		if time.Since(netNetworkNode.lastSeen) < StaleThreshold {
+			knownNodes.Add(nodeId)
+		}
+	}
+
+	return knownNodes
 }
+
+func (nodeControl *NodeControl) incommingSync(sourceNodeId NodeId, knownNodes NodeIdSet) {
+	nodeControl.mu.Lock()
+	defer nodeControl.mu.Unlock()
+
+	networkNode, exists := nodeControl.nodes[sourceNodeId]
+	if !exists {
+		networkNode = &NetworkNode{}
+		nodeControl.nodes[sourceNodeId] = networkNode
+	}
+
+	networkNode.lastSeen = time.Now()
+	networkNode.knowsMe = knownNodes.Contains(GetMyId())
+}
+

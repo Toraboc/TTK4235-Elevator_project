@@ -12,20 +12,24 @@ type SyncMessage struct {
 	KnownNodes []NodeId
 }
 
-func createOutgoingSync(worldViewReqCh chan chan WorldView, knownNodes *KnownNodes) SyncMessage {
-	worldview := RequestWorldView(worldViewReqCh)
+func nodeIdSetToList(nodeIdSet NodeIdSet) []NodeId {
+	var nodeIdList []NodeId
 
-	knownNodes.mu.Lock()
-	defer knownNodes.mu.Unlock()
+	for nodeId := range nodeIdSet {
+		nodeIdList = append(nodeIdList, nodeId)
+	}
+
+	return nodeIdList
+}
+
+func createOutgoingSync(worldViewReqCh chan chan WorldView, nodeControl *NodeControl) SyncMessage {
+	worldview := RequestWorldView(worldViewReqCh)
 
 	syncMsg := SyncMessage{}
 
 	syncMsg.Id = GetMyId()
 	syncMsg.Orders = *worldview.Orders[syncMsg.Id].Clone()
 	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
-	syncMsg.KnownNodes = make([]NodeId, 0, len(knownNodes.LastSeen))
-	for id := range knownNodes.LastSeen {
-		syncMsg.KnownNodes = append(syncMsg.KnownNodes, id)
-	}
+	syncMsg.KnownNodes = nodeIdSetToList(nodeControl.getKnownNodes())
 	return syncMsg
 }
