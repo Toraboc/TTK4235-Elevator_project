@@ -21,23 +21,23 @@ func main() {
 	InitMyId()
 
 	ConnectedNodesUpdateCh := make(chan NodeIdSet, 1)
-	WorldViewMergeCh := make(chan SyncView, 1)
+	SyncMergeCh := make(chan SyncData, 1)
 	ElevatorStateCh := make(chan ElevatorState, 1)
 	OrderCompletedCh := make(chan OrderCompletedEvent, 10)
 	NewOrderCh := make(chan NewOrderEvent, 10)
-	WorldViewReqCh := make(chan chan WorldView)
+	RequestSyncCh := make(chan chan SyncData)
 	ConfirmedOrdersCh := make(chan ConfirmedOrders, 1)
 	TargetFloorCh := make(chan int, 1)
 
 	orderHandlerChannels := OrderHandlerInterface{
 		ConnectedNodesUpdateCh: ConnectedNodesUpdateCh,
-		WorldViewMergeCh:       WorldViewMergeCh,
+		SyncMergeCh:            SyncMergeCh,
 		ElevatorStateCh:        ElevatorStateCh,
 		OrderCompletedCh:       OrderCompletedCh,
 		NewOrderCh:             NewOrderCh,
-		WorldViewReqCh:         WorldViewReqCh,
 		ConfirmedOrdersCh:      ConfirmedOrdersCh,
 		TargetFloorCh:          TargetFloorCh,
+		RequestSyncCh:          RequestSyncCh,
 	}
 
 	elevatorChannels := ElevatorInterface{
@@ -50,8 +50,8 @@ func main() {
 
 	networkChannels := NetworkInterface{
 		ConnectedNodesUpdateCh: ConnectedNodesUpdateCh,
-		WorldViewMergeCh:       WorldViewMergeCh,
-		WorldViewReqCh:         WorldViewReqCh,
+		SyncMergeCh:            SyncMergeCh,
+		RequestSyncCh:          RequestSyncCh,
 	}
 
 	go NetworkProcess(networkChannels)

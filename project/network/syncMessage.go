@@ -22,14 +22,14 @@ func nodeIdSetToList(nodeIdSet NodeIdSet) []NodeId {
 	return nodeIdList
 }
 
-func createOutgoingSync(worldViewReqCh chan chan WorldView, nodeControl *NodeControl) SyncMessage {
-	worldview := RequestWorldView(worldViewReqCh)
+func createOutgoingSync(requestSyncCh chan chan SyncData, nodeControl *NodeControl) SyncMessage {
+	syncData := RequestSyncView(requestSyncCh)
 
 	syncMsg := SyncMessage{}
 
 	syncMsg.Id = GetMyId()
-	syncMsg.Orders = *worldview.Orders[syncMsg.Id].Clone()
-	syncMsg.MyState = worldview.ElevatorStates[syncMsg.Id]
+	syncMsg.Orders = syncData.Orders
+	syncMsg.MyState = syncData.ElevatorState
 	syncMsg.KnownNodes = nodeIdSetToList(nodeControl.getKnownNodes())
 	return syncMsg
 }

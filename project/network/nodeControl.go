@@ -17,7 +17,7 @@ type NodeControl struct {
 	mu                     sync.Mutex
 }
 
-func newNodeControl(connectedNodesUpdateCh chan<- NodeIdSet) *NodeControl {
+func newNodeControl() *NodeControl {
 	var nodeControl NodeControl
 	nodeControl.nodes = make(map[NodeId]*NetworkNode)
 

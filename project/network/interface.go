@@ -7,6 +7,6 @@ import (
 
 type NetworkInterface struct {
 	ConnectedNodesUpdateCh chan<- NodeIdSet
-	WorldViewMergeCh       chan<- SyncView
-	WorldViewReqCh         chan chan WorldView
+	SyncMergeCh            chan<- SyncData
+	RequestSyncCh          chan chan SyncData
 }

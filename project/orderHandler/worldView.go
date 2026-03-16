@@ -14,12 +14,6 @@ type WorldView struct {
 	lastTargetFloor int
 }
 
-type SyncView struct {
-	NodeId        NodeId
-	ElevatorState ElevatorState
-	Orders        Orders
-}
-
 func newWorldView() WorldView {
 	var worldView WorldView
 

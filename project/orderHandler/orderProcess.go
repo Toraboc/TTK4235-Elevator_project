@@ -15,7 +15,7 @@ func OrderProcess(channels OrderHandlerInterface) {
 			worldView.ConnectedNodes = connectedNodes.Clone()
 			updateTargetFloorIfChanged(channels, &worldView)
 
-		case syncView := <-channels.WorldViewMergeCh:
+		case syncView := <-channels.SyncMergeCh:
 			worldView.merge(syncView.NodeId, syncView.ElevatorState, syncView.Orders)
 			updateTargetFloorIfChanged(channels, &worldView)
 
@@ -28,8 +28,12 @@ func OrderProcess(channels OrderHandlerInterface) {
 		case newOrder := <-channels.NewOrderCh:
 			handleNewOrder(&worldView, newOrder)
 			updateTargetFloorIfChanged(channels, &worldView)
-		case responseCh := <-channels.WorldViewReqCh:
-			responseCh <- worldView.clone()
+		case responseCh := <-channels.RequestSyncCh:
+			var syncData SyncData
+			syncData.NodeId = GetMyId()
+			syncData.Orders = *worldView.Orders[syncData.NodeId].Clone()
+			syncData.ElevatorState = worldView.ElevatorStates[syncData.NodeId]
+			responseCh <- syncData
 		}
 	}
 }
