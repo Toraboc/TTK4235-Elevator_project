@@ -51,7 +51,7 @@ func udpBroadcast(nodeControl *NodeControl, requestSyncCh chan chan SyncData) {
 	}
 }
 
-func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncData) {
+func udpListen(nodeControl *NodeControl, syncMergeCh chan<- SyncData) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -77,7 +77,7 @@ func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncData) {
 
 		nodeControl.incommingSync(syncMsg.Id, nodeIdListToSet(syncMsg.KnownNodes))
 
-		worldViewMergeCh <- SyncData{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+		syncMergeCh <- SyncData{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}
 }
 
