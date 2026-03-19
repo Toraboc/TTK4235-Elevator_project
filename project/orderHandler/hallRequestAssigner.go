@@ -27,7 +27,7 @@ type AssignedOrders struct {
 func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 	var assignedOrders AssignedOrders
 
-	confirmedOrders := worldView.getConfirmedOrders()
+	confirmedOrders := getConfirmedOrders(worldView.Orders[nodeId], nodeId)
 
 	assignedOrders.Cab = confirmedOrders.Cab
 

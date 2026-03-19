@@ -41,7 +41,8 @@ func OrderProcess(channels OrderHandlerInterface) {
 
 func updateTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool, error) {
 	targetFloor, changed, err := worldView.handleStateChange()
-	channels.ConfirmedOrdersCh <- worldView.getConfirmedOrders()
+	myId := GetMyId()
+	channels.ConfirmedOrdersCh <- getConfirmedOrders(worldView.Orders[myId], myId)
 	if err == nil && changed {
 		channels.TargetFloorCh <- targetFloor
 	}
