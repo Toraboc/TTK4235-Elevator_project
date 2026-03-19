@@ -8,12 +8,12 @@ import (
 func getNextTargetFloor(worldView WorldView, nodeId NodeId) (int, error) {
 	elevatorState, exists := worldView.ElevatorStates[nodeId]
 	if !exists {
-		return -1, fmt.Errorf("missing elevator elevatorState for own node")
+		return -1, fmt.Errorf("Missing elevator elevatorState for own node")
 	}
 
 	floor := elevatorState.Floor
 	if floor < 0 || floor >= NumberOfFloors {
-		return -1, fmt.Errorf("invalid current floor: %d", floor)
+		return -1, fmt.Errorf("Invalid current floor: %d", floor)
 	}
 
 	orders := hallRequestAssigner(worldView, nodeId)

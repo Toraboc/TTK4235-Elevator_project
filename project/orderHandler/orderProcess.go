@@ -25,10 +25,7 @@ func OrderProcess(channels OrderHandlerInterface) {
 
 		case orderCompleted := <-channels.OrderCompletedCh:
 			worldView.completedOrder(orderCompleted)
-			newTargetFloor, changed, err := updateTargetFloorIfChanged(channels, &worldView)
-			if err != nil {
-				panic(err.Error())
-			}
+			newTargetFloor, changed := updateTargetFloorIfChanged(channels, &worldView)
 
 			// This means that we still have an order in the opposite direction at this floor.
 			// Then we also need to take this order afterwards.
@@ -50,13 +47,13 @@ func OrderProcess(channels OrderHandlerInterface) {
 	}
 }
 
-func updateTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool, error) {
-	targetFloor, changed, err := worldView.handleStateChange()
+func updateTargetFloorIfChanged(channels OrderHandlerInterface, worldView *WorldView) (int, bool) {
+	targetFloor, changed := worldView.handleStateChange()
 	myId := GetMyId()
 	channels.ConfirmedOrdersCh <- getConfirmedOrders(worldView.Orders[myId], myId)
-	if err == nil && changed {
+	if changed {
 		channels.TargetFloorCh <- targetFloor
 	}
-	return targetFloor, changed, err
+	return targetFloor, changed
 }
 

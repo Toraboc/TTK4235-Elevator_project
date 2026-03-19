@@ -119,20 +119,23 @@ func (worldView *WorldView) completedOrder(orderCompleted OrderCompletedEvent) {
 	}
 }
 
-func (worldView *WorldView) handleStateChange() (int, bool, error) {
+func (worldView *WorldView) handleStateChange() (int, bool) {
 	worldView.updateAllOrderStatuses()
 	targetFloor, err := getNextTargetFloor(*worldView, GetMyId())
 	if err != nil {
-		fmt.Println(err.Error())
-		return worldView.lastTargetFloor, false, err
+		if !strings.HasPrefix(err.Error(), "Missing") {
+			panic(err.Error())
+		}
+
+		return worldView.lastTargetFloor, false
 	}
 
 	if targetFloor != worldView.lastTargetFloor {
 		worldView.lastTargetFloor = targetFloor
-		return targetFloor, true, nil
+		return targetFloor, true
 	}
 
-	return targetFloor, false, nil
+	return targetFloor, false
 }
 
 func (worldView *WorldView) updateAllOrderStatuses() {
