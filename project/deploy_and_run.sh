@@ -6,13 +6,12 @@ set -euo pipefail
 IP_PREFIX="10.100.23."
 REMOTE_USER="student"
 LOCAL_GO_DIR="."
-REMOTE_BASE_DIR="/home/$REMOTE_USER/Documents/Sanntid55"
-CODE_DIR="/project"
+REMOTE_BASE_DIR="/home/$REMOTE_USER/Documents/Sanntid55/"
+CODE_DIR="."
 SSH_KEY="$HOME/.ssh/id_ed25519"
 SSH_PUB_KEY="$SSH_KEY.pub"
 # ----------------------------------------
 
-# Parse flags
 HOSTS=()
 
 while [[ "$#" -gt 0 ]]; do
@@ -26,13 +25,11 @@ if [[ "${#HOSTS[@]}" -eq 0 ]]; then
     exit 1
 fi
 
-# 1. Ensure SSH key exists
 if [[ "$(uname -s)" == "Linux" && ! -f "$SSH_KEY" ]]; then
     echo "No SSH key found. Generating one..."
     ssh-keygen -t ed25519 -f "$SSH_KEY" -N ""
 fi
 
-# 2. Function to ensure key-based access
 ensure_ssh_access() {
     local host="$1"
 
@@ -78,22 +75,19 @@ cleanup() {
 
 trap cleanup INT
 
-# 4. Copy code and start program (full mode)
 run_remote() {
     local host="$1"
 
     echo "Deploying to $host..."
 
-    # 1. Stop elevatorserver if something is listening on port 15657
+    # Kill running elevatorserver, to make sure all other controllers stop
     ssh "$REMOTE_USER@$host" "
         pkill -f ./elevatorserver
     " || true
 
-    # Sync code (only changed files, delete removed files)
-    ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR$CODE_DIR"
-    rsync -a --delete ".$CODE_DIR/" "$REMOTE_USER@$host:$REMOTE_BASE_DIR$CODE_DIR/"
+    ssh "$REMOTE_USER@$host" "mkdir -p $REMOTE_BASE_DIR/$CODE_DIR"
+    rsync -a --delete "$CODE_DIR" "$REMOTE_USER@$host:$REMOTE_BASE_DIR/$CODE_DIR/"
 
-    # Start elevatorserver and go code
     ssh "$REMOTE_USER@$host" "
         set -e
 
@@ -107,11 +101,9 @@ run_remote() {
     JOB_PIDS+=("$!")
 }
 
-# 5. Main loop
 for last_octet in "${HOSTS[@]}"; do
     [[ -z "$last_octet" ]] && continue
 
-    # Construct full IP
     host="${IP_PREFIX}${last_octet}"
 
     ensure_ssh_access "$host"
