@@ -60,31 +60,31 @@ func getOrderStatuses(
 	return result
 }
 
-func cyclicCounterNextValue(myStatus OrderStatus, connectedNodes []OrderStatus) OrderStatus {
+func cyclicCounterNextValue(myStatus OrderStatus, connectedNodeStatuses []OrderStatus) OrderStatus {
 	switch myStatus {
 	case NO_ORDER:
-		if slices.Contains(connectedNodes, CONFIRMED) || (allEquals(connectedNodes, []OrderStatus{UNCONFIRMED}) && len(connectedNodes) > 0) {
+		if slices.Contains(connectedNodeStatuses, CONFIRMED) || (allEquals(connectedNodeStatuses, []OrderStatus{UNCONFIRMED}) && len(connectedNodeStatuses) > 0) {
 			return CONFIRMED
 		}
-		if slices.Contains(connectedNodes, UNCONFIRMED) {
+		if slices.Contains(connectedNodeStatuses, UNCONFIRMED) {
 			return UNCONFIRMED
 		}
 	case UNCONFIRMED:
-		if allEquals(connectedNodes, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodes, CONFIRMED) {
+		if allEquals(connectedNodeStatuses, []OrderStatus{UNCONFIRMED, CONFIRMED}) || slices.Contains(connectedNodeStatuses, CONFIRMED) {
 			return CONFIRMED
 		}
-		if slices.Contains(connectedNodes, FINISHED) {
+		if slices.Contains(connectedNodeStatuses, FINISHED) {
 			return FINISHED
 		}
 	case CONFIRMED:
-		if allEquals(connectedNodes, []OrderStatus{FINISHED}) && len(connectedNodes) > 0 {
+		if allEquals(connectedNodeStatuses, []OrderStatus{FINISHED}) && len(connectedNodeStatuses) > 0 {
 			return NO_ORDER
 		}
-		if slices.Contains(connectedNodes, FINISHED) {
+		if slices.Contains(connectedNodeStatuses, FINISHED) {
 			return FINISHED
 		}
 	case FINISHED:
-		if allEquals(connectedNodes, []OrderStatus{FINISHED, NO_ORDER}) {
+		if allEquals(connectedNodeStatuses, []OrderStatus{FINISHED, NO_ORDER}) {
 			return NO_ORDER
 		}
 	}

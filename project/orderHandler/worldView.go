@@ -91,17 +91,12 @@ func (worldView *WorldView) updateAllOrderStatuses() {
 	}
 	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getHallUp)
 
-	for nodeId := range connectedNodes {
+	for nodeId := range worldView.ConnectedNodes {
 		getCabOrder := func(orders *Orders) *OrderList {
 			return orders.CabOrders[nodeId]
 		}
 		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
 	}
-
-	getMyCab := func(orders *Orders) *OrderList {
-		return orders.CabOrders[myId]
-	}
-	updateCyclicCounter(worldView.Orders, myId, connectedNodes, getMyCab)
 }
 
 func (worldView *WorldView) getNextTargetFloor() (int, error) {

@@ -7,14 +7,14 @@ import (
 )
 
 type hallRequestAssignerInputState struct {
-	Behaviour   string `json:"behaviour"`
-	Floor       int    `json:"floor"`
-	Direction   string `json:"direction"`
-	CabRequests []bool `json:"cabRequests"`
+	Behaviour   string               `json:"behaviour"`
+	Floor       int                  `json:"floor"`
+	Direction   string               `json:"direction"`
+	CabRequests [NumberOfFloors]bool `json:"cabRequests"`
 }
 
 type hallRequestAssignerInput struct {
-	HallRequests [][2]bool                                `json:"hallRequests"`
+	HallRequests [NumberOfFloors][2]bool                  `json:"hallRequests"`
 	States       map[string]hallRequestAssignerInputState `json:"states"`
 }
 
@@ -29,13 +29,13 @@ func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 
 	confirmedOrders := getConfirmedOrders(worldView.Orders[nodeId], nodeId)
 
-	assignedOrders.Cab = confirmedOrders.Cab
-
 	if !anyOrdersConfirmed(confirmedOrders) {
 		return assignedOrders
 	}
 
-	hallRequests := make([][2]bool, NumberOfFloors)
+	assignedOrders.Cab = confirmedOrders.Cab
+
+	var hallRequests [NumberOfFloors][2]bool
 	for floor := range NumberOfFloors {
 		hallRequests[floor][0] = confirmedOrders.HallUp[floor]
 		hallRequests[floor][1] = confirmedOrders.HallDown[floor]
@@ -49,11 +49,10 @@ func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 			continue
 		}
 
-		cabRequests := make([]bool, NumberOfFloors)
+		var cabRequests [NumberOfFloors]bool
 		if orders, exists := worldView.Orders[nodeId]; exists {
 			if cabOrders, exists := orders.CabOrders[nodeId]; exists {
-				confirmedCab := findConfirmedOrdersInArray(cabOrders)
-				cabRequests = confirmedCab[:]
+				cabRequests = findConfirmedOrdersInArray(cabOrders)
 			}
 		}
 
@@ -76,18 +75,18 @@ func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 
 	inputJSON, err := json.Marshal(input)
 	if err != nil {
-		panic("hallRequestAssigner: failed to marshal input: " + err.Error())
+		panic("Failed to marshal input for the Hall Request Assigner: " + err.Error())
 	}
 
 	command := exec.Command("./hall_request_assigner", "--input", string(inputJSON))
-	outputJSON, err := command.Output()
+	assignerOutput, err := command.CombinedOutput()
 	if err != nil {
-		panic("hallRequestAssigner: command failed: " + err.Error() + "\ninputJSON = " + string(inputJSON))
+		panic("hall_request_assigner: command failed:\n" + err.Error() + "\n\nInput:\n" + string(inputJSON) + "\n\nOutput:\n" + string(assignerOutput))
 	}
 
 	var hallAssignmentsByElevator map[string][][]bool
-	if err := json.Unmarshal(outputJSON, &hallAssignmentsByElevator); err != nil {
-		panic("hallRequestAssigner: failed to unmarshal output: " + err.Error())
+	if err := json.Unmarshal(assignerOutput, &hallAssignmentsByElevator); err != nil {
+		panic("Failed to unmarshal output from the Hall Request Assigner: " + err.Error())
 	}
 
 	assignedHallRequests, exists := hallAssignmentsByElevator[nodeId.String()]
@@ -98,7 +97,6 @@ func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
 	for floor := range NumberOfFloors {
 		assignedOrders.HallUp[floor] = assignedHallRequests[floor][0]
 		assignedOrders.HallDown[floor] = assignedHallRequests[floor][1]
-
 	}
 
 	return assignedOrders
