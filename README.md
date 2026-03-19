@@ -29,7 +29,7 @@ For eksempel slik
 
 - [X] Fikse de siste bugsene
 - [ ] Refactore koden litt
-    - [ ] Fjerne TODO
+    - [X] Fjerne TODO
     - [X] Se over alle mutex
     - [X] Endre hvordan kanalene settes opp
     - [X] Fjerne ubrukte funksjoner

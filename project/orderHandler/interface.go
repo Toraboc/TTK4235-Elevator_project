@@ -6,17 +6,23 @@ import (
 
 type OrderHandlerInterface struct {
 	ConnectedNodesUpdateCh <-chan NodeIdSet
-	WorldViewMergeCh       <-chan SyncView
+	SyncMergeCh            <-chan SyncData
 	ElevatorStateCh        <-chan ElevatorState
 	OrderCompletedCh       <-chan OrderCompletedEvent
 	NewOrderCh             <-chan NewOrderEvent
-	WorldViewReqCh         chan chan WorldView
+	RequestSyncCh          chan chan SyncData
 	ConfirmedOrdersCh      chan<- ConfirmedOrders
 	TargetFloorCh          chan<- int
 }
 
-func RequestWorldView(requestCh chan chan WorldView) WorldView {
-	responseCh := make(chan WorldView)
+type SyncData struct {
+	NodeId        NodeId
+	ElevatorState ElevatorState
+	Orders        Orders
+}
+
+func RequestSyncView(requestCh chan chan SyncData) SyncData {
+	responseCh := make(chan SyncData)
 	requestCh <- responseCh
 	return <-responseCh
 }

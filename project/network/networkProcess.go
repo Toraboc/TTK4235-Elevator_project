@@ -14,14 +14,14 @@ func NetworkProcess(channels NetworkInterface) {
 	fmt.Println("Starting network process")
 	fmt.Printf("My Ip: %v\n", GetMyId())
 
-	nodeControl := newNodeControl(channels.ConnectedNodesUpdateCh)
+	nodeControl := newNodeControl()
 
 	go updateConnectedNodes(nodeControl, channels.ConnectedNodesUpdateCh)
-	go udpListen(nodeControl, channels.WorldViewMergeCh)
-	udpBroadcast(nodeControl, channels.WorldViewReqCh)
+	go udpListen(nodeControl, channels.SyncMergeCh)
+	udpBroadcast(nodeControl, channels.RequestSyncCh)
 }
 
-func udpBroadcast(nodeControl *NodeControl, worldViewReqCh chan chan WorldView) {
+func udpBroadcast(nodeControl *NodeControl, requestSyncCh chan chan SyncData) {
 	var conn *net.UDPConn
 	for {
 		var err error
@@ -38,7 +38,7 @@ func udpBroadcast(nodeControl *NodeControl, worldViewReqCh chan chan WorldView) 
 	defer sendTimer.Stop()
 
 	for range sendTimer.C {
-		syncMsg := createOutgoingSync(worldViewReqCh, nodeControl)
+		syncMsg := createOutgoingSync(requestSyncCh, nodeControl)
 		data, err := json.Marshal(syncMsg)
 		if err != nil {
 			fmt.Println("Error marshaling sync message:", err)
@@ -51,7 +51,7 @@ func udpBroadcast(nodeControl *NodeControl, worldViewReqCh chan chan WorldView) 
 	}
 }
 
-func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncView) {
+func udpListen(nodeControl *NodeControl, syncMergeCh chan<- SyncData) {
 	conn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4zero, Port: Port})
 	if err != nil {
 		panic("Failed to listen on UDP: " + err.Error())
@@ -77,7 +77,7 @@ func udpListen(nodeControl *NodeControl, worldViewMergeCh chan<- SyncView) {
 
 		nodeControl.incommingSync(syncMsg.Id, nodeIdListToSet(syncMsg.KnownNodes))
 
-		worldViewMergeCh <- SyncView{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
+		syncMergeCh <- SyncData{NodeId: syncMsg.Id, ElevatorState: syncMsg.MyState, Orders: syncMsg.Orders}
 	}
 }
 
