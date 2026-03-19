@@ -6,7 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ELEVATORSERVER="$SCRIPT_DIR/elevatorserver"
 BINARY="$SCRIPT_DIR/project"
 
-# Build
 cd "$SCRIPT_DIR" && go build -o "$BINARY" .
 
 killJobs() {
@@ -22,7 +21,6 @@ cleanup() {
 trap cleanup INT TERM
 
 while true; do
-    # Kill any leftover processes
     killJobs
     sleep 0.5
 
@@ -35,7 +33,6 @@ while true; do
     "$BINARY" &
     APP_PID=$!
 
-    # Wait for either process to exit
     wait -n "$ELEVATOR_PID" "$APP_PID" 2>/dev/null || true
 
     echo "A process exited, restarting both..."

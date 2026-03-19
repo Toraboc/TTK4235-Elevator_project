@@ -49,14 +49,12 @@ ensure_ssh_access() {
 }
 
 
-# Keep track of background job PIDs
 declare -a JOB_PIDS=()
 
 # Ctrl-C handler
 cleanup() {
     echo "Caught Ctrl-C! Killing background jobs..."
 
-    # Kill local background jobs (SSH sessions)
     for pid in "${JOB_PIDS[@]}"; do
         disown "$pid" 2>/dev/null || true
         kill "$pid" 2>/dev/null || true
