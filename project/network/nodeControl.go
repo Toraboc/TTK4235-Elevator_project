@@ -13,8 +13,8 @@ type NetworkNode struct {
 }
 
 type NodeControl struct {
-	nodes                  map[NodeId]*NetworkNode
-	mu                     sync.Mutex
+	nodes map[NodeId]*NetworkNode
+	mu    sync.Mutex
 }
 
 func newNodeControl() *NodeControl {
@@ -24,7 +24,7 @@ func newNodeControl() *NodeControl {
 	return &nodeControl
 }
 
-// Nodes that we have receive a sync message from within the time limit, and that has received one of ours sync messages.
+// Nodes that we have received a sync message from within the time limit, and that has received one of our sync messages.
 func (nodeControl *NodeControl) getConnectedNodes() NodeIdSet {
 	connectedNodes := make(NodeIdSet)
 	connectedNodes.Add(GetMyId())
@@ -41,7 +41,7 @@ func (nodeControl *NodeControl) getConnectedNodes() NodeIdSet {
 	return connectedNodes
 }
 
-// This function return all the nodes that we have received a sync message from within the time limit.
+// This function returns all the nodes that we have received a sync message from within the time limit.
 func (nodeControl *NodeControl) getKnownNodes() NodeIdSet {
 	knownNodes := make(NodeIdSet)
 	nodeControl.mu.Lock()
@@ -69,4 +69,3 @@ func (nodeControl *NodeControl) incommingSync(sourceNodeId NodeId, knownNodes No
 	networkNode.lastSeen = time.Now()
 	networkNode.knowsMe = knownNodes.Contains(GetMyId())
 }
-
