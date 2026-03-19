@@ -8,7 +8,7 @@ import (
 func getNextTargetFloor(worldView WorldView, nodeId NodeId) (int, error) {
 	elevatorState, exists := worldView.ElevatorStates[nodeId]
 	if !exists {
-		return -1, fmt.Errorf("missing elevator elevatorState for own node")
+		return -1, fmt.Errorf("missing elevatorState for own node")
 	}
 
 	floor := elevatorState.Floor
