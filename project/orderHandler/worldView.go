@@ -60,9 +60,68 @@ func (worldView *WorldView) merge(sourceNodeId NodeId, sourceNodeState ElevatorS
 	}
 }
 
+func (worldView *WorldView) newOrder(newOrder NewOrderEvent) {
+	myId := GetMyId()
+	myOrders := worldView.Orders[myId]
+	switch newOrder.OrderType {
+	case HALLUP:
+		if myOrders.HallUpOrders[newOrder.Floor] == NO_ORDER {
+			myOrders.HallUpOrders[newOrder.Floor] = UNCONFIRMED
+		}
+	case HALLDOWN:
+		if myOrders.HallDownOrders[newOrder.Floor] == NO_ORDER {
+			myOrders.HallDownOrders[newOrder.Floor] = UNCONFIRMED
+		}
+	case CAB:
+		myCabOrders := myOrders.CabOrders[myId]
+		if myCabOrders[newOrder.Floor] == NO_ORDER {
+			myCabOrders[newOrder.Floor] = UNCONFIRMED
+		}
+		myOrders.CabOrders[myId] = myCabOrders
+	}
+}
+
+func (worldView *WorldView) completedOrder(orderCompleted OrderCompletedEvent) {
+	myId := GetMyId()
+	myOrders := worldView.Orders[myId]
+
+	myOrders.CabOrders[myId][orderCompleted.Floor] = FINISHED
+
+	var hadHallOrder bool
+	switch orderCompleted.Direction {
+	case UP:
+		hadHallOrder = myOrders.HallUpOrders[orderCompleted.Floor] == CONFIRMED
+		if hadHallOrder {
+			myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
+		}
+	case DOWN:
+		hadHallOrder = myOrders.HallDownOrders[orderCompleted.Floor] == CONFIRMED
+		if hadHallOrder {
+			myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
+		}
+	}
+
+	if !hadHallOrder {
+		targetFloor, err := getNextTargetFloor(*worldView, myId)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		if targetFloor == orderCompleted.Floor {
+			switch orderCompleted.Direction {
+			case UP:
+				myOrders.HallDownOrders[orderCompleted.Floor] = FINISHED
+			case DOWN:
+				myOrders.HallUpOrders[orderCompleted.Floor] = FINISHED
+			}
+
+		}
+	}
+}
+
 func (worldView *WorldView) handleStateChange() (int, bool, error) {
 	worldView.updateAllOrderStatuses()
-	targetFloor, err := worldView.getNextTargetFloor()
+	targetFloor, err := getNextTargetFloor(*worldView, GetMyId())
 	if err != nil {
 		fmt.Println(err.Error())
 		return worldView.lastTargetFloor, false, err
@@ -97,70 +156,6 @@ func (worldView *WorldView) updateAllOrderStatuses() {
 		}
 		updateCyclicCounter(worldView.Orders, myId, connectedNodes, getCabOrder)
 	}
-}
-
-func (worldView *WorldView) getNextTargetFloor() (int, error) {
-	myId := GetMyId()
-
-	elevatorState, exists := worldView.ElevatorStates[myId]
-	if !exists {
-		return -1, fmt.Errorf("missing elevator elevatorState for own node")
-	}
-
-	floor := elevatorState.Floor
-	if floor < 0 || floor >= NumberOfFloors {
-		return -1, fmt.Errorf("invalid current floor: %d", floor)
-	}
-
-	orders := hallRequestAssigner(worldView, myId)
-
-	if elevatorState.Direction == UP {
-		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
-			if orders.Cab[floor] || orders.HallUp[floor] {
-				return floor, nil
-			}
-		}
-
-		for i := floor + 1; i < NumberOfFloors; i++ {
-			if orders.Cab[i] || orders.HallUp[i] {
-				return i, nil
-			}
-		}
-		for i := NumberOfFloors - 1; i >= 0; i-- {
-			if orders.Cab[i] || orders.HallDown[i] {
-				return i, nil
-			}
-		}
-		for i := 0; i <= floor; i++ {
-			if orders.Cab[i] || orders.HallUp[i] {
-				return i, nil
-			}
-		}
-	}
-	if elevatorState.Direction == DOWN {
-		if elevatorState.Behaviour == PASSENGER_TRANSFER || elevatorState.Behaviour == IDLE {
-			if orders.Cab[floor] || orders.HallDown[floor] {
-				return floor, nil
-			}
-		}
-
-		for i := floor - 1; i >= 0; i-- {
-			if orders.Cab[i] || orders.HallDown[i] {
-				return i, nil
-			}
-		}
-		for i := range NumberOfFloors {
-			if orders.Cab[i] || orders.HallUp[i] {
-				return i, nil
-			}
-		}
-		for i := NumberOfFloors - 1; i >= floor; i-- {
-			if orders.Cab[i] || orders.HallDown[i] {
-				return i, nil
-			}
-		}
-	}
-	return -1, nil
 }
 
 func (worldView *WorldView) String() string {

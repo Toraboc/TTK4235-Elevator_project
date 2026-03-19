@@ -24,7 +24,7 @@ type AssignedOrders struct {
 	Cab      [NumberOfFloors]bool
 }
 
-func hallRequestAssigner(worldView *WorldView, nodeId NodeId) AssignedOrders {
+func hallRequestAssigner(worldView WorldView, nodeId NodeId) AssignedOrders {
 	var assignedOrders AssignedOrders
 
 	confirmedOrders := getConfirmedOrders(worldView.Orders[nodeId], nodeId)
