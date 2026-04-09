@@ -1,0 +1,10 @@
+# D build artifacts
+*.o
+*_test
+
+# Ada build artifacts
+*.ali
+protectobj
+
+# Go binaries (if built in-place)
+*.exe
