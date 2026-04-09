@@ -34,10 +34,10 @@ e012
 
 bf32
 6
-- You have an event-driven structure with clear goroutines for driver, network, and scheduler, but the structure is fairly problematic. All routines are run from elevatorManager.go instead of main.go. In addition, for instance the fsm module gives light, motor and timer side effects, and shows clear signs of weak cohesion. The elevatormodule does both all the major operations and supersmall ones. To fix the structure it would be easier to restart than to refactor.
-- ElevatorManager works well as orchestrator, but consider renaming or moving scheduler-specific helpers (for example publishSchedulerSnapshot) to keep module responsibilities cleaner. In addition the whole managerState is passed to several modules, which only should need small parts of the state, and this weakens cohesion.
+- You have an event-driven structure with clear goroutines for driver, network, and scheduler, but the structure is fairly problematic. All routines are run from elevatorManager.go instead of main.go. In addition, the fsm module has light, motor, and timer side effects, and shows clear signs of weak cohesion. The elevator module does both major operations and very small ones. To fix the structure, it would be easier to restart than to refactor.
+- ElevatorManager works well as an orchestrator, but consider renaming or moving scheduler-specific helpers (for example publishSchedulerSnapshot) to keep module responsibilities cleaner. In addition, the whole managerState is passed to several modules, which should only need small parts of the state, and this weakens cohesion.
 - Request handling already has useful structure, but clarifying ownership of Requests, Assignments, and GlobalCabRequests would make future changes safer.
-- Better naming and a cleaner file stucture could make the code more readable; for instance the name RequestStates is a bit unclear, and the map showing the states is fairly hidden in the filestructure.
+- Better naming and a cleaner file structure could make the code more readable; for instance, the name RequestStates is a bit unclear, and the map showing the states is fairly hidden in the file structure.
 - Network and registry interaction is functional, but defining a sharper boundary for peer liveness vs. transport responsibilities would simplify reasoning.
-- It might be benefitial to add a short architecture section in README describing acknowledgement, order assignment, execution flow, and backup behavior, so design choices are visible without deep code tracing.
+- It might be beneficial to add a short architecture section in README describing acknowledgement, order assignment, execution flow, and backup behavior, so design choices are visible without deep code tracing.
 
