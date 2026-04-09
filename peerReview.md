@@ -25,7 +25,7 @@ e012
 7
 - Code is nicely split into modules, but there are a few too many, making the codebase feel a bit chaotic. The "wvm" module should be given a more descriptive name ("world view manager" is not obvious from the acronym).
 - The code does not build, there are unused imports and variables that break compilation ("fmt" in fsm/fsm.go, request/request.go, wvm/wvm.go). Some code also looks commented out last-minute, which makes the snapshot hard to run/review.
-- There are many comments that should likely be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 🙂
+- There are many comments that should be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 🙂
 - Network broadcast unnecessarily uses a low-level abstraction with OS-specific code. Go's net package can handle UDP broadcast cross-platform, which would likely simplify the code and improve readability.
 - Most functions are declared global even when only used internally. Consider unexporting helper functions (lowercase) to reduce coupling and make it clearer which functions are intended to be used by other modules.
 - Overall structure is coherent, but responsibility boundaries are sometimes unclear (who owns/updates which state). Tightening ownership per module would improve readability and testability.
@@ -34,7 +34,7 @@ e012
 
 bf32
 6
-- You have an event-driven structure with clear goroutines for driver, network, and scheduler, but the structure is fairly problematic. All routines are run from elevatorManager.go instead of main.go. In addition, the fsm module has light, motor, and timer side effects, and shows clear signs of weak cohesion. The elevator module does both major operations and very small ones. To fix the structure, it would be easier to restart than to refactor.
+- You have an event-driven structure with clear goroutines for driver, network, and scheduler, but the structure is fairly problematic. All routines are run from elevatorManager.go instead of main.go. In addition, the fsm module has light, motor, and timer side effects, and shows clear signs of weak cohesion. The elevatorManager module does both major operations and very small ones. To fix the structure, it would be easier to restart than to refactor.
 - ElevatorManager works well as an orchestrator, but consider renaming or moving scheduler-specific helpers (for example publishSchedulerSnapshot) to keep module responsibilities cleaner. In addition, the whole managerState is passed to several modules, which should only need small parts of the state, and this weakens cohesion.
 - Request handling already has useful structure, but clarifying ownership of Requests, Assignments, and GlobalCabRequests would make future changes safer.
 - Better naming and a cleaner file structure could make the code more readable; for instance, the name RequestStates is a bit unclear, and the map showing the states is fairly hidden in the file structure.
