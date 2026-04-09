@@ -1,0 +1,9 @@
+Condition variables, Java monitors, and Ada protected objects solve the same problem: wait until a condition is true while releasing mutual exclusion. The main difference is structure. Condition variables are flexible but manual (easy to misuse). Java monitors guide the pattern more, but can still suffer from missed/incorrect signaling. Ada protected objects are most declarative, since entry guards encode the policy directly.
+
+These bugs are hard to catch because they depend on timing and interleavings. In this assignment, I trust the condition-variable and Ada solutions most after fixing queue/guard logic. The message-passing solutions also work, but the Go priority-select variant is trickier to reason about because it relies on careful select/default control flow. This reflects code quality: correctness is not enough if invariants are hard to read and maintain.
+
+Extending from 2 priorities to N is possible everywhere, but elegance varies. Condition-variable/request-queue designs scale naturally with a priority queue. Semaphore-based designs can scale too, but bookkeeping grows quickly. Ada protected objects can become verbose if N priorities require N entries (since guards cannot depend on entry parameters). That is a quality signal: approaches that scale policy without growing interface complexity are easier to maintain.
+
+Using `getValue` on semaphores is usually dubious for correctness. It exposes unstable implementation state, can change immediately after reading, and is not portable across platforms. It is fine for diagnostics, but weak as synchronization logic. Keeping explicit shared state under a mutex (like `numWaiting`) is safer.
+
+My preferred solutions here are request-based message passing and Ada protected objects. Both make ownership and policy explicit. In general, I prefer the highest-level abstraction that keeps invariants obvious, because it reduces hidden race risks and long-term maintenance cost.
