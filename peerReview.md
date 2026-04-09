@@ -21,6 +21,17 @@ dce1
 - In the cyclic counter, the fieldSelector parameter could have a more descriptive name. Passing a function to select a field in a struct can be a sign of poor struct organisation, but here the structs are designed to be convenient when working elevator by elevator rather than button by button, so a selector function is actually a useful solution to a real structural tension.
 - Names like WorldView, ConfirmedOrders, transferPassengers, and cyclicCounter communicate intent clearly and never mislead you when navigating the codebase.
 
+e012
+7
+- Code is nicely split into modules, but there are a few too many, making the codebase feel a bit chaotic. The "wvm" module should be given a more descriptive name ("world view manager" is not obvious from the acronym).
+- The code does not build, there are unused imports and variables that break compilation ("fmt" in fsm/fsm.go, request/request.go, wvm/wvm.go). Some code also looks commented out last-minute, which makes the snapshot hard to run/review.
+- There are many comments that should likely be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 🙂
+- Network broadcast unnecessarily uses a low-level abstraction with OS-specific code. Go's net package can handle UDP broadcast cross-platform, which would likely simplify the code and improve readability.
+- Most functions are declared global even when only used internally. Consider unexporting helper functions (lowercase) to reduce coupling and make it clearer which funtions are intended to be used by other modules.
+- Overall structure is coherent, but responsibility boundaries are sometimes unclear (who owns/updates which state). Tightening ownership per module would improve readability and testability.
+- Enums and structs are centralized in types.go, but several would be easier to navigate if placed closer to their owning module (or at least grouped more consistently); there are also inconsistencies in how this is handled across the codebase.
+- Function naming could be clearer. For example, network transmitters (peers.Transmitter vs bcast.Transmitter) don't communicate intent at call sites; more specific names and/or a small shared abstraction would make the code easier to follow.
+
 bf32
 score: 6
 - You have a event-driven structure with clear goroutines for driver, network, and scheduler, but the structure is fairly problematic. All routines are run from elevatorManager.go instead of main.go. In addition, for instance the fsm module gives light, motor and timer side effects, and shows clear signs of weak cohesion. The elevatormodule does both all the major operations and supersmall ones. To fix the structure it would be easier to restart than to refactor.
