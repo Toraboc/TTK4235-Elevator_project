@@ -33,7 +33,7 @@ e012
 - Function naming could be clearer. For example, network transmitters (peers.Transmitter vs bcast.Transmitter) don't communicate intent at call sites; more specific names and/or a small shared abstraction would make the code easier to follow.
 
 bf32
-score: 6
+6
 - You have a event-driven structure with clear goroutines for driver, network, and scheduler, but the structure is fairly problematic. All routines are run from elevatorManager.go instead of main.go. In addition, for instance the fsm module gives light, motor and timer side effects, and shows clear signs of weak cohesion. The elevatormodule does both all the major operations and supersmall ones. To fix the structure it would be easier to restart than to refactor.
 - ElevatorManager works well as orchestrator, but consider renaming or moving scheduler-specific helpers (for example publishSchedulerSnapshot) to keep module responsibilities cleaner. In addition the whole managerState is passed to several modules, which only should need small parts of the state, and this weakens cohesion.
 - Request handling already has useful structure, but clarifying ownership of Requests, Assignments, and GlobalCabRequests would make future changes safer.
