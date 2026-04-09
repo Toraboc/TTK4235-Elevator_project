@@ -23,7 +23,7 @@ e012
 7
 - Code is nicely split into modules, but there are a few too many, making the codebase feel a bit chaotic. The "wvm" module should be given a more descriptive name ("world view manager" is not obvious from the acronym).
 - The code does not build, there are unused imports and variables that break compilation ("fmt" in fsm/fsm.go, request/request.go, wvm/wvm.go). Some code also looks commented out last-minute, which makes the snapshot hard to run/review.
-- There are many comments that should likely be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 😊
+- There are many comments that should be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 😊
 - Network broadcast unnecessarily uses a low-level abstraction with OS-specific code. Go's net package can handle UDP broadcast cross-platform, which would likely simplify the code and improve readability.
 - Most functions are declared global even when only used internally. Consider unexporting helper functions (lowercase) to reduce coupling and make it clearer which functions are intended to be used by other modules.
 - Overall structure is coherent, but responsibility boundaries are sometimes unclear (who owns/updates which state). Tightening ownership per module would improve readability and testability.
