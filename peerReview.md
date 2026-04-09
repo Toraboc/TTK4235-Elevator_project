@@ -14,18 +14,16 @@ fdd8
 dce1
 9
 - All modules are imported with a dot import, which makes it harder to immediately see which module a function belongs to when reading the code.
-- The main file clearly shows the three modules and how they are connected. Channels are created here and passed through typed interface structs, so both the components and their dependencies are visible at a glance. The one oddity is the busy-waiting for loop at the end, the last goroutine could just be run as a regular function call instead.
-- From the file structure alone you can find where each design decision lives: hallRequestAssigner.go for order assignment, cyclicCounter.go for the distributed confirmation protocol, targetFloor.go for how the elevator decides where to go next, and nodeControl.go for peer discovery.
+- The main file clearly shows the three modules and how they are connected. Channels are created here and passed through typed interface structs, so both the components and their dependencies are visible. However the time sleep for loop at the end is unnecessary.
 - Each process owns its state exclusively and it is always clear who is responsible for what. Shared state across goroutines is essentially absent, with myId being the only global variable, and that is write-once at startup.
 - In the orderHandler, the worldView methods are the only functions that perform side effects, which makes it easy to reason about where state changes actually happen.
 - In the cyclic counter, the fieldSelector parameter could have a more descriptive name. Passing a function to select a field in a struct can be a sign of poor struct organisation, but here the structs are designed to be convenient when working elevator by elevator rather than button by button, so a selector function is actually a useful solution to a real structural tension.
-- Names like WorldView, ConfirmedOrders, transferPassengers, and cyclicCounter communicate intent clearly and never mislead you when navigating the codebase.
 
 e012
 7
 - Code is nicely split into modules, but there are a few too many, making the codebase feel a bit chaotic. The "wvm" module should be given a more descriptive name ("world view manager" is not obvious from the acronym).
 - The code does not build, there are unused imports and variables that break compilation ("fmt" in fsm/fsm.go, request/request.go, wvm/wvm.go). Some code also looks commented out last-minute, which makes the snapshot hard to run/review.
-- There are many comments that should be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 🙂
+- There are many comments that should be removed, especially self-notes and comments describing unused code. Keeping these adds noise and makes the code harder to scan. Prefer self-documenting code and keep comments for non-obvious decisions. Also remember to remove comments about removing comments(request.go) 😊
 - Network broadcast unnecessarily uses a low-level abstraction with OS-specific code. Go's net package can handle UDP broadcast cross-platform, which would likely simplify the code and improve readability.
 - Most functions are declared global even when only used internally. Consider unexporting helper functions (lowercase) to reduce coupling and make it clearer which functions are intended to be used by other modules.
 - Overall structure is coherent, but responsibility boundaries are sometimes unclear (who owns/updates which state). Tightening ownership per module would improve readability and testability.
